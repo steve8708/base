@@ -180,10 +180,18 @@ module.exports = (grunt) ->
           to: -> "/* base.js v#{packageVersion()} */ \n"
         ]
 
+      JSVersion:
+        src: ['src/coffee/base.coffee']
+        overwrite: true
+        replacements: [
+          from: /Base\.VERSION = '.*?'/
+          to: -> "Base.VERSION = '#{packageVersion()}'"
+        ]
+
     bump:
       options:
-        files: [ 'package.json', 'src/coffee/config.coffee' ]
-        commitFiles: [ '-a' ]
+        files: [ 'package.json' ]
+        commitFiles: [ 'package.json', 'src/coffee/base.coffee' ]
         pushTo: 'origin'
 
     shell:
@@ -232,10 +240,10 @@ module.exports = (grunt) ->
 
   grunt.registerTask 'build:release', [
     'clean:dist'
+    'replace:JSVersion'
     'build'
     'uglify'
     'replace:distCSS'
-    'replace:distJS'
   ]
 
   grunt.registerTask 'release:patch',   [
