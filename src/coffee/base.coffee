@@ -26,7 +26,7 @@ Base.noConflict = ->
   window.Base = originalBase
   Base
 
-Base.VERSION = '0.0.2'
+Base.VERSION = '0.0.3'
 
 
 # Config - - - - - - - - - - - - - - - - - - - - - - - - - -
