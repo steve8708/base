@@ -52,7 +52,7 @@ module.exports = (grunt) ->
 
     concat:
       dist:
-        dest: 'build/base.js'
+        dest: 'dist/base.js'
         src: [
           'src/js/ractive-backbone-associated-model-adaptor.js'
           'build/base.coffee.js'
@@ -120,7 +120,7 @@ module.exports = (grunt) ->
     uglify:
       main:
         files:
-          'dist/base.js': [ 'build/base.js' ]
+          'dist/base.min.js': [ 'dist/base.js' ]
 
     cssmin:
       main:
@@ -177,6 +177,14 @@ module.exports = (grunt) ->
         overwrite: true
         replacements: [
           from: /^/
+          to: -> "/* base.js v#{packageVersion()} */ \n\n"
+        ]
+
+      distMinJS:
+        src: [ 'dist/base.min.js' ]
+        overwrite: true
+        replacements: [
+          from: /^/
           to: -> "/* base.js v#{packageVersion()} */ \n"
         ]
 
@@ -191,7 +199,7 @@ module.exports = (grunt) ->
     bump:
       options:
         files: [ 'package.json' ]
-        commitFiles: [ 'package.json', 'src/coffee/base.coffee' ]
+        commitFiles: [ 'package.json', 'src/coffee/base.coffee', 'dist' ]
         pushTo: 'origin'
 
     shell:
@@ -243,6 +251,7 @@ module.exports = (grunt) ->
     'replace:JSVersion'
     'build'
     'uglify'
+    'replace:distMinJS'
     'replace:distJS'
   ]
 
