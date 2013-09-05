@@ -1,4 +1,4 @@
-/* base.js v0.0.4 */ 
+/* base.js v0.0.5 */ 
 
 (function (Ractive) {
 
@@ -135,7 +135,7 @@
     return Base;
   };
 
-  Base.VERSION = '0.0.4';
+  Base.VERSION = '0.0.5';
 
   Base.config = {
     debug: {
