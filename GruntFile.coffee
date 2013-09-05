@@ -243,7 +243,7 @@ module.exports = (grunt) ->
     'replace:JSVersion'
     'build'
     'uglify'
-    'replace:distCSS'
+    'replace:distJS'
   ]
 
   grunt.registerTask 'release:patch',   [
