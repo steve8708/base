@@ -1,0 +1,12 @@
+.DS_store
+node_modules
+build/*
+
+# Allow for devs to have git ignored local config files
+src/coffee/local-config.coffee
+
+# to allow anyone to put their project files in a non-shared folder
+project
+
+# any local reference materials needed
+reference
