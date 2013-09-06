@@ -1,4 +1,4 @@
-/* base.js v0.0.5 */ 
+/* base.js v0.0.6 */ 
 
 (function (Ractive) {
 
@@ -108,7 +108,7 @@
 
 
 (function() {
-  var Base, BasicView, addState, arr, capitalize, className, currentApp, method, originalBase, _fn, _fn1, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _m, _ref, _ref1, _ref2, _ref3, _ref4,
+  var Base, BasicView, DOMEventList, addState, appSurrogate, arr, callbackStringSplitter, capitalize, className, currentApp, method, originalBase, uncapitalize, _fn, _fn1, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _m, _ref, _ref1, _ref2, _ref3, _ref4,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     __slice = [].slice;
@@ -117,7 +117,16 @@
 
   currentApp = null;
 
+  appSurrogate = {};
+
   arr = [];
+
+  callbackStringSplitter = /\s*[,:()]+\s*/;
+
+  DOMEventList = 'blur, focus, focusin, focusout, load, resize, scroll,\
+  unload, click, dblclick, mousedown, mouseup, mousemove, mouseover,\
+  mouseout, mouseenter, mouseleave, change, select, submit, keydown,\
+  keypress, keyup, error, touchstart, touchend, touchmove'.split(/\s*,\s*/);
 
   Base = (function() {
     function Base() {
@@ -135,8 +144,6 @@
     return Base;
   };
 
-  Base.VERSION = '0.0.5';
-
   Base.config = {
     debug: {
       logModelChanges: false
@@ -144,12 +151,10 @@
   };
 
   Base.View = (function(_super) {
-    var request;
-
     __extends(View, _super);
 
     function View(options, attributes) {
-      var stateOptions, _base,
+      var config, key, type, value, _base, _i, _len, _ref, _ref1,
         _this = this;
       this.options = options != null ? options : {};
       if (this.name == null) {
@@ -162,14 +167,32 @@
         _base['data-pict-view'] = this.name.replace(/view/i, '').toLowerCase();
       }
       if (this.children == null) {
-        this.children = [];
+        this.children = new Base.List(this.options.children || []);
       }
-      View.__super__.constructor.apply(this, arguments);
-      stateOptions = _.extend({
+      this.stateOptions = _.defaults(this.stateOptions || {}, {
         relations: this.relations,
         compute: this.compute
-      }, this.stateOptions);
-      this.state = new Base.State(this.defaults || this.stateDefaults, stateOptions, this);
+      });
+      if (this.relations == null) {
+        this.relations = {};
+      }
+      this.relations.$state = Base.State;
+      addState(this);
+      this._bindEvents();
+      View.__super__.constructor.apply(this, arguments);
+      _ref = ['view', 'all'];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        type = _ref[_i];
+        _ref1 = Base.plugins[type];
+        for (key in _ref1) {
+          value = _ref1[key];
+          config = this.plugins && this.plugins[key] || Base.defaults.view.plugins[key] || Base.defaults.all.plugins[key];
+          if (config) {
+            value.call(this, this, config);
+          }
+        }
+      }
+      this._bindEventMethods();
       this.state.on('all', function() {
         var args;
         args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
@@ -183,6 +206,69 @@
     }
 
     View.prototype.moduleType = 'view';
+
+    View.prototype._bindEventMethods = function() {
+      var cb, event, _i, _len, _results;
+      _results = [];
+      for (_i = 0, _len = DOMEventList.length; _i < _len; _i++) {
+        event = DOMEventList[_i];
+        cb = this["on" + (capitalize(event))];
+        if (cb) {
+          _results.push(this.$el.on("" + event + ".delegateEvents", cb.bind(this)));
+        } else {
+          _results.push(void 0);
+        }
+      }
+      return _results;
+    };
+
+    View.prototype._getCallback = function(str, allowString) {
+      var args, split, value;
+      if (_.isFunction(str)) {
+        return str;
+      }
+      split = _.compact(str.split(callbackStringSplitter));
+      if (!split[1] && allowStrings) {
+        return str;
+      }
+      args = (function() {
+        var _i, _len, _ref, _results;
+        _ref = split.slice(1);
+        _results = [];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          value = _ref[_i];
+          _results.push($.zepto.deserializeValue(value));
+        }
+        return _results;
+      })();
+      return this[split[0]].bind(this, args);
+    };
+
+    View.prototype._bindEvents = function() {
+      var key, value, _ref, _ref1, _results;
+      if (this.events) {
+        _ref = this.events;
+        for (key in _ref) {
+          value = _ref[key];
+          if (value && value.split && callbackStringSplitter.test(value)) {
+            this.events[key] = this._getCallback(value);
+          }
+        }
+      }
+      if (this.bind) {
+        _ref1 = this.bind;
+        _results = [];
+        for (key in _ref1) {
+          value = _ref1[key];
+          if (value) {
+            _results.push(this.on(key, this._getCallback(value)));
+          } else {
+            _results.push(void 0);
+          }
+        }
+        return _results;
+      }
+    };
 
     View.prototype.render = function() {
       this.trigger('before:render');
@@ -263,18 +349,13 @@
         _results.push(this.$("x-" + key, items.map(function(item) {
           return item.node;
         })).each(function(index, el) {
-          var $el, attr, attrObjects, attrs, name, string, _i, _len, _ref1;
+          var $el, attr, attrs, _i, _len, _ref1;
           $el = $(el);
           attrs = {};
-          attrObjects = [];
           _ref1 = el.attributes;
           for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
             attr = _ref1[_i];
-            name = attr.name;
-            string = attr.value;
-            if (name.indexOf('x-') === 0) {
-              attrs[name.substring(2)] = string;
-            }
+            attrs[attr.name] = attr.value;
           }
           return value.call(_this, $el, _this, attrs);
         }));
@@ -336,7 +417,7 @@
     };
 
     View.prototype._initRactive = function() {
-      var adaptor, filters, key, template, templateName, val, value, _results,
+      var adaptor, filters, key, template, templateName, val, value, _ref, _results,
         _this = this;
       if (this.options.ractive || this.ractive) {
         filters = _.clone(Base.filters);
@@ -347,7 +428,7 @@
           }
         }
         templateName = "src/templates/views/" + ($.dasherize(this.name)) + ".html";
-        template = this.template || pict.templates[templateName] || '';
+        template = this.template || JST[templateName] || '';
         this.ractive = new Ractive({
           el: this.el,
           template: template,
@@ -377,11 +458,12 @@
         adaptor = Ractive.adaptors.backboneAssociatedModel;
         this.ractive.bind(adaptor(this.state));
         this.ractive.bind(adaptor(currentApp.state, '$app'));
+        _ref = app.singletons;
         _results = [];
-        for (key in pict) {
-          val = pict[key];
+        for (key in _ref) {
+          val = _ref[key];
           if (val instanceof Base.Model || val instanceof Base.Collection) {
-            _results.push(this.ractive.bind(adaptor(val, "$pict." + key)));
+            _results.push(this.ractive.bind(adaptor(val, "$app." + key)));
           } else {
             _results.push(void 0);
           }
@@ -391,41 +473,28 @@
     };
 
     View.prototype._bindEventBubbling = function() {
-      var uncap,
-        _this = this;
-      uncap = pict.utils.uncapitalize;
+      var _this = this;
       return this.on('all', function() {
-        var args, child, eventName, _i, _len, _ref, _results;
-        eventName = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
-        if (_this.parent && eventName.indexOf('broadcast:') !== 0) {
-          if (eventName.indexOf('child:') !== 0) {
-            _this.parent.trigger.apply(_this.parent, ['child:' + eventName].concat(args));
-            if (_this.name) {
-              _this.parent.trigger.apply(_this.parent, ['child:' + uncap(name) + ':' + eventName].concat(args));
-            }
-          } else if (eventName.indexOf('request:') === 0) {
-            _this.parent.trigger.apply(_this.parent, [eventName].concat(args));
-          }
-        }
-        if (_this.children && !/^(child:|request:)/.test(eventName)) {
-          _ref = _this.children;
-          _results = [];
-          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-            child = _ref[_i];
-            if (eventName.indexOf('broadcast:') !== 0) {
-              child.trigger.apply(child, ['broadcast:' + eventName].concat(args));
-              if (_this.name) {
-                _results.push(child.trigger.apply(child, ['broadcast:' + uncap(_this.name) + ':' + eventName].concat(args)));
-              } else {
-                _results.push(void 0);
-              }
-            } else {
-              _results.push(void 0);
-            }
-          }
-          return _results;
-        }
+        var args;
+        args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+        _this.broadcast.apply(_this, args);
+        return _this.emit.apply(_this, args);
       });
+    };
+
+    View.prototype.trigger = function() {
+      var args, eventName;
+      eventName = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
+      if (!(args[0] instanceof Base.Event)) {
+        args.unshift(new Base.Event({
+          name: eventName,
+          target: this,
+          currentTarget: this
+        }));
+      } else {
+        args[0].currentTarget = this;
+      }
+      return View.__super__.trigger.apply(this, arguments);
     };
 
     View.prototype.subView = function(name, view) {
@@ -588,15 +657,19 @@
       }
     };
 
-    View.prototype.requestResponse = function() {
-      var args, event, eventName, parent, response, _results;
+    View.prototype.request = function() {
+      var args, event, eventName, eventObj, parent, response, _results;
       eventName = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
       parent = this;
       _results = [];
       while (parent = parent.parent) {
-        event = _.last(parent._events["requestResponse:" + eventName]);
-        if (event) {
-          response = event.callback.apply(event.ctx, args);
+        eventObj = parent["onRequest" + (capitalize(eventName))] || _.last(child._events["request:" + eventName]);
+        if (eventObj) {
+          event = new Base.Event({
+            type: 'request',
+            target: this
+          });
+          response = eventObj.callback.apply(eventObj.ctx, [event].concat(args));
           break;
         } else {
           _results.push(void 0);
@@ -605,23 +678,65 @@
       return _results;
     };
 
-    request = function() {
-      var args, eventName;
+    View.prototype.emit = function() {
+      var args, event, eventName, name, newEvent, parent, _i, _len, _ref, _results;
       eventName = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
-      return this.parent.trigger.apply(this.parent, ["request:" + eventName].concat(args));
+      parent = this.parent;
+      if (parent) {
+        if (/^(child:|request:)/.test(eventName)) {
+          event = args[0];
+          if (!event.propagationStopped) {
+            event.currentTarget = parent;
+            return parent.trigger.apply(parent, arguments);
+          }
+        } else if (!/^(app:|parent:|firstChild:|firstParent:)/.test(eventName)) {
+          name = uncapitalize(this.name);
+          event = new Base.Event({
+            name: eventName,
+            target: this,
+            currentTarget: parent
+          });
+          _ref = ["child:" + eventName, "child:" + name + ":" + eventName, "firstChild:" + eventName, "firstChild:" + name + ":" + eventName];
+          _results = [];
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            newEvent = _ref[_i];
+            _results.push(parent.trigger.apply(parent, [newEvent, event].concat(args)));
+          }
+          return _results;
+        }
+      }
     };
 
     View.prototype.broadcast = function() {
-      var args, child, eventName, _i, _len, _ref, _results;
+      var args, child, event, eventName, name, newEvent, _i, _j, _len, _len1, _ref, _ref1;
       eventName = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
-      if (children) {
-        _ref = this.children;
-        _results = [];
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          child = _ref[_i];
-          _results.push(child.trigger.apply(child, ['broadcast:' + eventName].concat(args)));
+      if (this.children) {
+        if (/^(parent:|app:)/.test(eventName)) {
+          event = args[0];
+          if (!event.propagationStopped) {
+            event.currentTarget = child;
+            return this.trigger.apply(child, arguments);
+          }
+        } else if (!/^(child:|request:|firstParent:|firstChild:)/.test(eventName)) {
+          name = uncapitalize(this.name);
+          event = new Base.Event({
+            name: eventName,
+            target: this
+          });
+          _ref = this.children;
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            child = _ref[_i];
+            event.currentTarget = child;
+            _ref1 = ["parent:" + eventName, "parent:" + name + ":" + eventName, "firstParent:" + eventName, "firstParent:" + name + ":" + eventName];
+            for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+              newEvent = _ref1[_j];
+              if (event.propagationStopped) {
+                return;
+              }
+              child.trigger.apply(child, [newEvent, event].concat(args));
+            }
+          }
         }
-        return _results;
       }
     };
 
@@ -629,7 +744,7 @@
 
   })(Backbone.View);
 
-  _ref = ['get', 'set', 'toJSON', 'has', 'unset', 'escape', 'changed', 'clone', 'keys', 'values', 'pairs', 'invert', 'pick', 'omit', 'clear'];
+  _ref = ['get', 'set', 'toJSON', 'has', 'unset', 'escape', 'changed', 'clone', 'keys', 'values', 'pairs', 'invert', 'pick', 'omit', 'clear', 'toggle'];
   _fn = function(method) {
     var _base;
     return (_base = Base.View.prototype)[method] != null ? (_base = Base.View.prototype)[method] : _base[method] = function() {
@@ -647,9 +762,39 @@
     __extends(App, _super);
 
     function App() {
+      var key, value;
       currentApp = this;
+      for (key in appSurrogate) {
+        value = appSurrogate[key];
+        currentApp[key] = value;
+      }
+      appSurrogate = null;
       App.__super__.constructor.apply(this, arguments);
     }
+
+    App.prototype.views = {};
+
+    App.prototype.singletons = {};
+
+    App.prototype.collections = {};
+
+    App.prototype.models = {};
+
+    App.prototype.broadcast = function() {
+      var args, child, eventName, _j, _len1, _ref1, _results;
+      eventName = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
+      if (this.children) {
+        if (!/^(child:|request:|firstParent:|firstChild:)/.test(eventName)) {
+          _ref1 = this.children;
+          _results = [];
+          for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+            child = _ref1[_j];
+            _results.push(child.trigger.apply(child, ["app:" + eventName].concat(args)));
+          }
+          return _results;
+        }
+      }
+    };
 
     App.prototype.moduleType = 'app';
 
@@ -677,10 +822,12 @@
         value = _ref1[key];
         this.computeProperty(key, value);
       }
-      if (this.relations == null) {
-        this.relations = {};
+      if (!(this instanceof Base.State)) {
+        if (this.relations == null) {
+          this.relations = {};
+        }
+        this.relations.$state = Base.State;
       }
-      this.relations.$state = Base.State;
       this._mapRelations(_.extend({}, this.relations, options.relations));
       Model.__super__.constructor.apply(this, arguments);
       addState(this);
@@ -791,11 +938,28 @@
   Base.State = (function(_super) {
     __extends(State, _super);
 
-    function State(attributes, options) {
-      State.__super__.constructor.apply(this, arguments);
-      this.parent = this.parents[0];
+    function State(attributes, options, context) {
+      var key, value, _ref1;
+      if (options == null) {
+        options = {};
+      }
+      if (this.relations == null) {
+        this.relations = {};
+      }
+      if (context && context.relations) {
+        _ref1 = context.relations;
+        for (key in _ref1) {
+          value = _ref1[key];
+          this.relations[key] = value;
+        }
+      }
+      if (this.compute == null) {
+        this.compute = options.compute;
+      }
+      State.__super__.constructor.call(this, attributes, options);
+      this.parent = this.parents[0] || context;
       if (this.name == null) {
-        this.name = this.constructor.name;
+        this.name = lowercase(this.constructor.name);
       }
       if (this.parent) {
         this.on('all', function() {
@@ -863,13 +1027,18 @@
     __extends(Singleton, _super);
 
     function Singleton() {
-      var _this = this;
+      var _base, _name,
+        _this = this;
       Singleton.__super__.constructor.apply(this, arguments);
+      if ((_base = currentApp || appSurrogate)[_name = uncapitalize(this.name)] == null) {
+        _base[_name] = this;
+      }
+      (currentApp || appSurrogate).singletons[uncapitalize(this.name)] = this;
       this.on('all', function() {
         var args, eventName;
         eventName = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
         if (currentApp) {
-          return currentApp.trigger.apply(["" + _this.name + ":" + eventName].concat(args));
+          return currentApp.trigger.apply(currentApp, ["" + (uncapitalize(_this.name)) + ":" + eventName].concat(args));
         }
       });
     }
@@ -993,7 +1162,28 @@
 
   })();
 
-  _.extend(Base.prototype, Backbone.Events);
+  _.extend(Base.Object.prototype, Backbone.Events);
+
+  Base.Event = (function() {
+    function Event(options) {
+      this.options = options;
+      _.extend(this, this.options);
+      if (this.currentTarget == null) {
+        this.currentTarget = this.target;
+      }
+    }
+
+    Event.prototype.preventDefault = function() {
+      return this.defaultPrevented = true;
+    };
+
+    Event.prototype.stopPropagation = function() {
+      return this.propagationStopped = true;
+    };
+
+    return Event;
+
+  })();
 
   BasicView = (function(_super) {
     __extends(BasicView, _super);
@@ -1053,27 +1243,34 @@
 
   })(Base.View);
 
-  capitalize = function(string) {
-    return string[0].toUpperCase() + string.substring(1);
+  capitalize = function(str) {
+    if (str) {
+      return str[0].toUpperCase() + str.substring(1);
+    } else {
+      return '';
+    }
   };
 
   addState = function(obj) {
-    var stateAttributes,
+    var state, stateAttributes,
       _this = this;
     if (!(obj instanceof Base.State)) {
-      stateAttributes = obj.state;
+      stateAttributes = obj.state || {};
       if (obj.blacklist == null) {
         obj.blacklist = [];
       }
       obj.blacklist.push('$state');
-      if (!(obj instanceof Base.Collection)) {
+      if (obj instanceof Base.Model) {
         obj.set('$state', stateAttributes);
+        state = obj.state = obj.get('$state');
+      } else {
+        stateAttributes = _.defaults(stateAttributes, obj.defaults);
+        state = obj.state = new Base.State(stateAttributes, obj.stateOptions, obj);
       }
-      obj.state = obj.get('$state');
-      if (!obj.state) {
-        obj.state = new Base.State(stateAttributes);
+      if (obj instanceof Base.View) {
+        state.set('$state', state);
       }
-      return obj.state.on('all', function() {
+      return state.on('all', function() {
         var args, eventName, split;
         eventName = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
         split = eventName.split(':');
@@ -1084,13 +1281,24 @@
     }
   };
 
+  uncapitalize = function(str) {
+    if (str) {
+      return str[0].toLowerCase() + str.substring(1);
+    } else {
+      return '';
+    }
+  };
+
   Base.components = {
     collection: function($el, view, attrs) {
       var View, html, insertView, name, path,
         _this = this;
+      if (attrs == null) {
+        attrs = {};
+      }
       path = attrs.path || attrs.collection;
       name = attrs.name;
-      View = pict.views[pict.utils.capitalize(attrs.view)] || BasicView;
+      View = currentApp.views[capitalize(attrs.view)] || BasicView;
       html = $el.html();
       $el.empty();
       insertView = function(model) {
@@ -1098,6 +1306,7 @@
           data: model,
           html: html,
           view: view,
+          parent: _this,
           name: name,
           path: path,
           model: model
@@ -1123,7 +1332,7 @@
     },
     view: function($el, view, attrs) {
       var View, data, html, name;
-      View = pict.views[pict.utils.capitalize(attrs.view)] || BasicView;
+      View = currentApp.views[capitalize(attrs.view)] || BasicView;
       name = attrs.name;
       data = this.get(attrs.data) || view.state;
       html = $el.html();
@@ -1151,37 +1360,66 @@
   Base.plugins = {
     view: {
       ractive: function(view, config) {},
-      ouetlet: function(view, config) {
-        var _this = this;
-        this.on('after:render', function() {
-          return _this.$('[data-outlet]').each(function(index, el) {
-            var $el, outletName;
-            $el = $(el);
-            outletName = $el.attr('data-outlet');
-            _this.$[outletName] = $el;
-            return $el.on('blur, focus, focusin, focusout, load, resize, scroll,\
-            unload, click, dblclick, mousedown, mouseup, mousemove, mouseover,\
-            mouseout, mouseenter, mouseleave, change, select, submit, keydown,\
-            keypress, keyup, error, touchstart, touchend, touchmove', function(e) {
-              return _this.trigger([event.type, outletName].join(':'), e);
-            });
-          });
-        });
-        if (this.foo == null) {
-          this.foo = function() {};
+      actions: function(view, config) {
+        var event, _l, _len3, _results,
+          _this = this;
+        _results = [];
+        for (_l = 0, _len3 = DOMEventList.length; _l < _len3; _l++) {
+          event = DOMEventList[_l];
+          _results.push((function(event) {
+            var callback;
+            callback = function(e) {
+              var $target, action, cb;
+              $target = $(e.currentTarget);
+              action = $target.attr("action-" + event) || $target.attr("data-action-" + event);
+              cb = _this._getCallback(action);
+              return cb.call(_this);
+            };
+            return _this.$el.on(event, "[data-action-" + event + "], [action-" + event + "]", _.debounce(callback, 1, true));
+          })(event));
         }
-        if (this.bar == null) {
-          this.bar = function() {};
-        }
-        return {
-          foo: function() {},
-          bar: function() {}
-        };
+        return _results;
       },
-      foobar: {
-        init: function() {},
-        foo: function() {},
-        bar: function() {}
+      outlet: function(view, config) {
+        var bound,
+          _this = this;
+        bound = [];
+        return this.on('after:render', function() {
+          var $el, el, events, key, outlet, value, _base, _l, _len3, _ref3, _ref4, _results;
+          _ref3 = $('[outlet], [data-outlet]', ractive.fragment.items);
+          _results = [];
+          for (_l = 0, _len3 = _ref3.length; _l < _len3; _l++) {
+            el = _ref3[_l];
+            $el = $(el);
+            outlet = $el.attr('data-outlet') || $el.attr('outlet');
+            if (!_.contains(bound, outlet)) {
+              bound.push(outlet);
+              if ((_base = _this.$)[outlet] == null) {
+                _base[outlet] = _this.$("[data-outlet='" + outlet + "'], [outlet='" + outlet + "']");
+              }
+              events = [];
+              for (key in _this) {
+                value = _this[key];
+                if ((new RegExp("on(.*)?" + outlet, 'i')).test(key)) {
+                  events.push(RegExp.$1.toLowerCase());
+                }
+              }
+              _ref4 = _this._events;
+              for (key in _ref4) {
+                value = _ref4[key];
+                if ((new RegExp("^([^:]*?):" + outlet, 'i')).test(key)) {
+                  events.push(RegExp.$1.toLowerCase());
+                }
+              }
+              _results.push($el.on(events.join, function(e) {
+                return _this.trigger([event.type, outlet].join(':'), e);
+              }));
+            } else {
+              _results.push(void 0);
+            }
+          }
+          return _results;
+        });
       }
     },
     all: {
@@ -1217,7 +1455,7 @@
     }
   };
 
-  Base.setup = {
+  Base.defaults = {
     all: {
       plugins: {
         state: true
@@ -1225,6 +1463,7 @@
     },
     view: {
       plugins: {
+        actions: false,
         outlets: true,
         filters: true,
         ractive: true,
