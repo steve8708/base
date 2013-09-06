@@ -185,7 +185,7 @@ module.exports = (grunt) ->
         overwrite: true
         replacements: [
           from: /^/
-          to: -> "/* base.js v#{packageVersion()} */ \n"
+          to: -> "/* base.min.js v#{packageVersion()} */ \n"
         ]
 
       JSVersion:
