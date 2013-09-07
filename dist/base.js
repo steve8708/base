@@ -1,4 +1,4 @@
-/* base.js v0.0.10 */ 
+/* base.js v0.0.11 */ 
 
 (function (Ractive) {
 
@@ -714,7 +714,7 @@
     };
 
     View.prototype.broadcast = function() {
-      var args, child, event, eventName, name, newEvent, _i, _j, _k, _len, _len1, _len2, _ref, _ref1;
+      var args, child, event, eventName, name, newEvent, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2;
       eventName = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
       if (this.children) {
         if (/^(parent:|app:)/.test(eventName)) {
@@ -724,8 +724,9 @@
           });
           if (!event.propagationStopped) {
             event.currentTarget = child;
-            for (_i = 0, _len = children.length; _i < _len; _i++) {
-              child = children[_i];
+            _ref = this.children;
+            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+              child = _ref[_i];
               if (event.propagationStopped) {
                 return;
               }
@@ -738,13 +739,13 @@
             name: eventName,
             target: this
           });
-          _ref = this.children;
-          for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
-            child = _ref[_j];
+          _ref1 = this.children;
+          for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+            child = _ref1[_j];
             event.currentTarget = child;
-            _ref1 = ["parent:" + eventName, "parent:" + name + ":" + eventName, "firstParent:" + eventName, "firstParent:" + name + ":" + eventName];
-            for (_k = 0, _len2 = _ref1.length; _k < _len2; _k++) {
-              newEvent = _ref1[_k];
+            _ref2 = ["parent:" + eventName, "parent:" + name + ":" + eventName, "firstParent:" + eventName, "firstParent:" + name + ":" + eventName];
+            for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
+              newEvent = _ref2[_k];
               if (event.propagationStopped) {
                 return;
               }
