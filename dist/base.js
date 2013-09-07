@@ -1,4 +1,4 @@
-/* base.js v0.0.8 */ 
+/* base.js v0.0.9 */ 
 
 (function (Ractive) {
 
@@ -685,6 +685,12 @@
       if (parent) {
         if (/^(child:|request:)/.test(eventName)) {
           event = args[0];
+          if (event == null) {
+            event = new Base.Event({
+              type: eventName,
+              target: this
+            });
+          }
           if (!event.propagationStopped) {
             event.currentTarget = parent;
             return parent.trigger.apply(parent, arguments);
@@ -708,14 +714,23 @@
     };
 
     View.prototype.broadcast = function() {
-      var args, child, event, eventName, name, newEvent, _i, _j, _len, _len1, _ref, _ref1;
+      var args, child, event, eventName, name, newEvent, _i, _j, _k, _len, _len1, _len2, _ref, _ref1;
       eventName = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
       if (this.children) {
         if (/^(parent:|app:)/.test(eventName)) {
-          event = args[0];
+          event = args[0] || Base.Event({
+            type: eventName,
+            target: this
+          });
           if (!event.propagationStopped) {
             event.currentTarget = child;
-            return child.trigger.apply(child, arguments);
+            for (_i = 0, _len = children.length; _i < _len; _i++) {
+              child = children[_i];
+              if (event.propagationStopped) {
+                return;
+              }
+              child.trigger.apply(child, arguments);
+            }
           }
         } else if (!/^(child:|request:|firstParent:|firstChild:)/.test(eventName)) {
           name = uncapitalize(this.name);
@@ -724,12 +739,12 @@
             target: this
           });
           _ref = this.children;
-          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-            child = _ref[_i];
+          for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
+            child = _ref[_j];
             event.currentTarget = child;
             _ref1 = ["parent:" + eventName, "parent:" + name + ":" + eventName, "firstParent:" + eventName, "firstParent:" + name + ":" + eventName];
-            for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-              newEvent = _ref1[_j];
+            for (_k = 0, _len2 = _ref1.length; _k < _len2; _k++) {
+              newEvent = _ref1[_k];
               if (event.propagationStopped) {
                 return;
               }
