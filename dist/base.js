@@ -1,4 +1,4 @@
-/* base.js v0.0.6 */ 
+/* base.js v0.0.7 */ 
 
 (function (Ractive) {
 
@@ -769,6 +769,9 @@
         currentApp[key] = value;
       }
       appSurrogate = null;
+      if (this.template == null) {
+        this.template = JST["src/templates/app.html"];
+      }
       App.__super__.constructor.apply(this, arguments);
     }
 
