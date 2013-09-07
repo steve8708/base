@@ -395,6 +395,8 @@ class Base.App extends Base.View
       currentApp[key] = value
     appSurrogate = null
 
+    @template ?= JST["src/templates/app.html"]
+
     super
 
   views: {}
