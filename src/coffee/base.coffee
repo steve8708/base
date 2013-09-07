@@ -351,6 +351,7 @@ class Base.View extends Backbone.View
     if parent
       if /^(child:|request:)/.test eventName
         event = args[0]
+        event ?= new Base.Event type: eventName, target: @
         if not event.propagationStopped
           event.currentTarget = parent
           parent.trigger.apply parent, arguments
@@ -364,10 +365,12 @@ class Base.View extends Backbone.View
   broadcast: (eventName, args...) ->
     if @children
       if /^(parent:|app:)/.test eventName
-        event = args[0]
+        event = args[0] or Base.Event type: eventName, target: @
         if not event.propagationStopped
           event.currentTarget = child
-          child.trigger.apply child, arguments
+          for child in children
+            return if event.propagationStopped
+            child.trigger.apply child, arguments
       else if not /^(child:|request:|firstParent:|firstChild:)/.test eventName
         name = uncapitalize @name
         event = new Base.Event name: eventName, target: @
