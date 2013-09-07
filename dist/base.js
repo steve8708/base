@@ -1,4 +1,4 @@
-/* base.js v0.0.7 */ 
+/* base.js v0.0.8 */ 
 
 (function (Ractive) {
 
@@ -715,7 +715,7 @@
           event = args[0];
           if (!event.propagationStopped) {
             event.currentTarget = child;
-            return this.trigger.apply(child, arguments);
+            return child.trigger.apply(child, arguments);
           }
         } else if (!/^(child:|request:|firstParent:|firstChild:)/.test(eventName)) {
           name = uncapitalize(this.name);
