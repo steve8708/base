@@ -1,6 +1,6 @@
 # Base.js
 
-A simple, extensible, and powerful MVC framework built on top of Backbone and Ractive.
+A simple, sexy, and extensible MVC framework built on top of Backbone and Ractive.
 
 Built in is the best of Backbone.js (lightweight, high performance, bulletproof ORM), best of
 Ember.js (hierarchical view management, application level logic, powerful helper classes), best of
