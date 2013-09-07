@@ -1,4 +1,4 @@
-/* base.js v0.0.9 */ 
+/* base.js v0.0.10 */ 
 
 (function (Ractive) {
 
@@ -718,7 +718,7 @@
       eventName = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
       if (this.children) {
         if (/^(parent:|app:)/.test(eventName)) {
-          event = args[0] || Base.Event({
+          event = args[0] || new Base.Event({
             type: eventName,
             target: this
           });
