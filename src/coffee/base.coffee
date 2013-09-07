@@ -365,7 +365,7 @@ class Base.View extends Backbone.View
   broadcast: (eventName, args...) ->
     if @children
       if /^(parent:|app:)/.test eventName
-        event = args[0] or Base.Event type: eventName, target: @
+        event = args[0] or new Base.Event type: eventName, target: @
         if not event.propagationStopped
           event.currentTarget = child
           for child in children
