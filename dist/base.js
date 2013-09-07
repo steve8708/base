@@ -1,4 +1,4 @@
-/* base.js v0.0.11 */ 
+/* base.js v0.0.12 */ 
 
 (function (Ractive) {
 
@@ -1285,6 +1285,22 @@
       } else {
         stateAttributes = _.defaults(stateAttributes, obj.defaults);
         state = obj.state = new Base.State(stateAttributes, obj.stateOptions, obj);
+        if (state.associations == null) {
+          state.associations = [];
+        }
+        state.associations.push({
+          type: 'one',
+          key: '$parent',
+          relatedModel: Base.State
+        });
+        state.set('$parent', this.parent.state.toJSON());
+        this.listenTo(this.parent.state, 'all', function(eventName, args) {
+          var split;
+          split = eventName.split(':');
+          if (split[0] === 'change' && split[1]) {
+            return _this.set("$state." + split[1], state.get(split[1]));
+          }
+        });
       }
       if (obj instanceof Base.View) {
         state.set('$state', state);
@@ -1351,7 +1367,7 @@
     },
     view: function($el, view, attrs) {
       var View, data, html, name;
-      View = currentApp.views[capitalize(attrs.view)] || BasicView;
+      View = currentApp.views[capitalize($.camelCase(attrs.view))] || BasicView;
       name = attrs.name;
       data = this.get(attrs.data) || view.state;
       html = $el.html();
