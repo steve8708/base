@@ -701,6 +701,19 @@ addState = (obj) ->
     else
       stateAttributes = _.defaults stateAttributes, obj.defaults
       state = obj.state = new Base.State stateAttributes, obj.stateOptions, obj
+      state.associations ?= []
+      state.associations.push
+        type: 'one'
+        key: '$parent'
+        relatedModel: Base.State
+
+      # FIXME: this could get really slow with deeply nested views
+      # and copying them over
+      state.set '$parent', @parent.state.toJSON()
+      @listenTo @parent.state, 'all', (eventName, args) =>
+        split = eventName.split ':'
+        if split[0] is 'change' and split[1]
+          @set "$state.#{split[1]}", state.get split[1]
 
     state.set '$state', state if obj instanceof Base.View
     state.on 'all', (eventName, args...) =>
@@ -734,7 +747,7 @@ Base.components =
     @get(path).each insertView
 
   view: ($el, view, attrs) ->
-    View = currentApp.views[ capitalize attrs.view ] or BasicView
+    View = currentApp.views[ capitalize $.camelCase attrs.view ] or BasicView
     name = attrs.name
     # FIXME: reactie templates won't work here beacuse no relations
     data = @get(attrs.data) or view.state
