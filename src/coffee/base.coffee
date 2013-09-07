@@ -45,7 +45,7 @@ class Base.View extends Backbone.View
   constructor: (@options = {}, attributes) ->
     @name ?= @constructor.name
     @attributes ?= {}
-    @attributes['data-pict-view'] ?= @name.replace(/view/i, '').toLowerCase()
+    @attributes['data-view'] ?= @name.replace(/view/i, '').toLowerCase()
     @children ?= new Base.List @options.children or []
 
     @stateOptions = _.defaults @stateOptions or {},
@@ -86,7 +86,7 @@ class Base.View extends Backbone.View
   _getCallback: (str, allowString) ->
     return str if _.isFunction str
     split = _.compact str.split callbackStringSplitter
-    return str if not split[1] and allowStrings
+    return str if not split[1] and allowString
     args = ( $.zepto.deserializeValue(value) for value in split.slice 1 )
     return @[split[0]].bind @, args
 
@@ -709,11 +709,12 @@ addState = (obj) ->
 
       # FIXME: this could get really slow with deeply nested views
       # and copying them over
-      state.set '$parent', @parent.state.toJSON()
-      @listenTo @parent.state, 'all', (eventName, args) =>
-        split = eventName.split ':'
-        if split[0] is 'change' and split[1]
-          @set "$state.#{split[1]}", state.get split[1]
+      if @parent and @parent.state
+        state.set '$parent', @parent.state.toJSON()
+        @listenTo @parent.state, 'all', (eventName, args) =>
+          split = eventName.split ':'
+          if split[0] is 'change' and split[1]
+            @set "$state.#{split[1]}", state.get split[1]
 
     state.set '$state', state if obj instanceof Base.View
     state.on 'all', (eventName, args...) =>
@@ -755,13 +756,13 @@ Base.components =
     html = $el.html()
     $el.empty()
 
-    @insertView $el,
-      new View _.extend {
-        html: html
-        view: view
-        name: name
-        data: data
-      }, attrs
+    @subView new View _.extend {
+      el: $el[0]
+      html: html
+      view: view
+      name: name
+      data: data
+    }, attrs
 
   log: ($el, view, attrs) ->
     out = {}
@@ -797,16 +798,16 @@ Base.plugins =
           @$el.on event, "[data-action-#{event}], [action-#{event}]", \
             _.debounce callback, 1, true
 
-    outlet: (view, config) ->
+    outlets: (view, config) ->
       bound = []
 
-      @on 'after:render', =>
-        for el in $ '[outlet], [data-outlet]', ractive.fragment.items
+      @on 'render', =>
+        for el in $ '[outlet], [data-outlet]', @ractive.fragment.items
           $el = $ el
           outlet = $el.attr('data-outlet') or $el.attr 'outlet'
           if not _.contains bound, outlet
             bound.push outlet
-            @$[outlet] ?= @$ "[data-outlet='#{outlet}'], [outlet='#{outlet}']"
+            @$[outlet] = @$ "[data-outlet='#{outlet}'], [outlet='#{outlet}']"
             events = []
             for key, value of @
               if ( new RegExp "on(.*)?#{outlet}", 'i' ).test key

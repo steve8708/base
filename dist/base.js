@@ -1,5 +1,3 @@
-/* base.js v0.0.12 */ 
-
 (function (Ractive) {
 
   Ractive.adaptors.backboneAssociatedModel = function ( model, path ) {
@@ -163,8 +161,8 @@
       if (this.attributes == null) {
         this.attributes = {};
       }
-      if ((_base = this.attributes)['data-pict-view'] == null) {
-        _base['data-pict-view'] = this.name.replace(/view/i, '').toLowerCase();
+      if ((_base = this.attributes)['data-view'] == null) {
+        _base['data-view'] = this.name.replace(/view/i, '').toLowerCase();
       }
       if (this.children == null) {
         this.children = new Base.List(this.options.children || []);
@@ -228,7 +226,7 @@
         return str;
       }
       split = _.compact(str.split(callbackStringSplitter));
-      if (!split[1] && allowStrings) {
+      if (!split[1] && allowString) {
         return str;
       }
       args = (function() {
@@ -1293,14 +1291,16 @@
           key: '$parent',
           relatedModel: Base.State
         });
-        state.set('$parent', this.parent.state.toJSON());
-        this.listenTo(this.parent.state, 'all', function(eventName, args) {
-          var split;
-          split = eventName.split(':');
-          if (split[0] === 'change' && split[1]) {
-            return _this.set("$state." + split[1], state.get(split[1]));
-          }
-        });
+        if (this.parent && this.parent.state) {
+          state.set('$parent', this.parent.state.toJSON());
+          this.listenTo(this.parent.state, 'all', function(eventName, args) {
+            var split;
+            split = eventName.split(':');
+            if (split[0] === 'change' && split[1]) {
+              return _this.set("$state." + split[1], state.get(split[1]));
+            }
+          });
+        }
       }
       if (obj instanceof Base.View) {
         state.set('$state', state);
@@ -1372,7 +1372,8 @@
       data = this.get(attrs.data) || view.state;
       html = $el.html();
       $el.empty();
-      return this.insertView($el, new View(_.extend({
+      return this.subView(new View(_.extend({
+        el: $el[0],
         html: html,
         view: view,
         name: name,
@@ -1415,13 +1416,13 @@
         }
         return _results;
       },
-      outlet: function(view, config) {
+      outlets: function(view, config) {
         var bound,
           _this = this;
         bound = [];
-        return this.on('after:render', function() {
+        return this.on('render', function() {
           var $el, el, events, key, outlet, value, _base, _l, _len3, _ref3, _ref4, _results;
-          _ref3 = $('[outlet], [data-outlet]', ractive.fragment.items);
+          _ref3 = $('[outlet], [data-outlet]', _this.ractive.fragment.items);
           _results = [];
           for (_l = 0, _len3 = _ref3.length; _l < _len3; _l++) {
             el = _ref3[_l];
