@@ -59,6 +59,8 @@ class Base.View extends Backbone.View
 
     super
 
+    @_bindAttributes()
+
     for type in ['view', 'all']
       for key, value of Base.plugins[type]
         config = @plugins and @plugins[key] or Base.defaults.view.plugins[key] \
@@ -76,6 +78,18 @@ class Base.View extends Backbone.View
     @_bindSpecialEventMethods()
 
   moduleType: 'view'
+
+  # FIXME: accept @bindAttributes: '*' to render all non objects into dom
+  # FIXME: acces @bindAttributeParirs:
+  #   'data-name': 'name', 'data-app-mode': 'mode'
+  _bindAttributes: ->
+    # FIXME: make plugin
+    if @bindAttributes
+      for attr in @bindAttributes
+        do (attr) =>
+          @$el.attr "data-#{attr}", @get attr
+          @on "change:#{attr}", (model, value) =>
+            @$el.attr "data-#{attr}", value
 
   _bindEventMethods: ->
     for event in DOMEventList
@@ -208,7 +222,7 @@ class Base.View extends Backbone.View
 
       for key, val of app.singletons
         if val instanceof Base.Model or val instanceof Base.Collection
-          @ractive.bind adaptor val, "$app.#{key}"
+          @ractive.bind adaptor val, "$#{key}"
 
   _bindEventBubbling: ->
     @on 'all', (args...) =>

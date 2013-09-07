@@ -178,6 +178,7 @@
       addState(this);
       this._bindEvents();
       View.__super__.constructor.apply(this, arguments);
+      this._bindAttributes();
       _ref = ['view', 'all'];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         type = _ref[_i];
@@ -204,6 +205,25 @@
     }
 
     View.prototype.moduleType = 'view';
+
+    View.prototype._bindAttributes = function() {
+      var attr, _i, _len, _ref, _results,
+        _this = this;
+      if (this.bindAttributes) {
+        _ref = this.bindAttributes;
+        _results = [];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          attr = _ref[_i];
+          _results.push((function(attr) {
+            _this.$el.attr("data-" + attr, _this.get(attr));
+            return _this.on("change:" + attr, function(model, value) {
+              return _this.$el.attr("data-" + attr, value);
+            });
+          })(attr));
+        }
+        return _results;
+      }
+    };
 
     View.prototype._bindEventMethods = function() {
       var cb, event, _i, _len, _results;
@@ -461,7 +481,7 @@
         for (key in _ref) {
           val = _ref[key];
           if (val instanceof Base.Model || val instanceof Base.Collection) {
-            _results.push(this.ractive.bind(adaptor(val, "$app." + key)));
+            _results.push(this.ractive.bind(adaptor(val, "$" + key)));
           } else {
             _results.push(void 0);
           }
@@ -1421,7 +1441,7 @@
           _this = this;
         bound = [];
         return this.on('render', function() {
-          var $el, el, events, key, outlet, value, _base, _l, _len3, _ref3, _ref4, _results;
+          var $el, el, events, key, outlet, value, _l, _len3, _ref3, _ref4, _results;
           _ref3 = $('[outlet], [data-outlet]', _this.ractive.fragment.items);
           _results = [];
           for (_l = 0, _len3 = _ref3.length; _l < _len3; _l++) {
@@ -1430,9 +1450,7 @@
             outlet = $el.attr('data-outlet') || $el.attr('outlet');
             if (!_.contains(bound, outlet)) {
               bound.push(outlet);
-              if ((_base = _this.$)[outlet] == null) {
-                _base[outlet] = _this.$("[data-outlet='" + outlet + "'], [outlet='" + outlet + "']");
-              }
+              _this.$[outlet] = _this.$("[data-outlet='" + outlet + "'], [outlet='" + outlet + "']");
               events = [];
               for (key in _this) {
                 value = _this[key];
