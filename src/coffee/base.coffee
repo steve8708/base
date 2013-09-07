@@ -368,7 +368,7 @@ class Base.View extends Backbone.View
         event = args[0] or new Base.Event type: eventName, target: @
         if not event.propagationStopped
           event.currentTarget = child
-          for child in children
+          for child in @children
             return if event.propagationStopped
             child.trigger.apply child, arguments
       else if not /^(child:|request:|firstParent:|firstChild:)/.test eventName
