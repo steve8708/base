@@ -1,11 +1,13 @@
 # Base.js
 
-A simple, sexy, and extensible MVC framework built on top of Backbone and Ractive.
+A powerful MVC framework for people who want the ultimate in elegance, simplicity, and efficiency without compromise.
 
-Built in is the best of Backbone.js (lightweight, high performance, bulletproof ORM), best of
-Ember.js (hierarchical view management, application level logic, powerful helper classes), best of
-Angular.js (web components, model driven views, DOM-like event bubbling and broadcasting), plus
-a composite, plugin-based architecture, powerful state management and much more!
-Hot dayamn
+Inspired by the JS framework titans, Base is an initiative to accumulate the benefits of them all,
+without sacrifice, and with elegance, efficiency, and performance as its highest values.
+Base takes the very best of Backbone.js (bulletproof ORM, microscopic footprint, ultra high performance), best of
+Ember.js (hierarchical view management, powerful state management, dynamic attribute binding), best of
+Angular.js (web components, 'magic' auto-updatinng templates, DOM-like event bubbling and broadcasting),
+and assembles it all together with an ultra efficient, lightweight core, a powerful plugin-based architecture,
+and much more! Hot dayamn
 
 Documentation coming soon...
