@@ -1,4 +1,4 @@
-/* base.js v0.0.14 */ 
+/* base.js v0.0.15 */ 
 
 (function (Ractive) {
 
@@ -103,7 +103,8 @@
   };
 })(window.Ractive || require && require('ractive'));
 /*
-  TODO: AMD support (require, define)
+  TODO: AMD support ( require, define )
+  Module support ( Base.module('foo', ->) )
 */
 
 
@@ -346,9 +347,7 @@
       return this.on('all', function() {
         var args, camelized, event, method;
         event = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
-        camelized = event.replace(/:([a-z])/ig, function(match, a) {
-          return a.toUpperCase();
-        });
+        camelized = $.camelCase(event);
         if (!camelized) {
           return;
         }
@@ -489,7 +488,8 @@
           template: template,
           data: _.extend(this.toJSON(), {
             $view: this,
-            $filter: Base.filters
+            $filter: Base.filters,
+            $base: Base
           })
         });
         for (key in this) {
@@ -1508,7 +1508,7 @@
           for (_l = 0, _len3 = _ref3.length; _l < _len3; _l++) {
             el = _ref3[_l];
             $el = $(el);
-            outlet = $el.attr('data-outlet') || $el.attr('outlet');
+            outlet = $.camelCase($el.attr('data-outlet') || $el.attr('outlet'));
             if (!_.contains(bound, outlet)) {
               bound.push(outlet);
               _this.$[outlet] = _this.$("[data-outlet='" + outlet + "'], [outlet='" + outlet + "']");
