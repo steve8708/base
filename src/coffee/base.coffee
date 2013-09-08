@@ -8,6 +8,7 @@
 originalBase = window.Base
 currentApp = null
 appSurrogate = {}
+window._JST ?= {}
 
 arr = []
 callbackStringSplitter = /\s*[,:()]+\s*/
@@ -110,9 +111,25 @@ class Base.View extends Backbone.View
         if value and value.split and callbackStringSplitter.test value
           @events[key] = @_getCallback value
 
-    if @bind
-      for key, value of @bind
-        @on key, @_getCallback value if value
+    @bind = {} if typeof @bind isnt 'object'
+
+    # Allow event methods for window, document, such as onDocumentKeypress
+    for key, value of @
+      for item in ['document', 'window']
+        prefix = "on#{capitalize item}"
+        if key.indexOf(prefix) is 0
+          @bind[item] ?= {}
+          @bind[item][key.split(prefix)[1].toLowerCase()] = value
+
+    for key, value of @bind
+      if typeof value in ['function', 'string']
+        @on key, @_getCallback(value).bind @ if value
+      else if key in ['document', 'window']
+        selector = if key is 'document' then document else window
+        $el = $ selector
+        for name, callback of value
+          $el.on "#{name}.delegateEvents-#{@cid}", \
+            @_getCallback(callback).bind @
 
   render: ->
     @trigger 'before:render'
@@ -202,7 +219,7 @@ class Base.View extends Backbone.View
         filters[key] = value.bind @ if value and value.bind
 
       templateName = "src/templates/views/#{$.dasherize @name}.html"
-      template = @template or JST[templateName] or ''
+      template = @template or _.clone(_JST[templateName]) or ''
       @ractive = new Ractive
         el: @el
         template: template
@@ -236,6 +253,20 @@ class Base.View extends Backbone.View
       args[0].currentTarget = @
 
     super
+
+  # FIXME: maybe add a similar set method as well?
+  get: (path) ->
+    return if not path
+    subject = @state
+    truePath = path
+    if path.indexOf('$') is 0
+      truePath = path.split('.').slice(1).join('.')
+      if path.indexOf('$app.') is 0
+        subject = app
+      else
+        subject = app.singletons[path.split('.')[0].substring 1]
+
+    subject.get truePath
 
   subView: (name, view) ->
     if not view
@@ -334,6 +365,7 @@ class Base.View extends Backbone.View
       @ractive.teardown()
       @ractive.unbind()
 
+    $([document, window]).off ".delegateEvents-#{@cid}"
     @state.off()
     @state.stopListening()
     @state.cleanup() if @state.cleanup()
@@ -412,7 +444,7 @@ class Base.App extends Base.View
       currentApp[key] = value
     appSurrogate = null
 
-    @template ?= JST["src/templates/app.html"]
+    @template ?= _JST["src/templates/app.html"]
 
     super
 
@@ -547,6 +579,9 @@ class Base.Router extends Backbone.Router
     @name ?= @constructor.name
     addState @
     super
+
+  go: (route) ->
+    @navigate route, true
 
   destroy: ->
     @off()
@@ -710,10 +745,12 @@ addState = (obj) ->
     obj.blacklist.push '$state'
 
     if obj instanceof Base.Model
-      obj.set '$state', stateAttributes
+      obj.set '$state', _.defaults stateAttributes, obj.stateDefaults
       state = obj.state = obj.get '$state'
     else
-      stateAttributes = _.defaults stateAttributes, obj.defaults
+      stateAttributes = _.defaults stateAttributes, obj.stateDefaults \
+        or obj.defaults
+
       state = obj.state = new Base.State stateAttributes, obj.stateOptions, obj
       state.associations ?= []
       state.associations.push
@@ -762,7 +799,8 @@ Base.components =
     @get(path).each insertView
 
   view: ($el, view, attrs) ->
-    View = currentApp.views[ capitalize $.camelCase attrs.view ] or BasicView
+    viewName = attrs.view or attrs.type
+    View = currentApp.views[ capitalize $.camelCase viewName ] or BasicView
     name = attrs.name
     # FIXME: reactie templates won't work here beacuse no relations
     data = @get(attrs.data) or view.state

@@ -119,10 +119,10 @@ module.exports = (grunt) ->
         files: [ 'src/**/*.js' ]
         tasks: [ 'concat' ]
 
-      livereload:
-        options:
-          livereload: true
-        files: [ 'build/**/*' ]
+      # livereload:
+      #   options:
+      #     livereload: true
+      #   files: [ 'build/**/*' ]
 
     uglify:
       main:
