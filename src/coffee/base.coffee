@@ -1,5 +1,6 @@
 ###
-  TODO: AMD support (require, define)
+  TODO: AMD support ( require, define )
+  Module support ( Base.module('foo', ->) )
 ###
 
 
@@ -142,7 +143,7 @@ class Base.View extends Backbone.View
 
   _bindSpecialEventMethods: ->
     @on 'all', (event, args...) =>
-      camelized = event.replace /:([a-z])/ig, (match, a) -> a.toUpperCase()
+      camelized = $.camelCase event
       return if not camelized
       method = @['on' + camelized[0].toUpperCase() + camelized.substring 1]
       method.apply @, args if method
@@ -223,7 +224,7 @@ class Base.View extends Backbone.View
       @ractive = new Ractive
         el: @el
         template: template
-        data: _.extend @.toJSON(), $view: @, $filter: Base.filters
+        data: _.extend @.toJSON(), $view: @, $filter: Base.filters, $base: Base
 
       for key, val of @
         if typeof val is 'function' and key[0] isnt '_'
@@ -392,6 +393,7 @@ class Base.View extends Backbone.View
         response = eventObj.callback.apply eventObj.ctx, [event].concat args
         break
 
+  # FIXME: have a broadcastAll and emitAll config
   emit: (eventName, args...) ->
     parent = @parent
     if parent
@@ -856,7 +858,7 @@ Base.plugins =
       @on 'render', =>
         for el in $ '[outlet], [data-outlet]', @ractive.fragment.items
           $el = $ el
-          outlet = $el.attr('data-outlet') or $el.attr 'outlet'
+          outlet = $.camelCase $el.attr('data-outlet') or $el.attr 'outlet'
           if not _.contains bound, outlet
             bound.push outlet
             @$[outlet] = @$ "[data-outlet='#{outlet}'], [outlet='#{outlet}']"
