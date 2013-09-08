@@ -1,4 +1,4 @@
-/* base.js v0.0.13 */ 
+/* base.js v0.0.14 */ 
 
 (function (Ractive) {
 
@@ -118,6 +118,10 @@
   currentApp = null;
 
   appSurrogate = {};
+
+  if (window._JST == null) {
+    window._JST = {};
+  }
 
   arr = [];
 
@@ -265,7 +269,7 @@
     };
 
     View.prototype._bindEvents = function() {
-      var key, value, _ref, _ref1, _results;
+      var $el, callback, item, key, name, prefix, selector, value, _base, _i, _len, _ref, _ref1, _ref2, _ref3, _results;
       if (this.events) {
         _ref = this.events;
         for (key in _ref) {
@@ -275,19 +279,50 @@
           }
         }
       }
-      if (this.bind) {
-        _ref1 = this.bind;
-        _results = [];
-        for (key in _ref1) {
-          value = _ref1[key];
+      if (typeof this.bind !== 'object') {
+        this.bind = {};
+      }
+      for (key in this) {
+        value = this[key];
+        _ref1 = ['document', 'window'];
+        for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+          item = _ref1[_i];
+          prefix = "on" + (capitalize(item));
+          if (key.indexOf(prefix) === 0) {
+            if ((_base = this.bind)[item] == null) {
+              _base[item] = {};
+            }
+            this.bind[item][key.split(prefix)[1].toLowerCase()] = value;
+          }
+        }
+      }
+      _ref2 = this.bind;
+      _results = [];
+      for (key in _ref2) {
+        value = _ref2[key];
+        if ((_ref3 = typeof value) === 'function' || _ref3 === 'string') {
           if (value) {
-            _results.push(this.on(key, this._getCallback(value)));
+            _results.push(this.on(key, this._getCallback(value).bind(this)));
           } else {
             _results.push(void 0);
           }
+        } else if (key === 'document' || key === 'window') {
+          selector = key === 'document' ? document : window;
+          $el = $(selector);
+          _results.push((function() {
+            var _results1;
+            _results1 = [];
+            for (name in value) {
+              callback = value[name];
+              _results1.push($el.on("" + name + ".delegateEvents-" + this.cid, this._getCallback(callback).bind(this)));
+            }
+            return _results1;
+          }).call(this));
+        } else {
+          _results.push(void 0);
         }
-        return _results;
       }
+      return _results;
     };
 
     View.prototype.render = function() {
@@ -448,7 +483,7 @@
           }
         }
         templateName = "src/templates/views/" + ($.dasherize(this.name)) + ".html";
-        template = this.template || JST[templateName] || '';
+        template = this.template || _.clone(_JST[templateName]) || '';
         this.ractive = new Ractive({
           el: this.el,
           template: template,
@@ -515,6 +550,24 @@
         args[0].currentTarget = this;
       }
       return View.__super__.trigger.apply(this, arguments);
+    };
+
+    View.prototype.get = function(path) {
+      var subject, truePath;
+      if (!path) {
+        return;
+      }
+      subject = this.state;
+      truePath = path;
+      if (path.indexOf('$') === 0) {
+        truePath = path.split('.').slice(1).join('.');
+        if (path.indexOf('$app.') === 0) {
+          subject = app;
+        } else {
+          subject = app.singletons[path.split('.')[0].substring(1)];
+        }
+      }
+      return subject.get(truePath);
     };
 
     View.prototype.subView = function(name, view) {
@@ -658,6 +711,7 @@
         this.ractive.teardown();
         this.ractive.unbind();
       }
+      $([document, window]).off(".delegateEvents-" + this.cid);
       this.state.off();
       this.state.stopListening();
       if (this.state.cleanup()) {
@@ -806,7 +860,7 @@
       }
       appSurrogate = null;
       if (this.template == null) {
-        this.template = JST["src/templates/app.html"];
+        this.template = _JST["src/templates/app.html"];
       }
       App.__super__.constructor.apply(this, arguments);
     }
@@ -1026,6 +1080,10 @@
       addState(this);
       Router.__super__.constructor.apply(this, arguments);
     }
+
+    Router.prototype.go = function(route) {
+      return this.navigate(route, true);
+    };
 
     Router.prototype.destroy = function() {
       this.off();
@@ -1300,10 +1358,10 @@
       }
       obj.blacklist.push('$state');
       if (obj instanceof Base.Model) {
-        obj.set('$state', stateAttributes);
+        obj.set('$state', _.defaults(stateAttributes, obj.stateDefaults));
         state = obj.state = obj.get('$state');
       } else {
-        stateAttributes = _.defaults(stateAttributes, obj.defaults);
+        stateAttributes = _.defaults(stateAttributes, obj.stateDefaults || obj.defaults);
         state = obj.state = new Base.State(stateAttributes, obj.stateOptions, obj);
         if (state.associations == null) {
           state.associations = [];
@@ -1388,8 +1446,9 @@
       return this.get(path).each(insertView);
     },
     view: function($el, view, attrs) {
-      var View, data, html, name;
-      View = currentApp.views[capitalize($.camelCase(attrs.view))] || BasicView;
+      var View, data, html, name, viewName;
+      viewName = attrs.view || attrs.type;
+      View = currentApp.views[capitalize($.camelCase(viewName))] || BasicView;
       name = attrs.name;
       data = this.get(attrs.data) || view.state;
       html = $el.html();
