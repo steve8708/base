@@ -135,7 +135,6 @@ Coming soon…
 ### Base.App
 
     :::coffeescript
-
     # Inherits from and supports full Base.View API
     class App extends Base.App
       constructor: ->
@@ -147,7 +146,6 @@ Coming soon…
 #### Class
 
     :coffeescript
-
     class View extends Base.View
       # View state defaults
       defaults:
@@ -193,7 +191,6 @@ Coming soon…
 #### Methods
 
     :::coffeescript
-
     view.subView new View         # add a nested view
 
     view.insertView '.foo', view  # add a nested view at selector
@@ -242,7 +239,6 @@ Coming soon…
 #### Class
 
     :::coffeescript
-
     # Models are inherited from backbone models
     class Model extends Base.Model
       stateDefaults:
@@ -276,7 +272,6 @@ Coming soon…
 #### Methods
 
     :::coffeescript
-
     model.state                # => sate model (inherited from Base.State)
     model.setState 'foo', bar  # => equivalent of model.state.set 'foo', bar
     model.getState 'foo'       # => 'bar'
