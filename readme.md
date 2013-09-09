@@ -44,7 +44,6 @@ apps down to simple configuration.
 
 HTML:
 
-  :::html
   <body base-app="myApp">
       <h1>{{user.name}}</h1>
       <div class="controls">
@@ -64,7 +63,6 @@ HTML:
 
 JS (in Coffeescript):
 
-  :::coffeescript
   class Grid extends Base.View
     plugins:
       masonry: true
@@ -84,7 +82,6 @@ JS (in Coffeescript):
 
 CSS (in Stylus):
 
-  :::stylus
   [ data-view = pict ]
       [ data-mode = single ] &
         position relative
@@ -108,13 +105,11 @@ Coming soon…
 
 ### Web Components
 
-  :::html
   <x-view type="foo"></x-view>
   <x-collection subject="picts" view="pict"></x-collection>
 
 #### Creating Components
 
-  :::coffeescript
   Base.components.view = ($el, attributes) ->
     view = new app.views[attributes.type] _.extend attributes, parent: @
     @insertView view
@@ -133,7 +128,6 @@ Coming soon…
 
 ### Base.App
 
-  :::cozfeescript
   # Inherits from and supports full Base.View API
   class App extends Base.App
     constructor: ->
@@ -143,7 +137,6 @@ Coming soon…
 
 #### Class
 
-  :::coffeescript
   class View extends Base.View
     # View state defaults
     defaults:
@@ -188,7 +181,6 @@ Coming soon…
 
 #### Methods
 
-  :::coffeescript
   view.subView new View         # add a nested view
 
   view.insertView '.foo', view  # add a nested view at selector
@@ -236,7 +228,6 @@ Coming soon…
 
 #### Class
 
-  :::coffeescript
   # Models are inherited from backbone models
   class Model extends Base.Model
     stateDefaults:
@@ -269,7 +260,6 @@ Coming soon…
 
 #### Methods
 
-  :::coffeescript
   model.state                # => sate model (inherited from Base.State)
   model.setState 'foo', bar  # => equivalent of model.state.set 'foo', bar
   model.getState 'foo'       # => 'bar'
@@ -278,7 +268,6 @@ Coming soon…
 
 #### HTML
 
-  :::html
   <!-- Update DOM on model state changes -->
   {{# model.$state.active }}
     <h1>I am active!</h1>
