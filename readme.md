@@ -44,6 +44,8 @@ apps down to simple configuration.
 
 HTML:
 
+  :::html
+
   <body base-app="myApp">
       <h1>{{user.name}}</h1>
       <div class="controls">
@@ -62,6 +64,8 @@ HTML:
   </bod>
 
 JS (in Coffeescript):
+
+  :::coffeescript
 
     class Grid extends Base.View
       plugins:
@@ -105,6 +109,8 @@ Coming soon…
 
 ### Web Components
 
+  :::html
+
   <x-view type="foo"></x-view>
   <x-collection subject="picts" view="pict"></x-collection>
 
@@ -128,6 +134,8 @@ Coming soon…
 
 ### Base.App
 
+  :::coffeescript
+
   # Inherits from and supports full Base.View API
   class App extends Base.App
     constructor: ->
@@ -136,6 +144,8 @@ Coming soon…
 ### Base.View
 
 #### Class
+
+  :::coffeescript
 
   class View extends Base.View
     # View state defaults
@@ -180,6 +190,8 @@ Coming soon…
 
 
 #### Methods
+
+  :::coffeescript
 
   view.subView new View         # add a nested view
 
@@ -228,6 +240,8 @@ Coming soon…
 
 #### Class
 
+  :::coffeescript
+
   # Models are inherited from backbone models
   class Model extends Base.Model
     stateDefaults:
@@ -260,6 +274,8 @@ Coming soon…
 
 #### Methods
 
+  :::coffeescript
+
   model.state                # => sate model (inherited from Base.State)
   model.setState 'foo', bar  # => equivalent of model.state.set 'foo', bar
   model.getState 'foo'       # => 'bar'
@@ -267,6 +283,8 @@ Coming soon…
   model.toggleState 'active' # => equivalent of model.state.toggle 'active'
 
 #### HTML
+
+  :::html
 
   <!-- Update DOM on model state changes -->
   {{# model.$state.active }}
