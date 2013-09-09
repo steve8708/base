@@ -61,7 +61,7 @@ HTML:
         {{/picts}}
       </x-view>
 
-      <x-view type="lightbox" visible="{{!!activePict}}">
+      <x-view type="lightbox" visible="{{!!5activePict}}">
         <img src="{{activePict.url}}" outlet="pict">
       </x-view>
     </bod>
@@ -90,8 +90,8 @@ JS (in Coffeescript):
 CSS (in Stylus):
 
     :::sass
-    [ data-view = pict ]
-        [ data-mode = 'single' ] &
+    [data-view='pict']
+        [data-mode='single'] &
           position relative
 
 ## Concepts
