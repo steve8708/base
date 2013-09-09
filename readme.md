@@ -44,47 +44,51 @@ apps down to simple configuration.
 
 HTML:
 
-  <body base-app="myApp">
-      <h1>{{user.name}}</h1>
-      <div class="controls">
-        <button class="grid" x-click="mode = 'grid'"></button>
-        <button class="single" x-click="mode = 'single'"></button>
-      </div>
-      <x-view type="grid" source="picts" mode="{{mode}}">
-        <x-view type="pict">
-          <img outlet="pict" src="{{url}}" x-click="activePict = pict">
+    :::html
+    <body base-app="myApp">
+        <h1>{{user.name}}</h1>
+        <div class="controls">
+          <button class="grid" x-click="mode = 'grid'"></button>
+          <button class="single" x-click="mode = 'single'"></button>
+        </div>
+        <x-view type="grid" source="picts" mode="{{mode}}">
+          <x-view type="pict">
+            <img outlet="pict" src="{{url}}" x-click="activePict = pict">
+          </x-view>
         </x-view>
-      </x-view>
 
-      <x-view type="lightbox" visible="{{activePict}}">
-        <img src="{{activePict.url}}" outlet="pict">
-      </x-view>
-  </bod>
+        <x-view type="lightbox" visible="{{activePict}}">
+          <img src="{{activePict.url}}" outlet="pict">
+        </x-view>
+    </bod>
 
 JS (in Coffeescript):
 
-  class Grid extends Base.View
-    plugins:
-      masonry: true
+    :::coffeescript
+    class Grid extends Base.View
+      plugins:
+        masonry: true
 
-    defaults:
-      mode: 'grid'
+      defaults:
+        mode: 'grid'
 
-  class Pict extends Base.View
-    plugins:
-      animateOnLoad: 'fadeIn'
+    class Pict extends Base.View
+      plugins:
+        animateOnLoad: 'fadeIn'
 
-  class Lightbox extends Base.View
-    defaults:
-      showLightbox: false
+    class Lightbox extends Base.View
+      defaults:
+        showLightbox: false
 
-    onChangeShowLightbox: -> @doStuff()
+      onChangeShowLightbox: -> @doStuff()
+
 
 CSS (in Stylus):
 
-  [ data-view = pict ]
-      [ data-mode = single ] &
-        position relative
+    :::stylus
+    [ data-view = pict ]
+        [ data-mode = single ] &
+          position relative
 
 ## Concepts
 
