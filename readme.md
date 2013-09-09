@@ -8,8 +8,8 @@ Inspired by the JS framework titans, Base is an initiative to consolidate the be
 into a flexible, efficiency, and ultra high performance foundation for building
 lightning fast yet amazingly powerful HTML5 applications that are as beatiful to code as they are to behold.
 
-This framework pulls great ideas from many JS frameworks, including bakcbone.js,
-angular.js, ember.js, sproutcore, marionette.js, thorax, chaplin, can.js,
+This framework pulls many ideas from great JS frameworks such as bakcbone.js,
+angular.js, ember.js, marionette.js, thorax, chaplin, can.js, polymer,
 knockout, spine, sammyjs, react, extjs, and many more
 
 ## What it has
@@ -52,16 +52,16 @@ HTML:
     <body base-app="myApp">
       <h1>{{user.name}}</h1>
       <div class="controls">
-        <button base-click="set: 'mode', 'grid'" class="grid {{ mode == 'grid' ? 'active' : '' }}"></button>
-        <button base-click="set: 'mode', 'grid'" class="single {{ mode == 'grid' ? 'active' : '' }}"></button>
+        <button base-click="set: mode, grid" class="grid {{ mode == 'grid' ? 'active' : '' }}"></button>
+        <button base-click="set: mode, grid" class="single {{ mode == 'grid' ? 'active' : '' }}"></button>
       </div>
       <x-view type="grid">
         {{#picts}}
-          <img outlet="pict" src="{{url}}" x-click="activePict = pict">
+          <img outlet="pict" src="{{url}}" base-click="set: activePict, pict">
         {{/picts}}
       </x-view>
 
-      <x-view type="lightbox" visible="{{!!5activePict}}">
+      <x-view type="lightbox" visible="{{!!activePict}}">
         <img src="{{activePict.url}}" outlet="pict">
       </x-view>
     </bod>
@@ -97,17 +97,17 @@ CSS (in Stylus):
 ## Concepts
 
 ### Nested Views
-Coming soon…
+Documentation coming soon…
 ### Nested Models and Collections
-Coming soon…
+Documentation coming soon…
 ### View, Model, Collection States
-Coming soon…
+Documentation coming soon…
 ### Event Bubbling and Broadcasting
-Coming soon…
+Documentation coming soon…
 ### Dynamic Templates
-Coming soon…
+Documentation coming soon…
 ### Plugins
-Coming soon…
+Documentation coming soon…
 
 ## Templates
 
@@ -262,9 +262,8 @@ Coming soon…
       # of other properties
       compute:
         # 'priceString' will update on every change of 'price' and/or 'currencyCode'
-        priceString: ['price', 'currencyCode', (price, currencyCode) ->
+        priceString: (price, currencyCode) ->
           getCurrencyString(currencyCode) + price
-        ]
 
       # Confogire nested model associations
       relations:
