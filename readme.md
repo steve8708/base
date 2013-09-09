@@ -8,6 +8,10 @@ Inspired by the JS framework titans, Base is an initiative to consolidate the be
 into a flexible, efficiency, and ultra high performance foundation for building
 lightning fast yet amazingly powerful HTML5 applications that are as beatiful to code as they are to behold.
 
+This framework pulls great ideas from many JS frameworks, including bakcbone.js,
+angular.js, ember.js, sproutcore, marionette.js, thorax, chaplin, can.js,
+knockout, spine, sammyjs, react, extjs, and many more
+
 ## What it has
 
 Base takes the very best of Backbone.js (bulletproof ORM, microscopic footprint, extensible architecture), best of
@@ -46,20 +50,20 @@ HTML:
 
     :::html
     <body base-app="myApp">
-        <h1>{{user.name}}</h1>
-        <div class="controls">
-          <button class="grid" x-click="mode = 'grid'"></button>
-          <button class="single" x-click="mode = 'single'"></button>
-        </div>
-        <x-view type="grid" source="picts" mode="{{mode}}">
-          <x-view type="pict">
-            <img outlet="pict" src="{{url}}" x-click="activePict = pict">
-          </x-view>
-        </x-view>
+      <h1>{{user.name}}</h1>
+      <div class="controls">
+        <button class="grid {{ mode == 'grid' ? 'active' : '' }}" x-click="mode = 'grid'"></button>
+        <button class="single {{ mode == 'grid' ? 'active' : '' }}" x-click="mode = 'single'"></button>
+      </div>
+      <x-view type="grid">
+        {{#picts}}
+          <img outlet="pict" src="{{url}}" x-click="activePict = pict">
+        {{/picts}}
+      </x-view>
 
-        <x-view type="lightbox" visible="{{activePict}}">
-          <img src="{{activePict.url}}" outlet="pict">
-        </x-view>
+      <x-view type="lightbox" visible="{{activePict}}">
+        <img src="{{activePict.url}}" outlet="pict">
+      </x-view>
     </bod>
 
 JS (in Coffeescript):
@@ -87,7 +91,7 @@ CSS (in Stylus):
 
     :::stylus
     [ data-view = pict ]
-        [ data-mode = single ] &
+        [ data-mode = 'single' ] &
           position relative
 
 ## Concepts
@@ -116,11 +120,11 @@ Coming soon…
 #### Creating Components
 
     :::coffeescript
-    Base.components.view = ($el, attributes) ->
+    Base.component 'view', ($el, attributes) ->
       view = new app.views[attributes.type] _.extend attributes, parent: @
       @insertView view
 
-    Base.componts.collection = ($el, attributes) ->
+    Base.component 'collection', ($el, attributes) ->
       View = app.views[attributes.view]
       collection = @get attributes.subject
 
@@ -139,6 +143,13 @@ Coming soon…
     class App extends Base.App
       constructor: ->
         super
+        @get('picts').fetch()
+
+      defaults:
+        mode: 'grid'
+
+      relations:
+        picts: PictsCollection
 
 
 ### Base.View
@@ -212,8 +223,8 @@ Coming soon…
     view.findViews 'foo'
     view.parentViews 'foo'
 
-    # emit an event to all parents, seen by parents
-    view.emit 'foo', arg1, arg2 as 'child:foo'
+    # emit an event to all parents, seen by parents as 'child:foo'
+    view.emit 'foo', arg1, arg2
 
     # broadcast an event to all children, seen as 'parent:foo'
     view.broadcast 'foo', arg1, arg2
