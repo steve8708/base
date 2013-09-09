@@ -264,16 +264,16 @@ Coming soon…
 
     :::coffeescript
     model.state                 # => sate model (inherited from Base.State)
-    model.setState 'foo', bar   # => equivalent of model.state.set 'foo', bar
+    model.setState 'foo', bar   # equivalent of model.state.set 'foo', bar
     model.getState 'foo'        # => 'bar'
-    model.toggle 'foo'          # => same as model.set 'foo', !model.get 'foo'
-    model.toggleState 'active'  # => equivalent of model.state.toggle 'active'
+    model.toggle 'foo'          # same as model.set 'foo', !model.get 'foo'
+    model.toggleState 'active'  # equivalent of model.state.toggle 'active'
 
-    model.addRelation 'pict', PictModel          # => Add a nested model
+    model.addRelation 'pict', PictModel          # Add a nested model
 
-    model.set 'pict', { foo: 'bar' }             # => Creates a new pict model
-    model.get 'pict'                             # => pictModel object
-    model.get 'pict.foo'                         # => 'bar'
+    model.set 'pict', { foo: 'bar' }             # Creates a new pict model
+    model.get 'pict'                             # pictModel object
+    model.get 'pict.foo'                         # 'bar'
 
     model.on  'change:pict.foo', ->              # valid as expected
     model.on  'change:pict.products[0].foo', ->  # also valid
