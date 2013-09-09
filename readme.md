@@ -89,10 +89,10 @@ JS (in Coffeescript):
 
 CSS (in Stylus):
 
-    :::sass
-    [data-view='pict']
-        [data-mode='single'] &
-          position relative
+    :::css
+    [ data-view = pict ]
+      [ data-mode = single ] &
+        position relative
 
 ## Concepts
 
