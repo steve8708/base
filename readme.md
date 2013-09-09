@@ -52,16 +52,16 @@ HTML:
     <body base-app="myApp">
       <h1>{{user.name}}</h1>
       <div class="controls">
-        <button base-click="set: mode, grid" class="grid {{ mode == 'grid' ? 'active' : '' }}"></button>
-        <button base-click="set: mode, grid" class="single {{ mode == 'grid' ? 'active' : '' }}"></button>
+        <button base-click="set( 'mode', 'grid' )" class="grid {{ mode == 'grid' ? 'active' : '' }}"></button>
+        <button base-click="set( 'mode', 'grid' )" class="single {{ mode == 'single' ? 'active' : '' }}"></button>
       </div>
       <x-view type="grid">
         {{#picts}}
-          <img outlet="pict" src="{{url}}" base-click="set: activePict, pict">
+          <img outlet="pict" src="{{url}}" base-click="set( 'activePict', 'pict' )">
         {{/picts}}
       </x-view>
 
-      <x-view type="lightbox" visible="{{!!activePict}}">
+      <x-view type="lightbox" visible="{{!!activePict}}" base-click="hide( true )">
         <img src="{{activePict.url}}" outlet="pict">
       </x-view>
     </bod>
