@@ -52,8 +52,8 @@ HTML:
     <body base-app="myApp">
       <h1>{{user.name}}</h1>
       <div class="controls">
-        <button class="grid {{ mode == 'grid' ? 'active' : '' }}" x-click="mode = 'grid'"></button>
-        <button class="single {{ mode == 'grid' ? 'active' : '' }}" x-click="mode = 'single'"></button>
+        <button base-click="set: 'mode', 'grid'" class="grid {{ mode == 'grid' ? 'active' : '' }}"></button>
+        <button base-click="set: 'mode', 'grid'" class="single {{ mode == 'grid' ? 'active' : '' }}"></button>
       </div>
       <x-view type="grid">
         {{#picts}}
@@ -61,7 +61,7 @@ HTML:
         {{/picts}}
       </x-view>
 
-      <x-view type="lightbox" visible="{{activePict}}">
+      <x-view type="lightbox" visible="{{!!activePict}}">
         <img src="{{activePict.url}}" outlet="pict">
       </x-view>
     </bod>
@@ -89,7 +89,7 @@ JS (in Coffeescript):
 
 CSS (in Stylus):
 
-    :::stylus
+    :::sass
     [ data-view = pict ]
         [ data-mode = 'single' ] &
           position relative
