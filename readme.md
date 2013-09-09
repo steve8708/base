@@ -269,7 +269,7 @@ Coming soon…
     model.toggle 'foo'          # => same as model.set 'foo', !model.get 'foo'
     model.toggleState 'active'  # => equivalent of model.state.toggle 'active'
 
-  model.addRelation 'pict', PictModel          # => Add a nested model
+    model.addRelation 'pict', PictModel          # => Add a nested model
 
     model.set 'pict', { foo: 'bar' }             # => Creates a new pict model
     model.get 'pict'                             # => pictModel object
