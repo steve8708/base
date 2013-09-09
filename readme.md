@@ -272,8 +272,8 @@ Coming soon…
     model.addRelation 'pict', PictModel          # Add a nested model
 
     model.set 'pict', { foo: 'bar' }             # Creates a new pict model
-    model.get 'pict'                             # pictModel object
-    model.get 'pict.foo'                         # 'bar'
+    model.get 'pict'                             # => pictModel object
+    model.get 'pict.foo'                         # => 'bar'
 
     model.on  'change:pict.foo', ->              # valid as expected
     model.on  'change:pict.products[0].foo', ->  # also valid
