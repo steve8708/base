@@ -109,173 +109,187 @@ Coming soon…
 
 ### Web Components
 
-  <x-view type="foo"></x-view>
-  <x-collection subject="picts" view="pict"></x-collection>
+    :::html
+    <x-view type="foo"></x-view>
+    <x-collection subject="picts" view="pict"></x-collection>
 
 #### Creating Components
 
-  Base.components.view = ($el, attributes) ->
-    view = new app.views[attributes.type] _.extend attributes, parent: @
-    @insertView view
+    :::cofeescript
+    Base.components.view = ($el, attributes) ->
+      view = new app.views[attributes.type] _.extend attributes, parent: @
+      @insertView view
 
-  Base.componts.collection = ($el, attributes) ->
-    View = app.views[attributes.view]
-    collection = @get attributes.subject
+    Base.componts.collection = ($el, attributes) ->
+      View = app.views[attributes.view]
+      collection = @get attributes.subject
 
-    @listenTo collection,
-      add: (model) => @insertView new View parent: @, model: model
-      remove: (model) => @destroyView model: model
-      reset: => @destroyViews()
+      @listenTo collection,
+        add: (model) => @insertView new View parent: @, model: model
+        remove: (model) => @destroyView model: model
+        reset: => @destroyViews()
 
 
 ## Core Classes
 
 ### Base.App
 
-  # Inherits from and supports full Base.View API
-  class App extends Base.App
-    constructor: ->
-      super
+    :::coffeescript
+
+    # Inherits from and supports full Base.View API
+    class App extends Base.App
+      constructor: ->
+        super
+
 
 ### Base.View
 
 #### Class
 
-  class View extends Base.View
-    # View state defaults
-    defaults:
-      visible: false
+    :coffeescript
 
-     # Model relations
-    relations:
-      pict: PictModel
+    class View extends Base.View
+      # View state defaults
+      defaults:
+        visible: false
 
-    constructor: ->
-      super
+       # Model relations
+      relations:
+        pict: PictModel
 
-    # DOM Events can be bound via method syntax sugar
-    onClick: ->
-    onKeypress: ->
-    onWindowResize: ->
-    onDocumentKeypress: ->
+      constructor: ->
+        super
 
-    # Or using dom element outlet names
-    onClickMainImage: ->
+      # DOM Events can be bound via method syntax sugar
+      onClick: ->
+      onKeypress: ->
+      onWindowResize: ->
+      onDocumentKeypress: ->
 
-    # When parent or child emits or broadcasts an event
-    onParentFoo: ->
-    onChildFoo: ->
+      # Or using dom element outlet names
+      onClickMainImage: ->
 
-    # When a parent or child with name 'grid' emit or change events
-    onParentGridChangeActive: ->
-    onChildGridChangeVisible: ->
+      # When parent or child emits or broadcasts an event
+      onParentFoo: ->
+      onChildFoo: ->
 
-    # Listen to change event in property visible
-    onChangeVisible: ->
+      # When a parent or child with name 'grid' emit or change events
+      onParentGridChangeActive: ->
+      onChildGridChangeVisible: ->
 
-    # Listen to a state property of related model pict
-    onChangePictStateActive: ->
+      # Listen to change event in property visible
+      onChangeVisible: ->
 
-    # Called after render
-    afterRender: ->
+      # Listen to a state property of related model pict
+      onChangePictStateActive: ->
 
-    # Actions to run before a view is destroyed
-    cleanup: ->
+      # Called after render
+      afterRender: ->
+
+      # Actions to run before a view is destroyed
+      cleanup: ->
 
 
 #### Methods
 
-  view.subView new View         # add a nested view
+    :::coffeescript
 
-  view.insertView '.foo', view  # add a nested view at selector
-  view.insertView view          # add a nested view at @$el
+    view.subView new View         # add a nested view
 
-  view.findView 'photoGrid'     # find a nested view named 'photoGrid'
-  view.findView model: model    # find nested view that matches property keyvals
-  view.findView (view) ->       # find view via a function
+    view.insertView '.foo', view  # add a nested view at selector
+    view.insertView view          # add a nested view at @$el
 
-  view.childView 'foo'          # only search immediate children
-  view.is 'foo'                 # view matches a string, object, or function
+    view.findView 'photoGrid'     # find a nested view named 'photoGrid'
+    view.findView model: model    # find nested view that matches property keyvals
+    view.findView (view) ->       # find view via a function
 
-  view.parent                   # the views parent view
-  view.children                 # list of subviews - inherits from Base.List
+    view.childView 'foo'          # only search immediate children
+    view.is 'foo'                 # view matches a string, object, or function
 
-  view.parentView 'foo'
+    view.parent                   # the views parent view
+    view.children                 # list of subviews - inherits from Base.List
 
-  view.childViews 'foo'
-  view.findViews 'foo'
-  view.parentViews 'foo'
+    view.parentView 'foo'
 
-  # emit an event to all parents, seen by parents
-  view.emit 'foo', arg1, arg2 as 'child:foo'
+    view.childViews 'foo'
+    view.findViews 'foo'
+    view.parentViews 'foo'
 
-  # broadcast an event to all children, seen as 'parent:foo'
-  view.broadcast 'foo', arg1, arg2
+    # emit an event to all parents, seen by parents
+    view.emit 'foo', arg1, arg2 as 'child:foo'
 
-  # callback when a parent broadcasts event 'foo'
-  view.on 'parent:foo', ->
+    # broadcast an event to all children, seen as 'parent:foo'
+    view.broadcast 'foo', arg1, arg2
 
-  # callback when a parent named 'parentViewName' broadcasts event 'foo'
-  view.on 'parent:parentViewName:foo', (e, args…) ->
+    # callback when a parent broadcasts event 'foo'
+    view.on 'parent:foo', ->
 
-  # callback when a child emits an event 'foo'
-  view.on 'child:foo', (e, args…) ->
+    # callback when a parent named 'parentViewName' broadcasts event 'foo'
+    view.on 'parent:parentViewName:foo', (e, args…) ->
 
-  # callback when a child emits an event 'foo'
-  view.on 'child:childViewName:foo', (e, args…) ->
+    # callback when a child emits an event 'foo'
+    view.on 'child:foo', (e, args…) ->
 
-  # Destroy a view, unbind all listeners, and cleanup
-  view.destroy()
+    # callback when a child emits an event 'foo'
+    view.on 'child:childViewName:foo', (e, args…) ->
+
+    # Destroy a view, unbind all listeners, and cleanup
+    view.destroy()
 
 
 ### Base.Model
 
 #### Class
 
-  # Models are inherited from backbone models
-  class Model extends Base.Model
-    stateDefaults:
-      active: false
+    :::coffeescript
 
-    defaults:
-      price: 0
+    # Models are inherited from backbone models
+    class Model extends Base.Model
+      stateDefaults:
+        active: false
 
-    # models support computed properties that auto update on change
-    # of other properties
-    compute:
-      # foo will update on every change of 'price' and/or 'currencyCode'
-      priceString: ['price', 'currencyCode', (price, currencyCode) ->
-        getCurrencyString(currencyCode) + price
-      ]
+      defaults:
+        price: 0
 
-    # Base models support nested associations
-    # For example
-    #   @set 'pict', { foo: 'bar' }
-    #   @get 'pict'                             # => pictModel object
-    #   @get 'pict.foo'                         # => 'bar'
-    #   @on  'change:pict.foo', ->              # valid as expected
-    #   @on  'change:pict.products[0].foo', ->  # also valid
-    # See backbone-associations.js
-    #  (https://github.com/dhruvaray/backbone-associations)
-    #  for full documentation
-    relations:
-      pict: PictModel
+      # models support computed properties that auto update on change
+      # of other properties
+      compute:
+        # foo will update on every change of 'price' and/or 'currencyCode'
+        priceString: ['price', 'currencyCode', (price, currencyCode) ->
+          getCurrencyString(currencyCode) + price
+        ]
+
+      # Base models support nested associations
+      # For example
+      #   @set 'pict', { foo: 'bar' }
+      #   @get 'pict'                             # => pictModel object
+      #   @get 'pict.foo'                         # => 'bar'
+      #   @on  'change:pict.foo', ->              # valid as expected
+      #   @on  'change:pict.products[0].foo', ->  # also valid
+      # See backbone-associations.js
+      #  (https://github.com/dhruvaray/backbone-associations)
+      #  for full documentation
+      relations:
+        pict: PictModel
 
 
 #### Methods
 
-  model.state                # => sate model (inherited from Base.State)
-  model.setState 'foo', bar  # => equivalent of model.state.set 'foo', bar
-  model.getState 'foo'       # => 'bar'
-  model.toggle 'foo'         # => equivalent of model.set 'foo', !model.get 'foo'
-  model.toggleState 'active' # => equivalent of model.state.toggle 'active'
+    :::coffeescript
+
+    model.state                # => sate model (inherited from Base.State)
+    model.setState 'foo', bar  # => equivalent of model.state.set 'foo', bar
+    model.getState 'foo'       # => 'bar'
+    model.toggle 'foo'         # => equivalent of model.set 'foo', !model.get 'foo'
+    model.toggleState 'active' # => equivalent of model.state.toggle 'active'
 
 #### HTML
 
-  <!-- Update DOM on model state changes -->
-  {{# model.$state.active }}
-    <h1>I am active!</h1>
-  {{/}}
+    :::html
+    <!-- Update DOM on model state changes -->
+    {{# model.$state.active }}
+      <h1>I am active!</h1>
+    {{/}}
 
 
 ### Base.Singleton
