@@ -115,7 +115,7 @@ Coming soon…
 
 #### Creating Components
 
-    :::cofeescript
+    :::coffeescript
     Base.components.view = ($el, attributes) ->
       view = new app.views[attributes.type] _.extend attributes, parent: @
       @insertView view
@@ -145,7 +145,7 @@ Coming soon…
 
 #### Class
 
-    :coffeescript
+    :::coffeescript
     class View extends Base.View
       # View state defaults
       defaults:
@@ -250,21 +250,12 @@ Coming soon…
       # models support computed properties that auto update on change
       # of other properties
       compute:
-        # foo will update on every change of 'price' and/or 'currencyCode'
+        # 'priceString' will update on every change of 'price' and/or 'currencyCode'
         priceString: ['price', 'currencyCode', (price, currencyCode) ->
           getCurrencyString(currencyCode) + price
         ]
 
-      # Base models support nested associations
-      # For example
-      #   @set 'pict', { foo: 'bar' }
-      #   @get 'pict'                             # => pictModel object
-      #   @get 'pict.foo'                         # => 'bar'
-      #   @on  'change:pict.foo', ->              # valid as expected
-      #   @on  'change:pict.products[0].foo', ->  # also valid
-      # See backbone-associations.js
-      #  (https://github.com/dhruvaray/backbone-associations)
-      #  for full documentation
+      # Confogire nested model associations
       relations:
         pict: PictModel
 
@@ -272,11 +263,20 @@ Coming soon…
 #### Methods
 
     :::coffeescript
-    model.state                # => sate model (inherited from Base.State)
-    model.setState 'foo', bar  # => equivalent of model.state.set 'foo', bar
-    model.getState 'foo'       # => 'bar'
-    model.toggle 'foo'         # => equivalent of model.set 'foo', !model.get 'foo'
-    model.toggleState 'active' # => equivalent of model.state.toggle 'active'
+    model.state                 # => sate model (inherited from Base.State)
+    model.setState 'foo', bar   # => equivalent of model.state.set 'foo', bar
+    model.getState 'foo'        # => 'bar'
+    model.toggle 'foo'          # => same as model.set 'foo', !model.get 'foo'
+    model.toggleState 'active'  # => equivalent of model.state.toggle 'active'
+
+  model.addRelation 'pict', PictModel          # => Add a nested model
+
+    model.set 'pict', { foo: 'bar' }             # => Creates a new pict model
+    model.get 'pict'                             # => pictModel object
+    model.get 'pict.foo'                         # => 'bar'
+
+    model.on  'change:pict.foo', ->              # valid as expected
+    model.on  'change:pict.products[0].foo', ->  # also valid
 
 #### HTML
 
