@@ -52,8 +52,8 @@ HTML:
     <body base-app="myApp">
       <h1>{{user.name}}</h1>
       <div class="controls">
-        <button base-click="set( 'mode', 'grid' )" class="grid {{ mode == 'grid' ? 'active' : '' }}"></button>
-        <button base-click="set( 'mode', 'grid' )" class="single {{ mode == 'single' ? 'active' : '' }}"></button>
+        <button base-click="set( 'mode', 'grid' )" class="grid {{ mode == 'grid' ? 'active' : 'inactive' }}"></button>
+        <button base-click="set( 'mode', 'grid' )" class="single {{ mode == 'single' ? 'active' : 'inactive' }}"></button>
       </div>
       <x-view type="grid">
         {{#picts}}
@@ -273,6 +273,7 @@ Documentation coming soon…
 #### Methods
 
     :::coffeescript
+    # State Syntax Sugar
     model.state                 # => sate model (inherited from Base.State)
     model.setState 'foo', bar   # equivalent of model.state.set 'foo', bar
     model.getState 'foo'        # => 'bar'
@@ -280,19 +281,23 @@ Documentation coming soon…
     model.toggleState 'active'  # equivalent of model.state.toggle 'active'
 
     model.addRelation 'pict', PictModel          # Add a nested model
-
     model.set 'pict', { foo: 'bar' }             # Creates a new pict model
     model.get 'pict'                             # => pictModel object
     model.get 'pict.foo'                         # => 'bar'
+    model.set 'pict.foo', 'baz'
 
+  # Nested Events
     model.on  'change:pict.foo', ->              # valid as expected
     model.on  'change:pict.products[0].foo', ->  # also valid
+
+    # State Events
+    model.on 'state:change:foo.bar', ->   # same as model.state.on 'change:foo.bar'
 
 #### HTML
 
     :::html
     <!-- Update DOM on model state changes -->
-    {{# model.$state.active }}
+    {{#model.$state.active }}
       <h1>I am active!</h1>
     {{/}}
 
@@ -301,20 +306,162 @@ Documentation coming soon…
 Documentation coming soon...
 
 ### Base.Collection
-Documentation coming soon...
+
+#### Class
+
+  :::coffeescript
+    # Collections are inherited from backbone collections
+    class Collection extends Base.Collection
+      stateDefaults:
+        synced: false
+
+#### Method
+
+    :::coffeescript
+    # State Syntax Sugar
+    collection.state                   # => sate model (inherited from Base.State)
+    collection.setState 'synced', true # same as collection.state.set 'foo', bar
+    collection.getState 'synced'       # => true
+    collection.toggleState 'synced'    # same as collection.state.toggle 'active'
+
+    collection.on 'state:change:synced', -> # same as model.state.on 'change:foo'
+
+#### HTML
+
+  :::html
+  <!-- Update DOM on collection state changes -->
+  {{#collection.$state.synced }}
+    <h1>I've been synced!</h1>
+  {{/}}
 
 ### Base.List
-An evented array
-Documentation coming soon...
+An evented array, similar to a backbone collection, but can store any type of data. Used internally to store view children (view.children) and listen to events and changes
+
+#### Class
+
+  :::coffeescript
+  class List extends Base.List
+    # Any class (constructor) can be a model that new additions
+    # passed to the list are constructed by. That or set no model
+    # And
+    model: Base.View
+
+    stateDefaults:
+      active: false
+
+    # Like any class, a list can support custom methods
+    getActiveChild: (e) ->
+      @find (child) -> child.active
+
+    # And you can override methods as expected
+    find: (e) ->
+      log 'someone is looking for something!'
+      super
+
+
+
+#### Methods
+
+  :::coffeescript
+  list = new Base.List
+  list.on 'add', -> log 'added!'
+  list.push 'hello!' # => triggers log 'added!'
+
+  # Lists are just typical arrays, you have access to all native
+  # array methods ('forEach', 'map', 'indexOf', etc) and all
+  # underscore array and collection methods as well ('find', 'contains', etc)
+  list[0]                              # => 'hello'
+  list.find (item) -> _.isString item  # => 'hello'
+  list.contains 'hello'                # => true
+  list.isEmpty()                       # => false
+
+
+  # Event bubbling (similar to backbone collections)
+  view = new Base.View
+  list.add view
+  list.on 'anEvent', (e) -> log 'a child triggered an event!'
+  # triggers the above log
+  view.trigger 'anEvent'
+
+  # You can create models of any type, just pass any class (constructor)
+  # as a list's model property
+  list = new Base.List
+  list.model = ListItemView
+  list.push tagName: 'li'
+  list[0]                   # => a new ListItemView with tagName: 'li'
+
+  # Lists also support all state methods
+  list.setState 'active', false
+  list.getState 'active'
+  list.toggleState 'active'
+  list.hasState 'active'
+  list.state.toJSON()
+  list.on 'state:change:active', ->
+
 
 ### Base.Router
-Documentation coming soon...
+
+#### Class
+
+  :::coffeescript
+  # Inherits from Backbone.Router
+  class Router extends Base.Router
+    stateDeafults:
+      firstRoute: true
+
+    routes:
+      '*': (route) -> @setState 'firstRoute', false
+
+    onChangeFirstRoute: (stateModel, value, options) ->
+
+#### Methods
+
+  router.setState 'firstRoute', true
+  router.getState 'firstRoute'
+  router.toggleState 'firstRoute'
+
 
 ### Base.State
-Documentation coming soon...
+
+Inherits from Base.Model
+The state model used by Base classes. Bubbles all events received to parent
+as 'state:#{eventName}', so, for example, on its parent you can listen to 'state:change:someAttribute'
+
+State models must be inited with a parent (the owner of the state model in which the state model describes the state of). E.g.
+
+  :::coffeescript
+  class MyStatedClass
+    constructor: ->
+      @state = new State parent: @
+      @state.set 'inited', true
+      @state.get 'inited' # => true
+
+
+### Base.Stated
+
+Easier wasy of creating a new stated object. Inherits from Base.Object
+
+  :::coffeescript
+  class Stated extends Base.Stated
+    constructor: ->
+      super
+      @toggleState 'inited'
+      @setState 'active', true
+      @getState 'active' # => true
+
+    stateDefaults:
+      inited: false
 
 ### Base.Object
-Documentation coming soon...
+
+Simple evented object contrsuctor. Supports full Backbone events API 'on', 'off', 'listenTo', etc
+
+  :::coffeescript
+  class MyObject extends Base.Object
+    constructor: ->
+      super
+      @on 'foobar', ->
+
 
 ### Event
 Documentation coming soon...
