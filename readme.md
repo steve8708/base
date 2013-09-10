@@ -13,7 +13,7 @@ This framework pulls many ideas from great JS frameworks such as bakcbone.js,
 angular.js, ember.js, marionette.js, thorax, chaplin, can.js, polymer,
 knockout, spine, sammyjs, react, extjs, and many more
 
-## What it has
+## What's built in
 
 Base takes the very best of Backbone.js (bulletproof ORM, microscopic footprint, extensible architecture), best of
 Ember.js (hierarchical view management, intuitive templating, best in class performance and scalability), best of
@@ -121,7 +121,7 @@ Documentation coming soon…
 Documentation coming soon…
 
 # Templates
-
+---
 ### Web Components
 
     :::html
@@ -310,7 +310,7 @@ Documentation coming soon…
     model.get 'pict.foo'                         # => 'bar'
     model.set 'pict.foo', 'baz'
 
-  # Nested Events
+    # Nested Events
     model.on  'change:pict.foo', ->              # valid as expected
     model.on  'change:pict.products[0].foo', ->  # also valid
 
