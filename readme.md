@@ -1,4 +1,5 @@
 # Base.js
+---
 
 A powerful MVC framework for people who want the ultimate elegance, simplicity, and efficiency without compromise.
 
@@ -20,7 +21,7 @@ Angular.js ('magic' updating templates, dead-simple web components, powerful eve
 and assembles it all together under one framework with an ultra efficient, lightweight core, a powerful plugin-based architecture,
 and much more!
 
-## What it solves
+## What it aims to solve
 
 That, and, of course, seeking to resolve the inherent issues and limitations plaguing each framework. Such as
 Backbone's lack of support for nested views, models, collections, dynamic templates, and other critical features
@@ -45,6 +46,11 @@ Base is intended to be the foundation for building and extending great apps. Its
 is lightweight and powerful, and it is meant to be infinitely extended and expanded
 through the use of plugins, ultimately with the intent to reduce building powerful
 apps down to simple configuration.
+
+
+
+# Code Example
+---
 
 HTML:
 
@@ -94,22 +100,27 @@ CSS (in Stylus):
       [ data-mode = single ] &
         position relative
 
-## Concepts
 
-### Nested Views
-Documentation coming soon…
-### Nested Models and Collections
-Documentation coming soon…
-### View, Model, Collection States
-Documentation coming soon…
-### Event Bubbling and Broadcasting
-Documentation coming soon…
-### Dynamic Templates
-Documentation coming soon…
-### Plugins
+# Concepts
+---
+
+## Dynamic Templates
 Documentation coming soon…
 
-## Templates
+## Nested Views
+Documentation coming soon…
+## Nested Models and Collections
+Documentation coming soon…
+## View, Model, Collection States
+Documentation coming soon…
+## Event Bubbling and Broadcasting
+Documentation coming soon…
+## Dynamic Templates
+Documentation coming soon…
+## Plugins
+Documentation coming soon…
+
+# Templates
 
 ### Web Components
 
@@ -134,12 +145,15 @@ Documentation coming soon…
         reset: => @destroyViews()
 
 
-## Core Classes
+# Core Classes
+---
 
-### Base.App
+## Base.App
+
+### Class
 
     :::coffeescript
-    # Inherits from and supports full Base.View API
+    # Inherits from and supports full Base.View API (below)
     class App extends Base.App
       constructor: ->
         super
@@ -152,9 +166,9 @@ Documentation coming soon…
         picts: PictsCollection
 
 
-### Base.View
+## Base.View
 
-#### Class
+### Class
 
     :::coffeescript
     class View extends Base.View
@@ -198,8 +212,12 @@ Documentation coming soon…
       # Actions to run before a view is destroyed
       cleanup: ->
 
+      # Send a response to a child view requesting some information
+      onRequestSomeQuestion: (args…) ->
+        @
 
-#### Methods
+
+### Methods
 
     :::coffeescript
     view.subView new View         # add a nested view
@@ -244,10 +262,16 @@ Documentation coming soon…
     # Destroy a view, unbind all listeners, and cleanup
     view.destroy()
 
+    # Request a response from a parent, bubbles up to all parents
+    # until one parent has an on 'request:someQuestion' handler or
+    # an onRequestSomeQuestion method. The request is sent to the
+    # first parent with a handler and then the request stops propagating
+    view.request 'someQuestion', (response) ->
 
-### Base.Model
 
-#### Class
+## Base.Model
+
+### Class
 
     :::coffeescript
     # Models are inherited from backbone models
@@ -270,7 +294,7 @@ Documentation coming soon…
         pict: PictModel
 
 
-#### Methods
+### Methods
 
     :::coffeescript
     # State Syntax Sugar
@@ -293,7 +317,7 @@ Documentation coming soon…
     # State Events
     model.on 'state:change:foo.bar', ->   # same as model.state.on 'change:foo.bar'
 
-#### HTML
+### HTML
 
     :::html
     <!-- Update DOM on model state changes -->
@@ -302,12 +326,12 @@ Documentation coming soon…
     {{/}}
 
 
-### Base.Singleton
+## Base.Singleton
 Documentation coming soon...
 
-### Base.Collection
+## Base.Collection
 
-#### Class
+### Class
 
     :::coffeescript
       # Collections are inherited from backbone collections
@@ -315,7 +339,7 @@ Documentation coming soon...
         stateDefaults:
           synced: false
 
-#### Method
+### Method
 
     :::coffeescript
     # State Syntax Sugar
@@ -326,7 +350,7 @@ Documentation coming soon...
 
     collection.on 'state:change:synced', -> # same as model.state.on 'change:foo'
 
-#### HTML
+### HTML
 
     :::html
     <!-- Update DOM on collection state changes -->
@@ -334,10 +358,10 @@ Documentation coming soon...
       <h1>I've been synced!</h1>
     {{/}}
 
-### Base.List
+## Base.List
 An evented array, similar to a backbone collection, but can store any type of data. Used internally to store view children (view.children) and listen to events and changes
 
-#### Class
+### Class
 
     :::coffeescript
     class List extends Base.List
@@ -360,7 +384,7 @@ An evented array, similar to a backbone collection, but can store any type of da
 
 
 
-#### Methods
+### Methods
 
     :::coffeescript
     list = new Base.List
@@ -399,9 +423,9 @@ An evented array, similar to a backbone collection, but can store any type of da
     list.on 'state:change:active', ->
 
 
-### Base.Router
+## Base.Router
 
-#### Class
+### Class
 
     :::coffeescript
     # Inherits from Backbone.Router
@@ -414,7 +438,7 @@ An evented array, similar to a backbone collection, but can store any type of da
 
       onChangeFirstRoute: (stateModel, value, options) ->
 
-#### Methods
+### Methods
 
     :::coffeescript
     # Supports all stated methods
@@ -423,7 +447,7 @@ An evented array, similar to a backbone collection, but can store any type of da
     router.toggleState 'firstRoute'
 
 
-### Base.State
+## Base.State
 
 Inherits from Base.Model
 The state model used by Base classes. Bubbles all events received to parent
@@ -439,7 +463,7 @@ State models must be inited with a parent (the owner of the state model in which
         @state.get 'inited' # => true
 
 
-### Base.Stated
+## Base.Stated
 
 Easier wasy of creating a new stated object. Inherits from Base.Object
 
@@ -454,7 +478,7 @@ Easier wasy of creating a new stated object. Inherits from Base.Object
       stateDefaults:
         inited: false
 
-### Base.Object
+## Base.Object
 
 Simple evented object contrsuctor. Supports full Backbone events API 'on', 'off', 'listenTo', etc
 
@@ -465,17 +489,26 @@ Simple evented object contrsuctor. Supports full Backbone events API 'on', 'off'
         @on 'foobar', ->
 
 
-### Event
+## Base.Event
+
+Constructor for base events. Every bubbled and broadcasted view event injects a first argument that is an instanceof Base.Event which supports
+
+    :::coffeescript
+    view.on 'change:foo', (e) ->
+      e.preventDefault()   # sets e.defaultPrevented to true
+      e.stopPropagation()  # prevents this event from further propagating
+      e.target             # reference to view that first triggered the event
+      e.currentTarget      # reference to the current view handling the event
+
+# Configuration
+---
 Documentation coming soon...
 
-## Configuration
+# Plugins
+---
 Documentation coming soon...
 
-## Plugins
+# Modules
+---
 Documentation coming soon...
 
-## Modules
-Documentation coming soon...
-
-
-Full documentation Documentation coming soon...
