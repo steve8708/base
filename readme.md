@@ -309,11 +309,11 @@ Documentation coming soon...
 
 #### Class
 
-  :::coffeescript
-    # Collections are inherited from backbone collections
-    class Collection extends Base.Collection
-      stateDefaults:
-        synced: false
+    :::coffeescript
+      # Collections are inherited from backbone collections
+      class Collection extends Base.Collection
+        stateDefaults:
+          synced: false
 
 #### Method
 
@@ -328,97 +328,99 @@ Documentation coming soon...
 
 #### HTML
 
-  :::html
-  <!-- Update DOM on collection state changes -->
-  {{#collection.$state.synced }}
-    <h1>I've been synced!</h1>
-  {{/}}
+    :::html
+    <!-- Update DOM on collection state changes -->
+    {{#collection.$state.synced }}
+      <h1>I've been synced!</h1>
+    {{/}}
 
 ### Base.List
 An evented array, similar to a backbone collection, but can store any type of data. Used internally to store view children (view.children) and listen to events and changes
 
 #### Class
 
-  :::coffeescript
-  class List extends Base.List
-    # Any class (constructor) can be a model that new additions
-    # passed to the list are constructed by. That or set no model
-    # And
-    model: Base.View
+    :::coffeescript
+    class List extends Base.List
+      # Any class (constructor) can be a model that new additions
+      # passed to the list are constructed by. That or set no model
+      # And
+      model: Base.View
 
-    stateDefaults:
-      active: false
+      stateDefaults:
+        active: false
 
-    # Like any class, a list can support custom methods
-    getActiveChild: (e) ->
-      @find (child) -> child.active
+      # Like any class, a list can support custom methods
+      getActiveChild: (e) ->
+        @find (child) -> child.active
 
-    # And you can override methods as expected
-    find: (e) ->
-      log 'someone is looking for something!'
-      super
+      # And you can override methods as expected
+      find: (e) ->
+        log 'someone is looking for something!'
+        super
 
 
 
 #### Methods
 
-  :::coffeescript
-  list = new Base.List
-  list.on 'add', -> log 'added!'
-  list.push 'hello!' # => triggers log 'added!'
+    :::coffeescript
+    list = new Base.List
+    list.on 'add', -> log 'added!'
+    list.push 'hello!' # => triggers log 'added!'
 
-  # Lists are just typical arrays, you have access to all native
-  # array methods ('forEach', 'map', 'indexOf', etc) and all
-  # underscore array and collection methods as well ('find', 'contains', etc)
-  list[0]                              # => 'hello'
-  list.find (item) -> _.isString item  # => 'hello'
-  list.contains 'hello'                # => true
-  list.isEmpty()                       # => false
+    # Lists are just typical arrays, you have access to all native
+    # array methods ('forEach', 'map', 'indexOf', etc) and all
+    # underscore array and collection methods as well ('find', 'contains', etc)
+    list[0]                              # => 'hello'
+    list.find (item) -> _.isString item  # => 'hello'
+    list.contains 'hello'                # => true
+    list.isEmpty()                       # => false
 
 
-  # Event bubbling (similar to backbone collections)
-  view = new Base.View
-  list.add view
-  list.on 'anEvent', (e) -> log 'a child triggered an event!'
-  # triggers the above log
-  view.trigger 'anEvent'
+    # Event bubbling (similar to backbone collections)
+    view = new Base.View
+    list.add view
+    list.on 'anEvent', (e) -> log 'a child triggered an event!'
+    # triggers the above log
+    view.trigger 'anEvent'
 
-  # You can create models of any type, just pass any class (constructor)
-  # as a list's model property
-  list = new Base.List
-  list.model = ListItemView
-  list.push tagName: 'li'
-  list[0]                   # => a new ListItemView with tagName: 'li'
+    # You can create models of any type, just pass any class (constructor)
+    # as a list's model property
+    list = new Base.List
+    list.model = ListItemView
+    list.push tagName: 'li'
+    list[0]                   # => a new ListItemView with tagName: 'li'
 
-  # Lists also support all state methods
-  list.setState 'active', false
-  list.getState 'active'
-  list.toggleState 'active'
-  list.hasState 'active'
-  list.state.toJSON()
-  list.on 'state:change:active', ->
+    # Lists also support all state methods
+    list.setState 'active', false
+    list.getState 'active'
+    list.toggleState 'active'
+    list.hasState 'active'
+    list.state.toJSON()
+    list.on 'state:change:active', ->
 
 
 ### Base.Router
 
 #### Class
 
-  :::coffeescript
-  # Inherits from Backbone.Router
-  class Router extends Base.Router
-    stateDeafults:
-      firstRoute: true
+    :::coffeescript
+    # Inherits from Backbone.Router
+    class Router extends Base.Router
+      stateDeafults:
+        firstRoute: true
 
-    routes:
-      '*': (route) -> @setState 'firstRoute', false
+      routes:
+        '*': (route) -> @setState 'firstRoute', false
 
-    onChangeFirstRoute: (stateModel, value, options) ->
+      onChangeFirstRoute: (stateModel, value, options) ->
 
 #### Methods
 
-  router.setState 'firstRoute', true
-  router.getState 'firstRoute'
-  router.toggleState 'firstRoute'
+    :::coffeescript
+    # Supports all stated methods
+    router.setState 'firstRoute', true
+    router.getState 'firstRoute'
+    router.toggleState 'firstRoute'
 
 
 ### Base.State
@@ -429,38 +431,38 @@ as 'state:#{eventName}', so, for example, on its parent you can listen to 'state
 
 State models must be inited with a parent (the owner of the state model in which the state model describes the state of). E.g.
 
-  :::coffeescript
-  class MyStatedClass
-    constructor: ->
-      @state = new State parent: @
-      @state.set 'inited', true
-      @state.get 'inited' # => true
+    :::coffeescript
+    class MyStatedClass
+      constructor: ->
+        @state = new State parent: @
+        @state.set 'inited', true
+        @state.get 'inited' # => true
 
 
 ### Base.Stated
 
 Easier wasy of creating a new stated object. Inherits from Base.Object
 
-  :::coffeescript
-  class Stated extends Base.Stated
-    constructor: ->
-      super
-      @toggleState 'inited'
-      @setState 'active', true
-      @getState 'active' # => true
+    :::coffeescript
+    class Stated extends Base.Stated
+      constructor: ->
+        super
+        @toggleState 'inited'
+        @setState 'active', true
+        @getState 'active' # => true
 
-    stateDefaults:
-      inited: false
+      stateDefaults:
+        inited: false
 
 ### Base.Object
 
 Simple evented object contrsuctor. Supports full Backbone events API 'on', 'off', 'listenTo', etc
 
-  :::coffeescript
-  class MyObject extends Base.Object
-    constructor: ->
-      super
-      @on 'foobar', ->
+    :::coffeescript
+    class MyObject extends Base.Object
+      constructor: ->
+        super
+        @on 'foobar', ->
 
 
 ### Event
