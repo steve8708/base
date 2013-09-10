@@ -1,5 +1,6 @@
 # Base.js
 ---
+## What it is
 
 A powerful MVC framework for people who want the ultimate elegance, simplicity, and efficiency without compromise.
 
@@ -111,7 +112,7 @@ Documentation coming soon…
 Documentation coming soon…
 ## Nested Models and Collections
 Documentation coming soon…
-## View, Model, Collection States
+## States
 Documentation coming soon…
 ## Event Bubbling and Broadcasting
 Documentation coming soon…
@@ -494,7 +495,7 @@ Simple evented object contrsuctor. Supports full Backbone events API 'on', 'off'
 Constructor for base events. Every bubbled and broadcasted view event injects a first argument that is an instanceof Base.Event which supports
 
     :::coffeescript
-    view.on 'change:foo', (e) ->
+    view.on 'child:change:foo', (e) ->
       e.preventDefault()   # sets e.defaultPrevented to true
       e.stopPropagation()  # prevents this event from further propagating
       e.target             # reference to view that first triggered the event
