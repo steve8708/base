@@ -841,6 +841,8 @@ Web components are custom HTML tags with special behaviors for making applicatio
 Singletons inherit from Base.Model and are accessible via the app object
 and anywhere via templates
 
+JS (in Coffeescript)
+
     :::coffeescript
     app.singleton ->
       class User extends Base.Singleton
@@ -848,6 +850,8 @@ and anywhere via templates
           name: 'You have no name!'
 
     app.mySingleton is MySingleton # => true
+
+HTML
 
     :::html
     <!-- All singletons are accessible in templates prefixed by $ -->
