@@ -18,8 +18,10 @@ knockout, spine, sammyjs, react, extjs, and many more
 
 Base takes the very best of Backbone.js (bulletproof ORM, microscopic footprint, extensible architecture), best of
 Ember.js (hierarchical view management, intuitive templating, best in class performance and scalability), best of
-Angular.js ('magic' updating templates, dead-simple web components, powerful event propagation and broadcasting),
-and assembles it all together under one framework with an ultra efficient, lightweight core, a powerful plugin-based architecture,
+Angular.js ('magic' MVVM style updating templates, dead-simple web components, powerful event propagation and broadcasting),
+as well as many other great ideas from other frameworks (mentioned above)
+and assembles it all together under one framework with an ultra efficient, lightweight core,
+a powerful plugin-based architecture, a scalable, event-driven platform
 and much more!
 
 ## What it aims to solve
@@ -27,7 +29,7 @@ and much more!
 That, and, of course, seeking to resolve the inherent issues and limitations plaguing each framework. Such as
 Backbone's lack of support for nested views, models, collections, dynamic templates, and other critical features
 supported by larger frameworks,
-Ember's bloat (235kb minified - yikes!), overcomplexity, overuse of redundant, unnecessary helper classes
+Ember's bloat (235kb minified - yikes!), overcomplexity, overuse of redundant and unnecessary helper classes
 (renderbuffer, defaultresolver, enumerable, etc), and severely limited template binding, and
 Angular's performance and scaling issues regarding their use of 'dirty' model checking,
 lack of extensibility via diverting the classical inheritance model (i.e. no plugins or subclassing), and lack of robust and restful ORM management.
@@ -50,7 +52,7 @@ apps down to simple configuration.
 
 
 
-# Code Example
+# Quick Example
 ---
 
 HTML:
@@ -102,7 +104,7 @@ CSS (in Stylus):
         position relative
 
 
-# Concepts
+# Core Concepts
 ---
 
 ## Dynamic Templates
@@ -116,20 +118,209 @@ Documentation coming soon…
 Documentation coming soon…
 ## Event Bubbling and Broadcasting
 Documentation coming soon…
+## Simple Event Binding Syntax
+E.g. onParentFoobar ->
+Documentation coming soon...
 ## Dynamic Templates
-Documentation coming soon…
-## Plugins
-Documentation coming soon…
 
-# Templates
----
-### Web Components
+### Tags
 
     :::html
-    <x-view type="foo"></x-view>
-    <x-collection subject="picts" view="pict"></x-collection>
+    {{someGlobalProperty}}
 
-#### Creating Components
+    <!-- 'EACH' -->
+    {{#someArray}}
+      {{title}}
+      <!-- The dot indicates relative to the array-->
+      {{.someArrayProperty}}
+      <!-- This renders the array item itself, typically used if the value is a string in an array of strings -->
+      {{.}}
+    {{/someArray}}
+
+    <!-- 'IF' -->
+    {{#someNonArray}}
+      <h1> {{someNonArray}} is truthy! </h1>
+    {{/someNonArray}}
+
+    <!-- 'UNLESS' -->
+    {{^someNonArray}}
+      <h1> {{someNonArray}} is falsey! </h1>
+    {{/someNonArray}}
+
+
+### Expressions
+
+    :::html
+    <!-- Expressions -->
+    {{ name ? name : 'You have no name!' }}
+
+    <div class="button {{ active ? 'active' : 'inactive' }}"></div>
+    <div name="{{name}}"></div>
+
+    <!-- Block expressions -->
+    {{# foo == 'bar' && bar == 'foo' }}
+      Foo is bar and bar is foo!
+    {{/}}
+
+    {{^ typeof bar is 'string'}}
+      Bar is not a string!
+    {{/}}
+
+### Objects and methods
+
+    :::html
+    <!-- Current view methods -->
+    {{ $view.getProduct( product ) }}
+
+    <!-- Filters -->
+    {{ $filter.capitalize( name ) }}
+    {{ $filter.orderBy( someArray, 'name' ) }}
+
+    <!-- Parent view -->
+    {{ $parent.foo.bar }}
+    {{ $parent.$parent.foo.bar }}
+
+    <!-- App -->
+    {{ $app.foo == 'bar' ? foo : bar }}
+
+    <!-- Singletons -->
+    {{# $user.type == 'brand' }}
+      You're a brand, here are some brand options!
+    {{/}}
+
+    {{# $user.type == 'publisher' }}
+      Hello publisher!
+    {{/}}
+
+    <!-- Mix and match -->
+    {{# shareType == 'photo' && $user.type == 'brand' }}
+      Something special just for brands shareing photos
+    {{/}}
+
+
+### Event binding
+
+#### HTMN
+   :::html
+   <button on-click="someButtonWasClicked"></button>
+   <button on-hover="set: 'foo', bar"></button>
+   <button on-touchend="activate: foo"></button>
+
+#### JS (in coffeescript)
+
+### Outlets
+
+#### HTML
+    :::html
+    <button outlet="foo"></button>
+
+#### JS (in coffeescript)
+    :::coffeescript
+    class View extends Base.View
+      construcotr: ->
+        super
+        # First way to bind
+        @on 'click:foo', ->
+
+      bind:
+        # Second way to bind
+        'click:foo', ->
+
+      # Simplest way to bind
+      onClickFoo: (e) ->
+
+
+
+
+## Plugins
+Extend the functionality of any type of module. Configurable at the Base (global) level, app level, and the per module level (also by module type). The ultimate goal is to distill applications development to basic configuration, through the use of building and applying reusable components. This is heavily inspired by [grunt](http://gruntjs.com/).
+
+The ultimate goal here is to maximize code reusability across applications, provide basic utilities that help this process (modeled after the grunt apis). ULtimately this library will be broken down into the Base core and a suite of plugins to assemble the features you want (e.g. ractive templating, state handling, etc). Eventually nearly every feature herein should be moved to a plugin so applications can be assembled with as much or as little as they want/choose, and can swap out any part or piece at any time (e.g. use another template library, use a different state handler, etc)
+
+### Using Plugins
+
+    :::coffeescript
+    Base.plugins.view.defaults.lazyLoad = true
+    App.plugins.defaults.state = true
+
+    class View extends Base.View
+      plugins:
+        ractive: true
+        lazyLoadImages: true
+        fadeInImages:
+          className: 'fade'
+          selector: '.lazy-loaded'
+
+
+### Creating Plugins
+
+    :::coffeescript
+    # Plugin code runs on initialize, is called in the context of the module
+    # it is being applied to, and can retutn methods to apply to the module
+    Base.view.plugin 'ractive', (view, config) ->
+      @ractive = new Ractive el: @el, template: @template, data: @toJSON()
+      @ractive.bind Ractive.adaptors.backboneAssociatedModel @state
+      @on 'render', -> @ractive.render()
+
+    # Applies to all classes
+    Base.plugin 'state', (module, config) ->
+      @state = new Base.State
+      @state.on 'all', (eventName, args…) =>
+        @trigger.apply @, ["state:#{eventName}"].concat args
+
+      # Apply methods
+      for name in ['get', 'set', 'toggle']
+        do (name) =>
+          @["#{name}State"] = (args…) => @state[name].apply @state, args
+
+      # Or return methods to apply to the module
+      return (
+        getState: (name) -> @state.get name
+        setState: (name, value) -> @state.set name, value
+      )
+
+
+    App.view.plugin 'fadeInImages', (view, config) ->
+      @on 'render', ->
+        # You can access config.className or use config as a function
+        # to set defaults
+        config = config(className: 'hide', selector: 'img')
+
+        $images = @$ config.selector
+        $images.addClass config.className or 'hide'
+        $images.on 'load', (e) => $(e.target).removeClass config.className
+
+    App.view.plugin 'lazyLoadImages', (view, config) ->
+      @on 'render': ->
+         $images = @$ config.selector or 'img'
+         $images.each (i, el) =>
+            el.setAttribute config.attr or 'data-src', el.src
+            el.src = ''
+         _.defer => $images.each (i, el) => el.src = el.getAttribute 'src'
+
+    # Plugins can also apply to specific module types
+    App.plugin ['view', 'collection', 'model'], 'state', ->
+
+    # Plugins can also have dependences
+    App.view.plugin 'ractive', ['view:state'], ->
+
+
+## Web Components
+Web components are custom HTML tags with special behaviors for making application markup dead simple. These can range from basic simplications (e.g. '<x-icon name="foo">' as a simpler form of typing <i class="icon sprite-foo"></i>) to highly dynamic components (e.g. <x-collection> that automatically creates and destroys subviews as a paired collection changes)
+
+### Using Components
+
+    :::html
+    <!-- Insert a new backbone view into the current view with custom options -->
+    <x-view type="foo" foo="bar"></x-view>
+    <!-- Have a dynamic list of views that updates when a paired collection updates -->
+    <x-collection subject="picts" view="pict"></x-collection>
+    <!-- Sprite icons -->
+    <x-icon name="foo"></x-icon>
+    <!-- IOS style switches -->
+    <x-switch name="bar"></x-switch>
+
+### Creating Components
 
     :::coffeescript
     Base.component 'view', ($el, attributes) ->
@@ -144,6 +335,8 @@ Documentation coming soon…
         add: (model) => @insertView new View parent: @, model: model
         remove: (model) => @destroyView model: model
         reset: => @destroyViews()
+
+  Base.component 'icon', ($el, attributes) ->
 
 
 # Core Classes
@@ -214,8 +407,7 @@ Documentation coming soon…
       cleanup: ->
 
       # Send a response to a child view requesting some information
-      onRequestSomeQuestion: (args…) ->
-        @
+      onRequestSomeQuestion: ->
 
 
 ### Methods
@@ -461,7 +653,9 @@ State models must be inited with a parent (the owner of the state model in which
       constructor: ->
         @state = new State parent: @
         @state.set 'inited', true
-        @state.get 'inited' # => true
+        @state.get 'inited'                      # => true
+        @listenTo @state, 'change:inited', ->    # valid
+        @on 'state:change:inited', ->            # also valid
 
 
 ## Base.Stated
@@ -501,15 +695,19 @@ Constructor for base events. Every bubbled and broadcasted view event injects a 
       e.target             # reference to view that first triggered the event
       e.currentTarget      # reference to the current view handling the event
 
-# Configuration
----
-Documentation coming soon...
 
-# Plugins
----
-Documentation coming soon...
+# JS vs Coffeescript
 
-# Modules
----
-Documentation coming soon...
+Despite every example herein being in coffeescript, like any coffeescript library base.js does not require that you write any code in coffeescript. Just use the .extend() syntax instead (like backbone)
 
+    :::javascript
+    var View = Base.View.extend({
+      initialize: function () {
+        // Do stuff
+      },
+
+      someMethod: function () {
+        // The JS way of calling super (if you ever find you need it)
+        Base.View.prototype.someMethod.apply(this, arguments);
+      }
+    ));
