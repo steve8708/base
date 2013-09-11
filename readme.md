@@ -34,8 +34,6 @@ Ember's bloat (235kb minified - yikes!), overcomplexity, overuse of redundant an
 Angular's performance and scaling issues regarding their use of 'dirty' model checking,
 lack of extensibility via diverting the classical inheritance model (i.e. no plugins or subclassing), and lack of robust and restful ORM management.
 
-Hot dayamn.
-
 ## What its built on
 Built on top of Backbone, jQuery, and Ractive, Base.js is the attempt to have everything
 and leave nothing for a brighter world of elegant, scalable, high performance HTML5 apps
@@ -50,7 +48,7 @@ is lightweight and powerful, and it is meant to be infinitely extended and expan
 through the use of plugins, ultimately with the intent to reduce building powerful
 apps down to simple configuration.
 
-
+Ultimately, the idea here is to set a foundation for writing simple, reusable code you can use across apps, load only when you need it, and share with others (and use their components too!), with the end goal of reducing application development down to simple configuration. See below for an example:
 
 # Quick Example
 ---
@@ -64,20 +62,26 @@ HTML:
         <button base-click="set: 'mode', 'grid' " class="grid {{ mode == 'grid' ? 'active' : 'inactive' }}"></button>
         <button base-click="set: 'mode', 'grid' " class="single {{ mode == 'single' ? 'active' : 'inactive' }}"></button>
       </div>
-      <x-view type="grid">
+      <base-view type="grid">
         {{#picts}}
           <img outlet="pict" src="{{url}}" base-click="set: 'activePict', 'pict' ">
         {{/picts}}
-      </x-view>
+      </base-view>
 
-      <x-view type="lightbox" visible="{{!!activePict}}" base-click="hide: true ">
+      <base-view type="lightbox" visible="{{!!activePict}}" base-click="hide: true ">
         <img src="{{activePict.url}}" outlet="pict">
-      </x-view>
+      </base-view>
     </bod>
 
 JS (in Coffeescript):
 
     :::coffeescript
+    class App extends Base.App
+      plugins:
+        lazyLoadImages: true
+        animateImagesOnLoad:
+          type: 'fade'
+
     class Grid extends Base.View
       plugins:
         masonry: true
@@ -85,15 +89,11 @@ JS (in Coffeescript):
       defaults:
         mode: 'grid'
 
-    class Pict extends Base.View
-      plugins:
-        animateOnLoad: 'fadeIn'
-
     class Lightbox extends Base.View
       defaults:
         showLightbox: false
 
-      onChangeShowLightbox: -> @doStuff()
+      onChangeShowLightbox: -> @doSomething()
 
 
 CSS (in Stylus):
@@ -130,7 +130,7 @@ CSS (in Stylus):
     <!--
         This is equivalent to parnetView.subView new MyViewName foo: 'bar'
     -->
-    <x-view type="MyViewName" foo="bar"></x-view>
+    <base-view type="MyViewName" foo="bar"></base-view>
 
 ### Event Bubbling, Emitting, and Broadcasting
 
@@ -544,8 +544,6 @@ Any event on any evented object (model, view, collection, etc) can be subscribed
       onClickFoo: (e) ->
 
 
-
-
 ## Plugins
 Extend the functionality of any type of module. Configurable at the Base (global) level, app level, and the per module level (also by module type). The ultimate goal is to distill applications development to basic configuration, through the use of building and applying reusable components. This is heavily inspired by [grunt](http://gruntjs.com/).
 
@@ -620,15 +618,15 @@ The ultimate goal here is to maximize code reusability across applications, prov
 
 
 ## Web Components
-Web components are custom HTML tags with special behaviors for making application markup dead simple. These can range from basic simplications (e.g. '<x-icon name="foo">' as a simpler form of typing <i class="icon sprite-foo"></i>) to highly dynamic components (e.g. <x-collection> that automatically creates and destroys subviews as a paired collection changes)
+Web components are custom HTML tags with special behaviors for making application markup dead simple. These can range from basic simplications (e.g. '<base-icon name="foo">' as a simpler form of typing <i class="icon sprite-foo"></i>) to highly dynamic components (e.g. <base-collection> that automatically creates and destroys subviews as a paired collection changes)
 
 ### Using Components
 
     :::html
-    <x-view type="foo" foo="bar"></x-view>
-    <x-collection subject="picts" view="pict"></x-collection>
-    <x-icon name="foo"></x-icon>
-    <x-switch name="bar"></x-switch>
+    <base-view type="foo" foo="bar"></base-view>
+    <base-collection subject="picts" view="pict"></base-collection>
+    <base-icon name="foo"></base-icon>
+    <base-switch name="bar"></base-switch>
 
 ### Creating Components
 
@@ -839,7 +837,22 @@ Web components are custom HTML tags with special behaviors for making applicatio
 
 
 ## Base.Singleton
-Documentation coming soon...
+
+Singletons inherit from Base.Model and are accessible via the app object
+and anywhere via templates
+
+    :::coffeescript
+    app.singleton ->
+      class User extends Base.Singleton
+        defaults:
+          name: 'You have no name!'
+
+    app.mySingleton is MySingleton # => true
+
+    :::html
+    <!-- All singletons are accessible in templates prefixed by $ -->
+    <h1>{{$user.name}}</h1>
+
 
 ## Base.Collection
 
