@@ -201,10 +201,10 @@ Documentation coming soon...
 ### Event binding
 
 #### HTMN
-   :::html
-   <button on-click="someButtonWasClicked"></button>
-   <button on-hover="set: 'foo', bar"></button>
-   <button on-touchend="activate: foo"></button>
+    :::html
+    <button on-click="someButtonWasClicked"></button>
+    <button on-hover="set: 'foo', bar"></button>
+    <button on-touchend="activate: foo"></button>
 
 #### JS (in coffeescript)
 
@@ -324,7 +324,7 @@ Web components are custom HTML tags with special behaviors for making applicatio
       view = new app.views[attributes.type] _.extend attributes, parent: @
       @insertView view
 
-  # For a dynamic list of views that updates when a collection changes
+    # For a dynamic list of views that updates when a collection changes
     Base.component 'collection', ($el, attributes) ->
       View = app.views[attributes.view]
       collection = @get attributes.subject
