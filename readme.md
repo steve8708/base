@@ -107,16 +107,143 @@ CSS (in Stylus):
 # Core Concepts
 ---
 
-## Dynamic Templates
-Documentation coming soon…
-
 ## Nested Views
-Documentation coming soon…
+
+### Defining Nestings in JS
+
+
+    class View extends Base.View
+      constructor: ->
+
+      render: ->
+        super
+        @insertView new SomeView
+        @insertView '.some-selector', new SomeView
+
+        @subView new SomeView
+
+
+### Defining Nesting in Markup
+
+    :::html
+    <x-view type="MyViewName"></x-view>
+
+### Event Bubbling: Emitting, Broadcasting
+
+    :::coffeescript
+    class MyView extends Base.View
+      render: ->
+        super
+        @insertView '.selector', new MyOtherView
+        @broadcast 'rendered'
+
+      # Runs when any child emits 'rendered'
+      onChildRendered: ->
+      # Runs when any child named 'myOtherView' emits 'rendered'
+      onChildMyOtherViewRendered: ->
+      # Runs when any immediate child emits 'rendered'
+      onFirstChildRendered: ->
+      # Runs when any view (parent or child) nadmed 'myOtherView' rendered
+      onMyOtherViewRendered: ->
+
+      onChildChangeActive: ->
+
+    class MyOtherView extends Base.View
+      render: ->
+        super
+        @emit 'rendered'
+
+        # These are all valid ways of binding to the same events described above
+        @on 'child:rendered', ->
+        @on 'firstChild:rendered', ->
+        @on 'child:myThirdView:rendered', ->
+        @on 'myThirdView:rendered', ->
+        @on 'child:change:active', ->
+
+
+    class MyThirdView extends Base.View
+      rener: ->
+        @emit 'rendered'
+
+      # Runs when any parent broadcasts 'rendered'
+      onParentRendered: ->
+      # Runs when a parent named 'MyView' broadcasts 'rendered'
+      onParentMyViewRendered: ->
+      # Runs only when this views first (closest) parent broadcasts 'rendered'
+      onFirstParentRende: ->red
+
+
+### Event Object
+
+    :::coffeescript
+    # All emitted and broadcasted events inject a first
+    # argument, a Base.Event (similar to a DOM event object)
+    # that gives listeners some extra information and actions
+
+    class View extends Base.View
+      onChildChangeActive: (e) ->
+        if e.target.is 'listItem'
+          # Stop this event from further propagating (to parents
+          # if the event was emitted, to children if the event was
+          # broadcasted)
+          e.stopPropagation()
+
+          # Sets e.defaultPrevented to true
+          e.preventDefault()
+
+        # in this case the currentTarget is this view
+        if e.currentTarget is @
+          true
+
+
+### Accessing Nested Views
+
+    :::coffeescript
+    view.children           # => Base.List (evented array) of children
+    view.parent             # => view's immediate parent
+
+    view.findView 'name'    # => first view named 'name'
+    view.findViews 'name'   # => array of subviews named 'name'
+
+    view.childView 'name'   # => first immediate child named 'name'
+    view.childViews 'name'  # => array of immediate children with name 'name'
+
+    view.parentView 'name'  # => first parent with name 'name'
+    view.parentViews 'name' # => array of parents with name 'name'
+
+    # All view accesors also take objects
+    view.findViews model: model
+    view.parentView foo: 'bar', bar: 'foo'
+
+    # All view accessors can also take iterators (functions)
+    view.childView (view) -> view.isActive()
+    view.parentViews (view) -> view.
+
+
+### Children List
+
+    # Or you can always loop through children yourself
+    # view.children inherits from Base.List, so it supports
+    # all native array methods as well as all underscore
+    # array and collection methods
+    view.children.map (child) -> child.toJSON()
+    view.children.reduce (child, lastVal) -> lastValue += 1 if child.isActive()
+    view.children.isEmpty()
+    view.children.max (child) -> child.get 'height'
+    view.children.sortBy (child) -> child.isActive()
+    view.children.last()
+
+### Children List Events
+
+    :::coffeescript
+    view.children.on 'add', (childView) ->    #  a new child view as added
+    view.children.on 'remove', (childView) -> #  a child view was removed
+    view.childre.non 'reset', ->              # children were reset
+
+
 ## Nested Models and Collections
 Documentation coming soon…
 ## States
-Documentation coming soon…
-## Event Bubbling and Broadcasting
 Documentation coming soon…
 ## Simple Event Binding Syntax
 E.g. onParentFoobar ->
@@ -190,6 +317,15 @@ Documentation coming soon...
 
     {{# $user.type == 'publisher' }}
       Hello publisher!
+    {{/}}
+
+    <!-- Routes -->
+    {{# $route.path[0] == 'share' && $route.params.foo == 'bar' }}
+      We're on the shar epage and foo is bar!
+    {{/}}
+
+    {{# $route.string == 'share/photo' }}
+      You're sharing a photo!
     {{/}}
 
     <!-- Mix and match -->
@@ -703,7 +839,7 @@ Constructor for base events. Every bubbled and broadcasted view event injects a 
 
 # JS vs Coffeescript
 
-Despite every example herein being in coffeescript, like any coffeescript library base.js does not require that you write any code in coffeescript. Just use the .extend() syntax instead (like backbone)
+Despite the examples herein being in coffeescript, like any other coffeescript library base.js does not require that you write any code in coffeescript. Just use the .extend() method to subclass Base classes
 
     :::javascript
     var View = Base.View.extend({
