@@ -61,16 +61,16 @@ HTML:
     <body base-app="myApp">
       <h1>{{user.name}}</h1>
       <div class="controls">
-        <button base-click="set( 'mode', 'grid' )" class="grid {{ mode == 'grid' ? 'active' : 'inactive' }}"></button>
-        <button base-click="set( 'mode', 'grid' )" class="single {{ mode == 'single' ? 'active' : 'inactive' }}"></button>
+        <button base-click="set: 'mode', 'grid' " class="grid {{ mode == 'grid' ? 'active' : 'inactive' }}"></button>
+        <button base-click="set: 'mode', 'grid' " class="single {{ mode == 'single' ? 'active' : 'inactive' }}"></button>
       </div>
       <x-view type="grid">
         {{#picts}}
-          <img outlet="pict" src="{{url}}" base-click="set( 'activePict', 'pict' )">
+          <img outlet="pict" src="{{url}}" base-click="set: 'activePict', 'pict' ">
         {{/picts}}
       </x-view>
 
-      <x-view type="lightbox" visible="{{!!activePict}}" base-click="hide( true )">
+      <x-view type="lightbox" visible="{{!!activePict}}" base-click="hide: true ">
         <img src="{{activePict.url}}" outlet="pict">
       </x-view>
     </bod>
@@ -132,7 +132,7 @@ CSS (in Stylus):
     -->
     <x-view type="MyViewName" foo="bar"></x-view>
 
-### Event Bubbling: Emitting, Broadcasting
+### Event Bubbling, Emitting, and Broadcasting
 
     :::coffeescript
     class MyView extends Base.View
@@ -144,7 +144,7 @@ CSS (in Stylus):
         # emits an event to all children
         @emit 'rendered'
 
-        # broadcasts and emits an event
+        # broadcasts and emits an event to all parents and children
         @trigger 'rendered'
 
       # Runs when any child emits 'rendered'
@@ -232,6 +232,7 @@ CSS (in Stylus):
 
 ### Children List
 
+    :::coffeescript
     # Or you can always loop through children yourself
     # view.children inherits from Base.List, so it supports
     # all native array methods as well as all underscore
@@ -816,7 +817,7 @@ Web components are custom HTML tags with special behaviors for making applicatio
     model.toggleState 'active'  # equivalent of model.state.toggle 'active'
 
     model.addRelation 'pict', PictModel          # Add a nested model
-    model.set 'pict', { foo: 'bar' }             # Creates a new pict model
+    model.set 'pict', foo: 'bar'                 # Creates a new pict model
     model.get 'pict'                             # => pictModel object
     model.get 'pict.foo'                         # => 'bar'
     model.set 'pict.foo', 'baz'
@@ -900,7 +901,7 @@ An evented array, similar to a backbone collection, but can store any type of da
     :::coffeescript
     list = new Base.List
     list.on 'add', -> log 'added!'
-    list.push 'hello!' # => triggers log 'added!'
+    list.push 'hello!' # triggers the 'add' event
 
     # Lists are just typical arrays, you have access to all native
     # array methods ('forEach', 'map', 'indexOf', etc) and all
