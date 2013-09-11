@@ -253,61 +253,62 @@ CSS (in Stylus):
 
 ## Nested Models and Collections
 
-        class PhotoModel extensd Base.Model
-            constructor: ->
-                super
-                # Relations can be added dynamically
-                @addRelation 'activeProduct', ProductModel
+    :::coffeescript
+    class PhotoModel extensd Base.Model
+      constructor: ->
+        super
+        # Relations can be added dynamically
+        @addRelation 'activeProduct', ProductModel
 
-            # Relations can be configured
-            relations:
-                productsTagged: ProductsCollection
-
-        :::coffeescript
-        class Model extends Base.Model
-            constructor: ->
-                super
-                @set 'photos', [ url: 'hi.png' ]
-                @get 'photos'    # => Photo list with one photo model in it
-                @get 'photos[0]' # => a Photo model
-                @get 'photos[0].url' # => 'hola.png'
-                @set 'photos[0].url, 'foo.com/bar.png
-
-                @get('photos').add url: 'hello.png'
-                @get('photos').reset()
-
-                @on 'add:photos', ->    # a photo model was added
-                @on 'reset:photos', ->  # the photos collection was reset
-                @on 'remove:photos', -> # a photo was removed
-
-                @on 'change:photos[0]', -> # this first photo model changed
-                @on 'change:photos[*]', -> # any photo model changed
-                @on 'change:photos[0].url', ->
-                @on 'change:photos[*].url', ->
-
-                # Infinite nestings are supported
-                @get 'photos[0].productsTagged[0].id'
-                @set 'photos[0].productsTagged[0].id', newId
-                @on 'change:photos[0].productsTagged[0].id', ->
+      # Relations can be configured
+      relations:
+        productsTagged: ProductsCollection
 
 
-            # Syntax sugar for listening for above events
-            onChangePhotosUrl: ->
-            onAddPhotos: ->
-            onResetPhotos: ->
-            onRemovePhotos: ->
+    class Model extends Base.Model
+      constructor: ->
+        super
+        @set 'photos', [ url: 'hi.png' ]
+        @get 'photos'    # => Photo list with one photo model in it
+        @get 'photos[0]' # => a Photo model
+        @get 'photos[0].url' # => 'hola.png'
+        @set 'photos[0].url, 'foo.com/bar.png
 
-            # Defining relations
-            relations:
-                photos: PhotoList
+        @get('photos').add url: 'hello.png'
+        @get('photos').reset()
 
-        # Views also support relations
-        class View extends Base.View
-            relations:
-                photo: PhotoModel
+        @on 'add:photos', ->    # a photo model was added
+        @on 'reset:photos', ->  # the photos collection was reset
+        @on 'remove:photos', -> # a photo was removed
 
-            onChangePhotoUrl: ->
-            onChangePhoto: ->
+        @on 'change:photos[0]', -> # this first photo model changed
+        @on 'change:photos[*]', -> # any photo model changed
+        @on 'change:photos[0].url', ->
+        @on 'change:photos[*].url', ->
+
+        # Infinite nestings are supported
+        @get 'photos[0].productsTagged[0].id'
+        @set 'photos[0].productsTagged[0].id', newId
+        @on 'change:photos[0].productsTagged[0].id', ->
+
+
+      # Syntax sugar for listening for above events
+      onChangePhotosUrl: ->
+      onAddPhotos: ->
+      onResetPhotos: ->
+      onRemovePhotos: ->
+
+      # Defining relations
+      relations:
+        photos: PhotoList
+
+    # Views also support relations
+    class View extends Base.View
+      relations:
+        photo: PhotoModel
+
+      onChangePhotoUrl: ->
+      onChangePhoto: ->
 
 
 ## States
@@ -330,18 +331,18 @@ without clashing with data you want synced with your backend (or other persisten
 
     :::coffeescript
     class Collection extends Base.Collection
-        # configure state defaults
-        # this is valid for all stated classes (e.g. router, model, collection, etc)
-        stateDefaults:
-            active: false
+      # configure state defaults
+      # this is valid for all stated classes (e.g. router, model, collection, etc)
+      stateDefaults:
+          active: false
 
     class View extends Base.View
-        # delegates to state.defaults
-        defaults:
+      # delegates to state.defaults
+      defaults:
 
-        # delegates to state.relations
-        relations:
-            foo: Foo
+      # delegates to state.relations
+      relations:
+          foo: Foo
 
 
 ### State Methods
@@ -363,12 +364,12 @@ All foolowing methods work for all stated classes (routers, models, views, colle
 
     :::coffeescript
     class Model extends Base.Model
-        constructor: ->
-            super
-            # all state events bubble to their parent prefixed by 'state:'
-            @on 'state:change:active', ->
+      constructor: ->
+        super
+        # all state events bubble to their parent prefixed by 'state:'
+        @on 'state:change:active', ->
 
-         onStateChangeActive: ->
+       onStateChangeActive: ->
 
 
 ### State In Templates
@@ -388,30 +389,30 @@ All foolowing methods work for all stated classes (routers, models, views, colle
 
 Any event on any evented object (model, view, collection, etc) can be subscribed to directly by camelizing the event name.
 
-        :::coffeescript
-        class View extends Base.View
-            onChange: (stateModel) ->
-            # triggers on 'change:active'
-            onChangeActive: (stateModel) ->
+    :::coffeescript
+    class View extends Base.View
+      onChange: (stateModel) ->
+      # triggers on 'change:active'
+      onChangeActive: (stateModel) ->
 
-            # triggers on 'child:change:active'
-            onChildChangeActive: (e) ->
+      # triggers on 'child:change:active'
+      onChildChangeActive: (e) ->
 
-            # triggers on 'firstParent:render
-            onFirstParentRender: (e) ->
+      # triggers on 'firstParent:render
+      onFirstParentRender: (e) ->
 
-            # Triggers when @$el was clicked
-            onClick: (e) ->
+      # Triggers when @$el was clicked
+      onClick: (e) ->
 
-            # Triggers when a dom element where outlet="myButton" fired a 'mouseenter' event
-            onMouseenterMyButton: (e) ->
+      # Triggers when a dom element where outlet="myButton" fired a 'mouseenter' event
+      onMouseenterMyButton: (e) ->
 
-        class Collection extends Base.Collection
-            # triggers on 'add'
-            onAdd: (model) ->
+    class Collection extends Base.Collection
+      # triggers on 'add'
+      onAdd: (model) ->
 
-            # triggers on 'remove'
-            onRemove: (model) ->
+      # triggers on 'remove'
+      onRemove: (model) ->
 
 
 ## Dynamic Templates
@@ -511,13 +512,13 @@ Any event on any evented object (model, view, collection, etc) can be subscribed
 
 #### JS (in coffeescript)
 
-     :::coffeescript
-     class View extends Base.View
-         someButtonWasClicked: (e) ->
-             $clickedButton = $ e.currentTarget
+    :::coffeescript
+    class View extends Base.View
+      someButtonWasClicked: (e) ->
+        $clickedButton = $ e.currentTarget
 
-         activate: (name) ->
-             name # => 'foo'
+      activate: (name) ->
+        name # => 'foo'
 
 
 ### Outlets
