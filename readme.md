@@ -1165,7 +1165,7 @@ So Why do we need another javascript MV* options? Because Base is a blank slate,
 ## Backbone
 
 ### What it lacks
-Features. With (raw) Backbone you still have to write a lot of boilerplate to get anywhere near the simplicity and ease of ember and angaulr.
+Features. With (raw) Backbone you still have to write a lot of boilerplate to get anywhere near the features, simplicity, and ease of Ember and Angular.
 
 ### Where it excels
 Bulletproof ORM, ultra lightweight and efficient, classical inheritance, dead simple RESTful syncing with the server, built with jQuery.
@@ -1176,7 +1176,15 @@ Base is built on top of backbone - so everything you get with backbone, you get 
 ## Ember
 
 ### What it lacks
-Full dynamic templates (beyond simple classnames and attributes), too many duplicative class types to learn (93+), not build with jQuery.
+Full dynamic templates (beyond simple classnames and attributes). This really is a must as your application grows - rerendering entire views when simple lists or models change is very bad for performance, poor for user experience, and making granular upates via DOM manipulation code creates spaghetti logic fast.
+
+Simplicity. Ember has > 93 classes to learn.
+
+See:
+
+[Ember Confusion](http://wekeroad.com/2013/03/06/ember-confuses-me)
+
+[Ember Complexity](https://gist.github.com/viatropos/2767098)
 
 ### Where it excels
 Scaling. Ember can handle your very large single page application with efficiency and ease. View (controller) nesting and management, event bubbling, simple property binding, ORM, classical inheritance, and other critical features for large scale apps.
@@ -1186,11 +1194,20 @@ Base takes a lot of great ideas from Ember. View management, event bubbling, pro
 
 Specific features inspired by ember include Base's Base.State class and associated state management, Base's 'compute' configuration (dynamic model properties),
 
+
 ## Angular
 ### What it lacks
-Efficiency. Every time you update a $scope angular will loop through every object attached to it and all children looking for updates, rerunning all of your filters - wether necessary or not - and comparing for changes.
+Angular is great for small projects. But as your app grows, or when you want to start supporting mobile devices, serious issues can arise:
+
+Efficiency. Every time you update a $scope angular will loop through every object attached to it and all children looking for updates, rerunning all of your filters - wether necessary or not - and comparing for changes. This is, debatably, a very wasteful and inefficient practice, especially when working with deep models and collections. That, and, when your app starts growing to the point of pushing the boundaries of features and performance, that extra baggage can add up
 
 Consistency. Angular diverts from the classical inheritance model which prevent subclassing, which is critical for large applications to reduce repetitious code  across your application(s). Of course, there are workarounds (e.g. creating a service that runs utilities on your $scope on init of a controller), but they really feel like a step back in time. There is a reason that classical inheritance and OO has become the standard for building scalable applications with clear separation of concerns.  Angular's choice to divert this model was a bold one, without question.
+
+See:
+
+[Angular Performance Limits](http://eviltrout.com/2013/06/15/ember-vs-angular.html)
+
+[Angular Scaling Limits](http://stackoverflow.com/a/18381836/1959717)
 
 ### Where it excels
 Simplicity. Everything is a POJO (plain old javascript object) so getting and setting properties is not required.
@@ -1199,15 +1216,15 @@ Extensibility. Directives are amazingly flexible and powerful.
 Dynamic templates. Angular's dynamic templates are best in class.
 
 ### How base fits
-All of the dynamic templates, view/controller hierarchies, event emitting and broadcasting, but without any sacrifices to performance. By using simple getters and setters you can ensure that only the properties you update trigger code to execute, no matter how deep your models get. This is critical for large web or mobile HTML5 single page applications to avoid any perceptible lag, delay, or unnecessary lapse in performance. That and powered by a familiar and flexible object inheritance model, Base gives you the best of angular without the pieces that can hurt your applications.
+All of the dynamic templates, view/controller hierarchies, event emitting and broadcasting, but without any sacrifices to performance. By using simple getters and setters you can ensure that only the properties you update trigger code to execute, no matter how deep your models get. This is critical for large web and mobile HTML5 single page applications to avoid any perceptible lag, delay, or unnecessary lapse in performance. That and powered by a familiar and flexible object inheritance model, Base gives you the best of angular without the pieces that can hurt your applications.
 
-And all the while giving you an extensible, plugin based architecture so if you do want angular's 'dirty' model checking, just write a plugin! Decide for yourself what you do and don't want, and don't be forced into one methodology or another that can come back to bite you as your app grows.
+And all the while giving you an extensible, plugin based architecture so if you do want angular's 'dirty' model checking, just write a plugin! Decide for yourself what you do and don't want, and don't be forced into one methodology or another that can come back to bite you as your app grows, or require major refactoring just to divert some design choice your chosen framework uses that proves to not work with time.
 
 ## Others
 
 JS framework inspirations by feature:
 
-* Dynamic Templates
+* Dynamic (a.k.a. Model Driven) Templates
     * [Meteor](http://www.meteor.com/)
     * [Derby](http://derbyjs.com/)
     * [Knockout](http://knockoutjs.com/)
