@@ -9,13 +9,13 @@ Built with [Backbone](http://backbonejs.org/), [jQuery](http://jquery.com/), and
 # Contents
 * [Simple Example](#markdown-header-simple-example)
 * [Core Concepts](#markdown-header-core-concepts)
-    * [View Nesting and Management](#markdown-header-nested-views)
-    * [Nested Models and Collections](#markdown-header-nested-models-and-collections)
-    * [State Management](#markdown-header-state-management)
-    * [Simplified Event Binding](#markdown-header-simplified-event-binding)
     * [Dynamic Templates](#markdown-header-dynamic-templates)
     * [Plugins](#markdown-header-plugins)
     * [Web Components](#markdown-header-web-components)
+    * [View Nesting and Subview Management](#markdown-header-view-nesting-and-subview-management)
+    * [Nested Models and Collections](#markdown-header-nested-models-and-collections)
+    * [State Management](#markdown-header-state-management)
+    * [Simplified Event Binding](#markdown-header-simplified-event-binding)
     * [Dependency Injection](#markdown-header-dependency-injection)
 * [Core Classes](#markdown-header-core-classes)
     * [Base.App](#markdown-header-baseapp)
@@ -353,7 +353,7 @@ Web components are custom HTML tags with special behaviors for making applicatio
 
 
 
-## View Nesting and Management
+## View Nesting and Subview Management
 
 \- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
