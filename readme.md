@@ -1,4 +1,4 @@
-![base.js](http://i.imgur.com/b01FV6a.png)
+![base.js](http://i.imgur.com/p9dXfI3.png)
 
 A powerful MVC framework for people who want the ultimate elegance, simplicity, and efficiency without compromise.
 Maximize code reuse, minimize monotony, optimize happiness.
