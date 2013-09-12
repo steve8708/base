@@ -1,11 +1,14 @@
 ![base.js](http://i.imgur.com/ypn2Bly.png)
 
-A powerful MVC framework for people who want the ultimate elegance, simplicity, and efficiency without compromise.
-Maximize code reuse, minimize monotony, optimize happiness.
+Maximize code reuse, minimize DOM management, optimize happiness.
+All the features you need to buld stunning HTML5 web and mobile applications with efficiency and ease.
+Lightweight, high performance, incredibly flexible, insanely powerful.
+Built with [Backbone](http://backbonejs.org/), [jQuery](http://jquery.com/), and [Ractive](http://www.ractivejs.org/)
+
 
 # Contents
-* [About](#markdown-header-about)
 * [Quick Example](#markdown-header-quick-example)
+* [About](#markdown-header-about)
 * [Core Concepts](#markdown-header-core-concepts)
     * [Nested Views](#markdown-header-nested-views)
     * [Nested Models and Collections](#markdown-header-nested-models-and-collections)
@@ -29,58 +32,10 @@ Maximize code reuse, minimize monotony, optimize happiness.
     * [Base.Object](#markdown-header-baseobject)
 
 
-# About
-
-## Inspiration
-
-Inspired by the JS framework titans, Base is an initiative to consolidate the benefits of them all,
-into a flexible, efficiency, and ultra high performance foundation for building
-lightning fast yet amazingly powerful HTML5 applications that are as beatiful to code as they are to behold.
-
-This framework pulls many ideas from great JS frameworks such as bakcbone.js,
-angular.js, ember.js, marionette.js, thorax, chaplin, can.js, polymer,
-knockout, spine, sammyjs, react, extjs, and many more
-
-## What's built in
-
-Base takes the very best of Backbone.js (bulletproof ORM, microscopic footprint, extensible architecture), best of
-Ember.js (hierarchical view management, intuitive templating, best in class performance and scalability), best of
-Angular.js ('magic' MVVM style updating templates, dead-simple web components, powerful event propagation and broadcasting),
-as well as many other great ideas from other frameworks (mentioned above)
-and assembles it all together under one framework with an ultra efficient, lightweight core,
-a powerful plugin-based architecture, a scalable, event-driven platform
-and much more!
-
-## What base.js aims to solve
-
-That, and, of course, seeking to resolve the inherent issues and limitations plaguing each framework. Such as
-Backbone's lack of support for nested views, models, collections, dynamic templates, and other critical features
-supported by larger frameworks,
-Ember's bloat (235kb minified - yikes!), overcomplexity, overuse of redundant and unnecessary helper classes
-(renderbuffer, defaultresolver, enumerable, etc), and severely limited template binding, and
-Angular's performance and scaling issues regarding their use of 'dirty' model checking,
-lack of extensibility via diverting the classical inheritance model (i.e. no plugins or subclassing), and lack of robust and restful ORM management.
-
-## What its built on
-Built on top of Backbone, jQuery, and Ractive, Base.js is the attempt to have everything
-and leave nothing for a brighter world of elegant, scalable, high performance HTML5 apps
-that are effortless, intuitive, and even fun to create, debug, test, and maintain.
-
-## Where its at
-Base is in alpha. The API is unstable and rapidly improving.
-
-## Where its going
-Base is intended to be the foundation for building and extending great apps. Its core
-is lightweight and powerful, and it is meant to be infinitely extended and expanded
-through the use of plugins, ultimately with the intent to reduce building powerful
-apps down to simple configuration.
-
-Ultimately, the idea here is to set a foundation for writing simple, reusable code you can use across apps, load only when you need it, and share with others (and use their components too!), with the end goal of reducing application development down to simple configuration. See below for an example:
-
 # Quick Example
 ---
 
-HTML:
+HTML (DOM update automatically on model changes)
 
     :::html
     <body base-app="myApp">
