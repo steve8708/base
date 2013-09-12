@@ -1,5 +1,32 @@
 # Base.js
 ---
+
+# Contents
+* [About](#markdown-header-about)
+* [Quick Example](#markdown-header-quick-example)
+* [Core Concepts](#markdown-header-core-concepts)
+  * [Nested Views](#markdown-header-nested-views)
+  * [Nested Models and Collections](#markdown-header-nested-models-and-collections)
+  * [State Mangaement](#markdown-header-state-management)
+  * [Simplified Event Binding](#markdown-header-simplified-event-binding)
+  * [Dynamic Templates](#markdown-header-dynamic-templates)
+  * [Plugins](#markdown-header-plugins)
+  * [Web Components](#markdown-header-web-components)
+* [Core Classes](#markdown-header-core-classes)
+  * [Base.App](#markdown-header-baseapp)
+  * [Base.View](#markdown-header-baseview)
+  * [Base.Model](#markdown-header-basemodel)
+  * [Base.Singleton](#markdown-header-basesingleton)
+  * [Base.Collection](#markdown-header-basecollection)
+  * [Base.List](#markdown-header-baselist)
+  * [Base.State](#markdown-header-basestate)
+  * [Base.Stated](#markdown-header-basestated)
+  * [Base.Object](#markdown-header-baseobject)
+  * [Base.Event](#markdown-header-baseevent)
+
+
+# About
+
 ## What it is
 
 A powerful MVC framework for people who want the ultimate elegance, simplicity, and efficiency without compromise.
@@ -59,16 +86,16 @@ HTML:
     <body base-app="myApp">
       <h1>{{user.name}}</h1>
       <div class="controls">
-        <button base-click="set: 'mode', 'grid' " class="grid {{ mode == 'grid' ? 'active' : 'inactive' }}"></button>
-        <button base-click="set: 'mode', 'grid' " class="single {{ mode == 'single' ? 'active' : 'inactive' }}"></button>
+        <button on-click="set: 'mode', 'grid' " class="grid {{ mode == 'grid' ? 'active' : 'inactive' }}"></button>
+        <button on-click="set: 'mode', 'grid' " class="single {{ mode == 'single' ? 'active' : 'inactive' }}"></button>
       </div>
       <base-view type="grid">
         {{#picts}}
-          <img outlet="pict" src="{{url}}" base-click="set: 'activePict', 'pict' ">
+          <img outlet="pict" src="{{url}}" on-click="set: 'activePict', 'pict' ">
         {{/picts}}
       </base-view>
 
-      <base-view type="lightbox" visible="{{!!activePict}}" base-click="hide: true ">
+      <base-view type="lightbox" visible="{{!!activePict}}" on-click="hide: true ">
         <img src="{{activePict.url}}" outlet="pict">
       </base-view>
     </bod>
