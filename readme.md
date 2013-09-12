@@ -31,7 +31,7 @@ Built with [Backbone](http://backbonejs.org/), [jQuery](http://jquery.com/), and
     * [Base.Object](#markdown-header-baseobject)
 
 
-<br>
+<br/>
 
 # Simple Example
 ---
@@ -87,7 +87,7 @@ CSS (in Stylus):
         position relative
 
 
-<br>
+<br/>
 
 
 # Core Concepts
@@ -222,7 +222,7 @@ CSS (in Stylus):
       # Simplest way to bind
       onClickFoo: (e) ->
 
-<br>
+<br/>
 
 ## Plugins
 \- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -298,7 +298,7 @@ The ultimate goal here is to maximize code reusability across applications, prov
     # Plugins can also have dependences
     App.view.plugin 'ractive', ['view:state'], ->
 
-<br>
+<br/>
 
 ## Web Components
 \- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -340,7 +340,7 @@ Web components are custom HTML tags with special behaviors for making applicatio
       $input = $ "<input type='checkbox' type="switch" name='#{attributes.name}>'"
       $input.on 'click', => $el.prop 'checked', $input.prop 'checked'
 
-<br>
+<br/>
 
 
 ## View Nesting and Management
@@ -489,7 +489,7 @@ Web components are custom HTML tags with special behaviors for making applicatio
     view.children.on 'remove', (childView) -> #  a child view was removed
     view.childre.non 'reset', ->              # children were reset
 
-<br>
+<br/>
 
 ## Nested Models and Collections
 \- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -551,7 +551,7 @@ Web components are custom HTML tags with special behaviors for making applicatio
       onChangePhotoUrl: ->
       onChangePhoto: ->
 
-<br>
+<br/>
 
 ## State Management
 \- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -628,7 +628,7 @@ All foolowing methods work for all stated classes (routers, models, views, colle
     <!-- bind to model state -->
     {{model.$state.active}}
 
-<br>
+<br/>
 
 ## Simplified Event Binding
 \- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -660,7 +660,7 @@ Any event on any evented object (model, view, collection, etc) can be subscribed
       # triggers on 'remove'
       onRemove: (model) ->
 
-<br>
+<br/>
 
 
 ## Dependency Injection
@@ -668,8 +668,8 @@ Any event on any evented object (model, view, collection, etc) can be subscribed
 
 Documentation coming soon...
 
-<br>
-<br>
+<br/>
+<br/>
 
 # Core Classes
 ---
@@ -693,7 +693,7 @@ Documentation coming soon...
         picts: PictsCollection
 
 
-<br>
+<br/>
 
 ## Base.View
 \- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -797,7 +797,7 @@ Documentation coming soon...
     # first parent with a handler and then the request stops propagating
     view.request 'someQuestion', (response) ->
 
-<br>
+<br/>
 
 ## Base.Model
 \- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -856,7 +856,7 @@ Documentation coming soon...
       <h1>I am active!</h1>
     {{/}}
 
-<br>
+<br/>
 
 ## Base.Singleton
 \- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -880,7 +880,7 @@ HTML
     <!-- All singletons are accessible in templates prefixed by $ -->
     <h1>{{$user.name}}</h1>
 
-<br>
+<br/>
 
 ## Base.Collection
 \- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -913,8 +913,8 @@ HTML
     {{/}}
 
 
-<br>
-<br>
+<br/>
+<br/>
 
 # Helper Classes
 ---
@@ -986,7 +986,7 @@ An evented array, similar to a backbone collection, but can store any type of da
     list.state.toJSON()
     list.on 'state:change:active', ->
 
-<br>
+<br/>
 
 ## Base.Router
 \- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1012,7 +1012,7 @@ An evented array, similar to a backbone collection, but can store any type of da
     router.getState 'firstRoute'
     router.toggleState 'firstRoute'
 
-<br>
+<br/>
 ## Base.State
 \- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -1031,7 +1031,7 @@ State models must be inited with a parent (the owner of the state model in which
         @listenTo @state, 'change:inited', ->    # valid
         @on 'state:change:inited', ->            # also valid
 
-<br>
+<br/>
 
 ## Base.Stated
 \- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1049,7 +1049,7 @@ Easier wasy of creating a new stated object. Inherits from Base.Object
       stateDefaults:
         inited: false
 
-<br>
+<br/>
 
 ## Base.Object
 \- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1063,7 +1063,7 @@ Simple evented object contrsuctor. Supports full Backbone events API 'on', 'off'
         @on 'foobar', ->
 
 
-<br>
+<br/>
 
 ## Base.Event
 \- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1077,8 +1077,8 @@ Constructor for base events. Every bubbled and broadcasted view event injects a 
       e.target             # reference to view that first triggered the event
       e.currentTarget      # reference to the current view handling the event
 
-<br>
-<br>
+<br/>
+<br/>
 
 # JS vs Coffeescript
 ---
