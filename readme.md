@@ -1182,12 +1182,17 @@ Simplicity. Ember has > 93 classes to learn.
 
 See:
 
-[Ember Confusion](http://wekeroad.com/2013/03/06/ember-confuses-me)
-
-[Ember Complexity](https://gist.github.com/viatropos/2767098)
+* [Ember Confusion](http://wekeroad.com/2013/03/06/ember-confuses-me)
+* [Ember Complexity](https://gist.github.com/viatropos/2767098)
 
 ### Where it excels
 Scaling. Ember can handle your very large single page application with efficiency and ease. View (controller) nesting and management, event bubbling, simple property binding, ORM, classical inheritance, and other critical features for large scale apps.
+
+See:
+
+* [Why use Ember](http://eviltrout.com/2013/02/10/why-discourse-uses-emberjs.html)
+* [Ember compared to other MVC Frameworks](http://codebrief.com/2012/01/the-top-10-javascript-mvc-frameworks-reviewed/)
+
 
 ### How Base Fits
 Base takes a lot of great ideas from Ember. View management, event bubbling, property binding, etc. That while minimizing the amount of class types you need to accomplish these things (everything in Base distills down to simple models, collections, lists, and views), and much more.
@@ -1205,13 +1210,17 @@ Consistency. Angular diverts from the classical inheritance model which prevent 
 
 See:
 
-[Angular Performance Limits](http://eviltrout.com/2013/06/15/ember-vs-angular.html)
-
-[Angular Scaling Limits](http://stackoverflow.com/a/18381836/1959717)
+* [Angular Performance Limits](http://eviltrout.com/2013/06/15/ember-vs-angular.html)
+* [Angular Scaling Limits](http://stackoverflow.com/a/18381836/1959717)
 
 ### Where it excels
 Simplicity. Everything is a POJO (plain old javascript object) so getting and setting properties is not required.
 Extensibility. Directives are amazingly flexible and powerful.
+
+See:
+
+* [Why Use Angular](http://net.tutsplus.com/tutorials/javascript-ajax/3-reasons-to-choose-angularjs-for-your-next-project/)
+* [Angular's ease of use](http://www.sitepoint.com/10-reasons-use-angularjs/)
 
 Dynamic templates. Angular's dynamic templates are best in class.
 
