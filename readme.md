@@ -1207,7 +1207,7 @@ And all the while giving you an extensible, plugin based architecture so if you 
 
 JS framework inspirations by feature:
 
-* Dynamic (a.k.a. Model Driven) Templates
+* Dynamic Templates
     * [Meteor](http://www.meteor.com/)
     * [Derby](http://derbyjs.com/)
     * [Knockout](http://knockoutjs.com/)
