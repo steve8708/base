@@ -3,6 +3,14 @@
 Maximize code reuse, minimize DOM management, optimize happiness.
 All the features you need to buld stunning HTML5 web and mobile applications with efficiency and ease.
 Lightweight, high performance, incredibly flexible, insanely powerful.
+
+
+Base.js is a project
+designed to combine all of the best feautres of [backbone](http://backbonejs.org), [angular](http://angularjs.org), [ember](http://emberjs.com), and [the many other great javascript
+MVC frameworks](http://todomvc.com/) into one cohesive, highly performance, maximally extensible package.
+
+
+
 Built with [Backbone](http://backbonejs.org/), [jQuery](http://jquery.com/), and [Ractive](http://www.ractivejs.org/)
 
 
@@ -29,16 +37,17 @@ Built with [Backbone](http://backbonejs.org/), [jQuery](http://jquery.com/), and
     * [Base.State](#markdown-header-basestate)
     * [Base.Stated](#markdown-header-basestated)
     * [Base.Object](#markdown-header-baseobject)
-
-
-
-
+* [Comparison to other frameworks](#markdown-header-comparison-to-other-frameworks)
+    * [Backbone](#markdown-header-backbone)
+    * [Ember](#markdown-header-ember)
+    * [Angular](#markdown-header-angular)
+    * [Others](#markdown-header-others)
 
 
 # Simple Example
 ---
 
-HTML (DOM update automatically on model changes)
+HTML (DOM updates automatically on model changes)
 
     :::html
     <body base-app="myApp">
@@ -1144,3 +1153,96 @@ Despite the examples herein being in coffeescript, like any other coffeescript l
         Base.View.prototype.someMethod.apply(this, arguments);
       }
     });
+
+
+# Comparison to other frameworks
+---
+Backbone, Ember, and Angaular are amazing. Truly amazing. And built and maintainged by incredibly brilliant people.
+
+So Why do we need another javascript MV* options? Because Base is a blank slate, among a world where so many great ideas have been tried, and we can learn what works and what doesn't. Base is an attempt to take all of the best features form all of these great frameworks while shedding all (or as many as possible!) drawbacks (bloat, complexities, inefficiencies, etc).
+
+
+## Backbone
+
+### What it lacks
+Features. With (raw) Backbone you still have to write a lot of boilerplate to get anywhere near the simplicity and ease of ember and angaulr.
+
+### Where it excels
+Bulletproof ORM, ultra lightweight and efficient, classical inheritance, dead simple RESTful syncing with the server, built with jQuery.
+
+### How Base Fits
+Base is built on top of backbone - so everything you get with backbone, you get with base!
+
+## Ember
+
+### What it lacks
+Full dynamic templates (beyond simple classnames and attributes), too many duplicative class types to learn (93+), not build with jQuery.
+
+### Where it excels
+Scaling. Ember can handle your very large single page application with efficiency and ease. View (controller) nesting and management, event bubbling, simple property binding, ORM, classical inheritance, and other critical features for large scale apps.
+
+### How Base Fits
+Base takes a lot of great ideas from Ember. View management, event bubbling, property binding, etc. That while minimizing the amount of class types you need to accomplish these things (everything in Base distills down to simple models, collections, lists, and views), and much more.
+
+Specific features inspired by ember include Base's Base.State class and associated state management, Base's 'compute' configuration (dynamic model properties),
+
+## Angular
+### What it lacks
+Efficiency. Every time you update a $scope angular will loop through every object attached to it and all children looking for updates, rerunning all of your filters - wether necessary or not - and comparing for changes.
+
+Consistency. Angular diverts from the classical inheritance model which prevent subclassing, which is critical for large applications to reduce repetitious code  across your application(s). Of course, there are workarounds (e.g. creating a service that runs utilities on your $scope on init of a controller), but they really feel like a step back in time. There is a reason that classical inheritance and OO has become the standard for building scalable applications with clear separation of concerns.  Angular's choice to divert this model was a bold one, without question.
+
+### Where it excels
+Simplicity. Everything is a POJO (plain old javascript object) so getting and setting properties is not required.
+Extensibility. Directives are amazingly flexible and powerful.
+
+Dynamic templates. Angular's dynamic templates are best in class.
+
+### How base fits
+All of the dynamic templates, view/controller hierarchies, event emitting and broadcasting, but without any sacrifices to performance. By using simple getters and setters you can ensure that only the properties you update trigger code to execute, no matter how deep your models get. This is critical for large web or mobile HTML5 single page applications to avoid any perceptible lag, delay, or unnecessary lapse in performance. That and powered by a familiar and flexible object inheritance model, Base gives you the best of angular without the pieces that can hurt your applications.
+
+And all the while giving you an extensible, plugin based architecture so if you do want angular's 'dirty' model checking, just write a plugin! Decide for yourself what you do and don't want, and don't be forced into one methodology or another that can come back to bite you as your app grows.
+
+## Others
+
+JS framework inspirations by feature:
+
+* Dynamic (a.k.a. Model Driven) Templates
+    * [Meteor](http://www.meteor.com/)
+    * [Derby](http://derbyjs.com/)
+    * [Knockout](http://knockoutjs.com/)
+    * [Angular](http://angularjs.org/)
+    * [Polymer](http://www.polymer-project.org/polymer.html)
+    * [Knockback](http://kmalakoff.github.io/knockback/)
+    * [Ractive](http://www.ractivejs.org/) (powers Base's dynamic templates)
+
+
+* View Nesting and Subview Management
+    * [Marionettejs](http://marionettejs.com/)
+    * [Chaplin](http://chaplinjs.org/)
+    * [Backbone Layoutmanager](https://github.com/tbranyen/backbone.layoutmanager)
+    * [Angular](http://angularjs.org/)
+    * [Flight](http://twitter.github.io/flight/)
+
+
+* Web Components
+    * [Polymer](http://www.polymer-project.org/polymer.html)
+    * [Angular](http://angularjs.org/)
+    * [Ember](http://emberjs.com/)
+
+
+* Plugins
+    * [Grunt](http://gruntjs.com/)
+    * [Sammyjs](http://sammyjs.org/)
+    * [Montage](http://montagejs.org/)
+
+
+* Nested Models, Computed Properties
+    * [Ember](http://emberjs.com/)
+    * [Statesman](https://github.com/Rich-Harris/Statesman)
+    * [Backbone Relational](http://backbonerelational.org/)
+    * [Backbone Associations](https://github.com/dhruvaray/backbone-associations) (powers Base's nested models and collections)
+
+
+These are just a small sample of base features inspired by other js frameworks. There are many other features and nuanced inspired by the hoard of great js frameworks in addition to the ones listed above, including, but not limited to:
+[Batman](http://batmanjs.org/), [Ext](http://www.sencha.com/products/extjs), [Stapes](http://hay.github.io/stapes/), [React](http://facebook.github.io/react/), [Dart](https://www.dartlang.org/), [Thorax](http://thoraxjs.org/), and many more.
