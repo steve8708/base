@@ -1,8 +1,16 @@
 # Base.js
 ---
 
+A powerful MVC framework for people who want the ultimate elegance, simplicity, and efficiency without compromise.
+
 # Contents
 * [About](#markdown-header-about)
+    * [Inspiration](#markdown-header-inspiration)
+    * [What's built in](#markdown-header-whats-built-in)
+    * [What base.js aims to solve](#markdown-header-what-basejs-aims-to-solve)
+    * [What its build on](#markdown-header-what-its-built-on)
+    * [Where its at](#markdown-header-where-its-at)
+    * [Where its going](#markdown-header-where-its-going)
 * [Quick Example](#markdown-header-quick-example)
 * [Core Concepts](#markdown-header-core-concepts)
     * [Nested Views](#markdown-header-nested-views)
@@ -12,6 +20,7 @@
     * [Dynamic Templates](#markdown-header-dynamic-templates)
     * [Plugins](#markdown-header-plugins)
     * [Web Components](#markdown-header-web-components)
+    * [Dependency Injection](#markdown-header-dependency-injection)
 * [Core Classes](#markdown-header-core-classes)
     * [Base.App](#markdown-header-baseapp)
     * [Base.View](#markdown-header-baseview)
@@ -27,10 +36,6 @@
 
 
 # About
-
-## What it is
-
-A powerful MVC framework for people who want the ultimate elegance, simplicity, and efficiency without compromise.
 
 ## Inspiration
 
@@ -52,7 +57,7 @@ and assembles it all together under one framework with an ultra efficient, light
 a powerful plugin-based architecture, a scalable, event-driven platform
 and much more!
 
-## What it aims to solve
+## What base.js aims to solve
 
 That, and, of course, seeking to resolve the inherent issues and limitations plaguing each framework. Such as
 Backbone's lack of support for nested views, models, collections, dynamic templates, and other critical features
@@ -682,6 +687,9 @@ Web components are custom HTML tags with special behaviors for making applicatio
     Base.component 'switch', ($el, attributes) ->
       $input = $ "<input type='checkbox' type="switch" name='#{attributes.name}>'"
       $input.on 'click', => $el.prop 'checked', $input.prop 'checked'
+
+## Dependency Injection
+Documentation coming soon...
 
 
 # Core Classes
