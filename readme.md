@@ -7,7 +7,7 @@
 * [Core Concepts](#markdown-header-core-concepts)
     * [Nested Views](#markdown-header-nested-views)
     * [Nested Models and Collections](#markdown-header-nested-models-and-collections)
-    * [State Mangaement](#markdown-header-state-management)
+    * [State Management](#markdown-header-state-management)
     * [Simplified Event Binding](#markdown-header-simplified-event-binding)
     * [Dynamic Templates](#markdown-header-dynamic-templates)
     * [Plugins](#markdown-header-plugins)
@@ -18,11 +18,12 @@
     * [Base.Model](#markdown-header-basemodel)
     * [Base.Singleton](#markdown-header-basesingleton)
     * [Base.Collection](#markdown-header-basecollection)
+* [Helper Classes](#markdown-header-helper-classes)
     * [Base.List](#markdown-header-baselist)
+    * [Base.Event](#markdown-header-baseevent)
     * [Base.State](#markdown-header-basestate)
     * [Base.Stated](#markdown-header-basestated)
     * [Base.Object](#markdown-header-baseobject)
-    * [Base.Event](#markdown-header-baseevent)
 
 
 # About
@@ -339,7 +340,7 @@ CSS (in Stylus):
       onChangePhoto: ->
 
 
-## States
+## State Management
 Nearly all Base classes support state models (view, router, model, collection, app, etc). This lets you attach properties to models, collections, routers, etc
 without clashing with data you want synced with your backend (or other persistence layer such as localStorage)
 
@@ -913,6 +914,9 @@ HTML
     {{#collection.$state.synced }}
       <h1>I've been synced!</h1>
     {{/}}
+
+
+# Helper Classes
 
 ## Base.List
 An evented array, similar to a backbone collection, but can store any type of data. Used internally to store view children (view.children) and listen to events and changes
