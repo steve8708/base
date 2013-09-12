@@ -7,10 +7,9 @@ Built with [Backbone](http://backbonejs.org/), [jQuery](http://jquery.com/), and
 
 
 # Contents
-* [Quick Example](#markdown-header-quick-example)
-* [About](#markdown-header-about)
+* [Simple Example](#markdown-header-simple-example)
 * [Core Concepts](#markdown-header-core-concepts)
-    * [Nested Views](#markdown-header-nested-views)
+    * [View Nesting and Management](#markdown-header-nested-views)
     * [Nested Models and Collections](#markdown-header-nested-models-and-collections)
     * [State Management](#markdown-header-state-management)
     * [Simplified Event Binding](#markdown-header-simplified-event-binding)
@@ -32,7 +31,9 @@ Built with [Backbone](http://backbonejs.org/), [jQuery](http://jquery.com/), and
     * [Base.Object](#markdown-header-baseobject)
 
 
-# Quick Example
+<br>
+
+# Simple Example
 ---
 
 HTML (DOM update automatically on model changes)
@@ -86,319 +87,15 @@ CSS (in Stylus):
         position relative
 
 
+<br>
+
+
 # Core Concepts
 ---
 
-## Nested Views
-
-### Defining Nestings in JS
-
-
-    :::coffeescript
-    class View extends Base.View
-      constructor: ->
-
-      render: ->
-        super
-        @insertView new SomeView
-        @insertView '.some-selector', new SomeView
-
-        @subView new SomeView
-
-
-### Defining Nesting in Markup
-
-    :::html
-    <!--
-        This is equivalent to parnetView.subView new MyViewName foo: 'bar'
-    -->
-    <base-view type="MyViewName" foo="bar"></base-view>
-
-### Event Bubbling, Emitting, and Broadcasting
-
-    :::coffeescript
-    class MyView extends Base.View
-      render: ->
-        super
-        # broadcasts an event to all children
-        @broadcast 'rendered'
-
-        # emits an event to all children
-        @emit 'rendered'
-
-        # broadcasts and emits an event to all parents and children
-        @trigger 'rendered'
-
-      # Runs when any child emits 'rendered'
-      onChildRendered: ->
-      # Runs when any child named 'myOtherView' emits 'rendered'
-      onChildMyOtherViewRendered: ->
-      # Runs when any immediate child emits 'rendered'
-      onFirstChildRendered: ->
-      # Runs when any view (parent or child) nadmed 'myOtherView' rendered
-      onMyOtherViewRendered: ->
-
-      onChildChangeActive: ->
-
-    class MyOtherView extends Base.View
-      render: ->
-        super
-        @emit 'rendered'
-
-        # These are all valid ways of binding to the same events described above
-        @on 'child:rendered', ->
-        @on 'firstChild:rendered', ->
-        @on 'child:myThirdView:rendered', ->
-        @on 'myThirdView:rendered', ->
-        @on 'child:change:active', ->
-
-
-    class MyThirdView extends Base.View
-      rener: ->
-        @emit 'rendered'
-
-      # Runs when any parent broadcasts 'rendered'
-      onParentRendered: ->
-      # Runs when a parent named 'MyView' broadcasts 'rendered'
-      onParentMyViewRendered: ->
-      # Runs only when this views first (closest) parent broadcasts 'rendered'
-      onFirstParentRende: ->red
-
-
-### Event Object
-
-    :::coffeescript
-    # All emitted and broadcasted events inject a first
-    # argument, a Base.Event (similar to a DOM event object)
-    # that gives listeners some extra information and actions
-
-    class View extends Base.View
-      onChildChangeActive: (e) ->
-        if e.target.is 'listItem'
-          # Stop this event from further propagating (to parents
-          # if the event was emitted, to children if the event was
-          # broadcasted)
-          e.stopPropagation()
-
-          # Sets e.defaultPrevented to true
-          e.preventDefault()
-
-        # in this case the currentTarget is this view
-        if e.currentTarget is @
-          true
-
-
-### Accessing Nested Views
-
-    :::coffeescript
-    view.children           # => Base.List (evented array) of children
-    view.parent             # => view's immediate parent
-
-    view.findView 'name'    # => first view named 'name'
-    view.findViews 'name'   # => array of subviews named 'name'
-
-    view.childView 'name'   # => first immediate child named 'name'
-    view.childViews 'name'  # => array of immediate children with name 'name'
-
-    view.parentView 'name'  # => first parent with name 'name'
-    view.parentViews 'name' # => array of parents with name 'name'
-
-    # All view accesors also take objects
-    view.findViews model: model
-    view.parentView foo: 'bar', bar: 'foo'
-
-    # All view accessors can also take iterators (functions)
-    view.childView (view) -> view.isActive()
-    view.parentViews (view) -> view.
-
-
-### Children List
-
-    :::coffeescript
-    # Or you can always loop through children yourself
-    # view.children inherits from Base.List, so it supports
-    # all native array methods as well as all underscore
-    # array and collection methods
-    view.children.map (child) -> child.toJSON()
-    view.children.reduce (child, lastVal) -> lastValue += 1 if child.isActive()
-    view.children.isEmpty()
-    view.children.max (child) -> child.get 'height'
-    view.children.sortBy (child) -> child.isActive()
-    view.children.last()
-
-### Children List Events
-
-    :::coffeescript
-    view.children.on 'add', (childView) ->    #  a new child view as added
-    view.children.on 'remove', (childView) -> #  a child view was removed
-    view.childre.non 'reset', ->              # children were reset
-
-
-## Nested Models and Collections
-
-    :::coffeescript
-    class PhotoModel extensd Base.Model
-      constructor: ->
-        super
-        # Relations can be added dynamically
-        @addRelation 'activeProduct', ProductModel
-
-      # Relations can be configured
-      relations:
-        productsTagged: ProductsCollection
-
-
-    class Model extends Base.Model
-      constructor: ->
-        super
-        @set 'photos', [ url: 'hi.png' ]
-        @get 'photos'              # => Photo list with one photo model in it
-        @get 'photos[0]'           # => a Photo model
-        @get 'photos[0].url'       # => 'hola.png'
-        @set 'photos[0].url, 'foo.com/bar.png
-
-        @get('photos').add url: 'hello.png'
-        @get('photos').reset()
-
-        @on 'add:photos', ->         # a photo model was added
-        @on 'reset:photos', ->       # the photos collection was reset
-        @on 'remove:photos', ->      # a photo was removed
-
-        @on 'change:photos[0]', ->   # this first photo model changed
-        @on 'change:photos[*]', ->   # any photo model changed
-        @on 'change:photos[0].url', ->
-        @on 'change:photos[*].url', ->
-
-        # Infinite nestings are supported
-        @get 'photos[0].productsTagged[0].id'
-        @set 'photos[0].productsTagged[0].id', newId
-        @on 'change:photos[0].productsTagged[0].id', ->
-
-
-      # Syntax sugar for listening for above events
-      onChangePhotosUrl: ->
-      onAddPhotos: ->
-      onResetPhotos: ->
-      onRemovePhotos: ->
-
-      # Defining relations
-      relations:
-        photos: PhotoList
-
-    # Views also support relations
-    class View extends Base.View
-      relations:
-        photo: PhotoModel
-
-      onChangePhotoUrl: ->
-      onChangePhoto: ->
-
-
-## State Management
-Nearly all Base classes support state models (view, router, model, collection, app, etc). This lets you attach properties to models, collections, routers, etc
-without clashing with data you want synced with your backend (or other persistence layer such as localStorage)
-
-### State Object
-
-    :::coffeescript
-    model.state # => Base.State instance that inherits from Base.Model
-    model.state.get 'active'
-
-    # view getters and setters forward to the view state model
-    view.get 'active'        # equivalent to view.state.get 'active'
-    view.set 'active', true  # equivalent to view.state.set 'active', true
-    view.toJSON()            # equivalent to view.state.toJSON()
-    view.toggle 'active'     # equivalent to view.state.toggle 'active'
-
-### Configuration
-
-    :::coffeescript
-    class Collection extends Base.Collection
-      # configure state defaults
-      # this is valid for all stated classes (e.g. router, model, collection, etc)
-      stateDefaults:
-          active: false
-
-    class View extends Base.View
-      # delegates to state.defaults
-      defaults:
-
-      # delegates to state.relations
-      relations:
-          foo: Foo
-
-
-### State Methods
-All foolowing methods work for all stated classes (routers, models, views, collections, etc)
-
-    :::coffeescript
-    model.setState 'active', true # equivalent to model.state.set 'active', true
-    model.getState 'active'       # equivalent to model.state.get 'active'
-    model.toggleState 'active'    # equivalent to model.state.toggle 'active'
-
-    # other model methods supported
-    model.changedState 'active'
-    model.cloneState()
-    model.unsetState 'active'
-    model.clearSate()
-
-
-### State Events
-
-    :::coffeescript
-    class Model extends Base.Model
-      constructor: ->
-        super
-        # all state events bubble to their parent prefixed by 'state:'
-        @on 'state:change:active', ->
-
-       onStateChangeActive: ->
-
-
-### State In Templates
-
-    :::html
-    <!-- properties in templates are view state properties -->
-    {{hello}}
-
-    <!-- bind to models that are nested in state (using relations) -->
-    {{model.property}}
-
-    <!-- bind to model state -->
-    {{model.$state.active}}
-
-
-## Simplified Event Binding
-
-Any event on any evented object (model, view, collection, etc) can be subscribed to directly by camelizing the event name.
-
-    :::coffeescript
-    class View extends Base.View
-      onChange: (stateModel) ->
-      # triggers on 'change:active'
-      onChangeActive: (stateModel) ->
-
-      # triggers on 'child:change:active'
-      onChildChangeActive: (e) ->
-
-      # triggers on 'firstParent:render
-      onFirstParentRender: (e) ->
-
-      # Triggers when @$el was clicked
-      onClick: (e) ->
-
-      # Triggers when a dom element where outlet="myButton" fired a 'mouseenter' event
-      onMouseenterMyButton: (e) ->
-
-    class Collection extends Base.Collection
-      # triggers on 'add'
-      onAdd: (model) ->
-
-      # triggers on 'remove'
-      onRemove: (model) ->
-
 
 ## Dynamic Templates
+\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 ### Tags
 
@@ -525,11 +222,14 @@ Any event on any evented object (model, view, collection, etc) can be subscribed
       # Simplest way to bind
       onClickFoo: (e) ->
 
+<br>
 
 ## Plugins
+\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 Extend the functionality of any type of module. Configurable at the Base (global) level, app level, and the per module level (also by module type). The ultimate goal is to distill applications development to basic configuration, through the use of building and applying reusable components. This is heavily inspired by [grunt](http://gruntjs.com/).
 
-The ultimate goal here is to maximize code reusability across applications, provide basic utilities that help this process (modeled after the grunt apis). ULtimately this library will be broken down into the Base core and a suite of plugins to assemble the features you want (e.g. ractive templating, state handling, etc). Eventually nearly every feature herein should be moved to a plugin so applications can be assembled with as much or as little as they want/choose, and can swap out any part or piece at any time (e.g. use another template library, use a different state handler, etc)
+The ultimate goal here is to maximize code reusability across applications, provide basic utilities that help this process (modeled after the grunt apis). Ultimately this library will be broken down into the Base core and a suite of plugins to assemble the features you want (e.g. ractive templating, state handling, etc). Eventually nearly every feature herein should be moved to a plugin so applications can be assembled with as much or as little as they want/choose, and can swap out any part or piece at any time (e.g. use another template library, use a different state handler, etc)
 
 ### Using Plugins
 
@@ -598,8 +298,11 @@ The ultimate goal here is to maximize code reusability across applications, prov
     # Plugins can also have dependences
     App.view.plugin 'ractive', ['view:state'], ->
 
+<br>
 
 ## Web Components
+\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 Web components are custom HTML tags with special behaviors for making application markup dead simple. These can range from basic simplications (e.g. '<base-icon name="foo">' as a simpler form of typing <i class="icon sprite-foo"></i>) to highly dynamic components (e.g. <base-collection> that automatically creates and destroys subviews as a paired collection changes)
 
 ### Using Components
@@ -637,14 +340,342 @@ Web components are custom HTML tags with special behaviors for making applicatio
       $input = $ "<input type='checkbox' type="switch" name='#{attributes.name}>'"
       $input.on 'click', => $el.prop 'checked', $input.prop 'checked'
 
+<br>
+
+
+## View Nesting and Management
+
+\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+### Defining Nestings in JS
+
+
+    :::coffeescript
+    class View extends Base.View
+      constructor: ->
+
+      render: ->
+        super
+        @insertView new SomeView
+        @insertView '.some-selector', new SomeView
+
+        @subView new SomeView
+
+
+### Defining Nesting in Markup
+
+    :::html
+    <!--
+        This is equivalent to parnetView.subView new MyViewName foo: 'bar'
+    -->
+    <base-view type="MyViewName" foo="bar"></base-view>
+
+### Event Bubbling, Emitting, and Broadcasting
+
+    :::coffeescript
+    class MyView extends Base.View
+      render: ->
+        super
+        # broadcasts an event to all children
+        @broadcast 'rendered'
+
+        # emits an event to all children
+        @emit 'rendered'
+
+        # broadcasts and emits an event to all parents and children
+        @trigger 'rendered'
+
+      # Runs when any child emits 'rendered'
+      onChildRendered: ->
+      # Runs when any child named 'myOtherView' emits 'rendered'
+      onChildMyOtherViewRendered: ->
+      # Runs when any immediate child emits 'rendered'
+      onFirstChildRendered: ->
+      # Runs when any view (parent or child) nadmed 'myOtherView' rendered
+      onMyOtherViewRendered: ->
+
+      onChildChangeActive: ->
+
+    class MyOtherView extends Base.View
+      render: ->
+        super
+        @emit 'rendered'
+
+        # These are all valid ways of binding to the same events described above
+        @on 'child:rendered', ->
+        @on 'firstChild:rendered', ->
+        @on 'child:myThirdView:rendered', ->
+        @on 'myThirdView:rendered', ->
+        @on 'child:change:active', ->
+
+
+    class MyThirdView extends Base.View
+      rener: ->
+        @emit 'rendered'
+
+      # Runs when any parent broadcasts 'rendered'
+      onParentRendered: ->
+      # Runs when a parent named 'MyView' broadcasts 'rendered'
+      onParentMyViewRendered: ->
+      # Runs only when this views first (closest) parent broadcasts 'rendered'
+      onFirstParentRende: ->red
+
+
+### Event Object
+
+    :::coffeescript
+    # All emitted and broadcasted events inject a first
+    # argument, a Base.Event (similar to a DOM event object)
+    # that gives listeners some extra information and actions
+
+    class View extends Base.View
+      onChildChangeActive: (e) ->
+        if e.target.is 'listItem'
+          # Stop this event from further propagating (to parents
+          # if the event was emitted, to children if the event was
+          # broadcasted)
+          e.stopPropagation()
+
+          # Sets e.defaultPrevented to true
+          e.preventDefault()
+
+        # in this case the currentTarget is this view
+        if e.currentTarget is @
+          true
+
+
+### Accessing View Nesting and Management
+
+    :::coffeescript
+    view.children           # => Base.List (evented array) of children
+    view.parent             # => view's immediate parent
+
+    view.findView 'name'    # => first view named 'name'
+    view.findViews 'name'   # => array of subviews named 'name'
+
+    view.childView 'name'   # => first immediate child named 'name'
+    view.childViews 'name'  # => array of immediate children with name 'name'
+
+    view.parentView 'name'  # => first parent with name 'name'
+    view.parentViews 'name' # => array of parents with name 'name'
+
+    # All view accesors also take objects
+    view.findViews model: model
+    view.parentView foo: 'bar', bar: 'foo'
+
+    # All view accessors can also take iterators (functions)
+    view.childView (view) -> view.isActive()
+    view.parentViews (view) -> view.
+
+
+### Child List
+
+    :::coffeescript
+    # Or you can always loop through children yourself
+    # view.children inherits from Base.List, so it supports
+    # all native array methods as well as all underscore
+    # array and collection methods
+    view.children.map (child) -> child.toJSON()
+    view.children.reduce (child, lastVal) -> lastValue += 1 if child.isActive()
+    view.children.isEmpty()
+    view.children.max (child) -> child.get 'height'
+    view.children.sortBy (child) -> child.isActive()
+    view.children.last()
+
+### Child List Events
+
+    :::coffeescript
+    view.children.on 'add', (childView) ->    #  a new child view as added
+    view.children.on 'remove', (childView) -> #  a child view was removed
+    view.childre.non 'reset', ->              # children were reset
+
+<br>
+
+## Nested Models and Collections
+\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+    :::coffeescript
+    class PhotoModel extensd Base.Model
+      constructor: ->
+        super
+        # Relations can be added dynamically
+        @addRelation 'activeProduct', ProductModel
+
+      # Relations can be configured
+      relations:
+        productsTagged: ProductsCollection
+
+
+    class Model extends Base.Model
+      constructor: ->
+        super
+        @set 'photos', [ url: 'hi.png' ]
+        @get 'photos'              # => Photo list with one photo model in it
+        @get 'photos[0]'           # => a Photo model
+        @get 'photos[0].url'       # => 'hola.png'
+        @set 'photos[0].url, 'foo.com/bar.png
+
+        @get('photos').add url: 'hello.png'
+        @get('photos').reset()
+
+        @on 'add:photos', ->         # a photo model was added
+        @on 'reset:photos', ->       # the photos collection was reset
+        @on 'remove:photos', ->      # a photo was removed
+
+        @on 'change:photos[0]', ->   # this first photo model changed
+        @on 'change:photos[*]', ->   # any photo model changed
+        @on 'change:photos[0].url', ->
+        @on 'change:photos[*].url', ->
+
+        # Infinite nestings are supported
+        @get 'photos[0].productsTagged[0].id'
+        @set 'photos[0].productsTagged[0].id', newId
+        @on 'change:photos[0].productsTagged[0].id', ->
+
+
+      # Syntax sugar for listening for above events
+      onChangePhotosUrl: ->
+      onAddPhotos: ->
+      onResetPhotos: ->
+      onRemovePhotos: ->
+
+      # Defining relations
+      relations:
+        photos: PhotoList
+
+    # Views also support relations
+    class View extends Base.View
+      relations:
+        photo: PhotoModel
+
+      onChangePhotoUrl: ->
+      onChangePhoto: ->
+
+<br>
+
+## State Management
+\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Nearly all Base classes support state models (view, router, model, collection, app, etc). This lets you attach properties to models, collections, routers, etc
+without clashing with data you want synced with your backend (or other persistence layer such as localStorage)
+
+### State Object
+
+    :::coffeescript
+    model.state # => Base.State instance that inherits from Base.Model
+    model.state.get 'active'
+
+    # view getters and setters forward to the view state model
+    view.get 'active'        # equivalent to view.state.get 'active'
+    view.set 'active', true  # equivalent to view.state.set 'active', true
+    view.toJSON()            # equivalent to view.state.toJSON()
+    view.toggle 'active'     # equivalent to view.state.toggle 'active'
+
+### Configuration
+
+    :::coffeescript
+    class Collection extends Base.Collection
+      # configure state defaults
+      # this is valid for all stated classes (e.g. router, model, collection, etc)
+      stateDefaults:
+          active: false
+
+    class View extends Base.View
+      # delegates to state.defaults
+      defaults:
+
+      # delegates to state.relations
+      relations:
+          foo: Foo
+
+
+### State Methods
+All foolowing methods work for all stated classes (routers, models, views, collections, etc)
+
+    :::coffeescript
+    model.setState 'active', true # equivalent to model.state.set 'active', true
+    model.getState 'active'       # equivalent to model.state.get 'active'
+    model.toggleState 'active'    # equivalent to model.state.toggle 'active'
+
+    # other model methods supported
+    model.changedState 'active'
+    model.cloneState()
+    model.unsetState 'active'
+    model.clearSate()
+
+
+### State Events
+
+    :::coffeescript
+    class Model extends Base.Model
+      constructor: ->
+        super
+        # all state events bubble to their parent prefixed by 'state:'
+        @on 'state:change:active', ->
+
+       onStateChangeActive: ->
+
+
+### State In Templates
+
+    :::html
+    <!-- properties in templates are view state properties -->
+    {{hello}}
+
+    <!-- bind to models that are nested in state (using relations) -->
+    {{model.property}}
+
+    <!-- bind to model state -->
+    {{model.$state.active}}
+
+<br>
+
+## Simplified Event Binding
+\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Any event on any evented object (model, view, collection, etc) can be subscribed to directly by camelizing the event name.
+
+    :::coffeescript
+    class View extends Base.View
+      onChange: (stateModel) ->
+      # triggers on 'change:active'
+      onChangeActive: (stateModel) ->
+
+      # triggers on 'child:change:active'
+      onChildChangeActive: (e) ->
+
+      # triggers on 'firstParent:render
+      onFirstParentRender: (e) ->
+
+      # Triggers when @$el was clicked
+      onClick: (e) ->
+
+      # Triggers when a dom element where outlet="myButton" fired a 'mouseenter' event
+      onMouseenterMyButton: (e) ->
+
+    class Collection extends Base.Collection
+      # triggers on 'add'
+      onAdd: (model) ->
+
+      # triggers on 'remove'
+      onRemove: (model) ->
+
+<br>
+
+
 ## Dependency Injection
+\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 Documentation coming soon...
 
+<br>
+<br>
 
 # Core Classes
 ---
 
 ## Base.App
+\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 ### Class
 
@@ -662,7 +693,10 @@ Documentation coming soon...
         picts: PictsCollection
 
 
+<br>
+
 ## Base.View
+\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 ### Class
 
@@ -763,8 +797,10 @@ Documentation coming soon...
     # first parent with a handler and then the request stops propagating
     view.request 'someQuestion', (response) ->
 
+<br>
 
 ## Base.Model
+\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 ### Class
 
@@ -820,8 +856,10 @@ Documentation coming soon...
       <h1>I am active!</h1>
     {{/}}
 
+<br>
 
 ## Base.Singleton
+\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Singletons inherit from Base.Model and are accessible via the app object
 and anywhere via templates
@@ -842,8 +880,10 @@ HTML
     <!-- All singletons are accessible in templates prefixed by $ -->
     <h1>{{$user.name}}</h1>
 
+<br>
 
 ## Base.Collection
+\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 ### Class
 
@@ -873,9 +913,16 @@ HTML
     {{/}}
 
 
+<br>
+<br>
+
 # Helper Classes
+---
+
 
 ## Base.List
+\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 An evented array, similar to a backbone collection, but can store any type of data. Used internally to store view children (view.children) and listen to events and changes
 
 ### Class
@@ -939,8 +986,10 @@ An evented array, similar to a backbone collection, but can store any type of da
     list.state.toJSON()
     list.on 'state:change:active', ->
 
+<br>
 
 ## Base.Router
+\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 ### Class
 
@@ -963,8 +1012,9 @@ An evented array, similar to a backbone collection, but can store any type of da
     router.getState 'firstRoute'
     router.toggleState 'firstRoute'
 
-
+<br>
 ## Base.State
+\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Inherits from Base.Model
 The state model used by Base classes. Bubbles all events received to parent
@@ -981,8 +1031,10 @@ State models must be inited with a parent (the owner of the state model in which
         @listenTo @state, 'change:inited', ->    # valid
         @on 'state:change:inited', ->            # also valid
 
+<br>
 
 ## Base.Stated
+\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Easier wasy of creating a new stated object. Inherits from Base.Object
 
@@ -997,7 +1049,10 @@ Easier wasy of creating a new stated object. Inherits from Base.Object
       stateDefaults:
         inited: false
 
+<br>
+
 ## Base.Object
+\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Simple evented object contrsuctor. Supports full Backbone events API 'on', 'off', 'listenTo', etc
 
@@ -1008,7 +1063,10 @@ Simple evented object contrsuctor. Supports full Backbone events API 'on', 'off'
         @on 'foobar', ->
 
 
+<br>
+
 ## Base.Event
+\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Constructor for base events. Every bubbled and broadcasted view event injects a first argument that is an instanceof Base.Event which supports
 
@@ -1019,8 +1077,11 @@ Constructor for base events. Every bubbled and broadcasted view event injects a 
       e.target             # reference to view that first triggered the event
       e.currentTarget      # reference to the current view handling the event
 
+<br>
+<br>
 
 # JS vs Coffeescript
+---
 
 Despite the examples herein being in coffeescript, like any other coffeescript library base.js does not require that you write any code in coffeescript. Just use the .extend() method to subclass Base classes
 
@@ -1034,4 +1095,4 @@ Despite the examples herein being in coffeescript, like any other coffeescript l
         // The JS way of calling super (if you ever find you need it)
         Base.View.prototype.someMethod.apply(this, arguments);
       }
-    ));
+    });
