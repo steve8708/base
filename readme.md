@@ -1,7 +1,7 @@
-# Base.js
----
+![base.js](http://i.imgur.com/b01FV6a.png)
 
 A powerful MVC framework for people who want the ultimate elegance, simplicity, and efficiency without compromise.
+Maximize code reuse, minimize monotony, optimize happiness.
 
 # Contents
 * [About](#markdown-header-about)
@@ -297,20 +297,20 @@ CSS (in Stylus):
       constructor: ->
         super
         @set 'photos', [ url: 'hi.png' ]
-        @get 'photos'    # => Photo list with one photo model in it
-        @get 'photos[0]' # => a Photo model
-        @get 'photos[0].url' # => 'hola.png'
+        @get 'photos'              # => Photo list with one photo model in it
+        @get 'photos[0]'           # => a Photo model
+        @get 'photos[0].url'       # => 'hola.png'
         @set 'photos[0].url, 'foo.com/bar.png
 
         @get('photos').add url: 'hello.png'
         @get('photos').reset()
 
-        @on 'add:photos', ->    # a photo model was added
-        @on 'reset:photos', ->  # the photos collection was reset
-        @on 'remove:photos', -> # a photo was removed
+        @on 'add:photos', ->         # a photo model was added
+        @on 'reset:photos', ->       # the photos collection was reset
+        @on 'remove:photos', ->      # a photo was removed
 
-        @on 'change:photos[0]', -> # this first photo model changed
-        @on 'change:photos[*]', -> # any photo model changed
+        @on 'change:photos[0]', ->   # this first photo model changed
+        @on 'change:photos[*]', ->   # any photo model changed
         @on 'change:photos[0].url', ->
         @on 'change:photos[*].url', ->
 
