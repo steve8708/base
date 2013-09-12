@@ -5,12 +5,6 @@ A powerful MVC framework for people who want the ultimate elegance, simplicity, 
 
 # Contents
 * [About](#markdown-header-about)
-    * [Inspiration](#markdown-header-inspiration)
-    * [What's built in](#markdown-header-whats-built-in)
-    * [What base.js aims to solve](#markdown-header-what-basejs-aims-to-solve)
-    * [What its build on](#markdown-header-what-its-built-on)
-    * [Where its at](#markdown-header-where-its-at)
-    * [Where its going](#markdown-header-where-its-going)
 * [Quick Example](#markdown-header-quick-example)
 * [Core Concepts](#markdown-header-core-concepts)
     * [Nested Views](#markdown-header-nested-views)
