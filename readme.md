@@ -1347,7 +1347,7 @@ This is for several reasons.
 
     Big apps and small apps have different requirements. Features that make big apps scale make small apps overly complex. Features that make small apps easy can  give big apps performance nightmares. Apps come in all shapes and sizes, and finding you started your app on one framework, and realizing half way you should've chosen another is a refactoring nightmare.
 
-4. **Community Experimentation**
+4. **Community Innovation**
 
     Whats more innovative than an individual, or even a team of individuals? An entire community of individuals, always tinkering and experimenting on how to push the limits of how to build beautiful and elegant applications. When 'awesome guy' has a great idea, these days they are [building their own framework](http://todomvc.com/). But this is so very redundant. Every framework has an eventemmitter (.on, .off, etc), every framework has models, views, and collections, there is no need to reinvent the wheel anymore. Where we need to innovate is in the areas that are not validated yet. How do we make our apps the next level simpler? Remove our backend entirely? Reduce the code we write and maintain? Reduce the redundant code we write?
 
