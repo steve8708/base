@@ -8,8 +8,10 @@
 
 originalBase = window.Base
 currentApp = null
-appSurrogate = {}
+appSurrogate = singletons: {}
 window._JST ?= {}
+Ractive = window.Ractive or \
+  if typeof window.require is 'function' then require 'Ractive'
 
 arr = []
 callbackStringSplitter = /\s*[,:()]+\s*/
@@ -49,6 +51,7 @@ class Base.View extends Backbone.View
     @attributes ?= {}
     @attributes['data-view'] ?= @name.replace(/view/i, '').toLowerCase()
     @children ?= new Base.List @options.children or []
+    @ractive ?= true
 
     @stateOptions = _.defaults @stateOptions or {},
       relations: @relations
@@ -71,7 +74,7 @@ class Base.View extends Backbone.View
           value.call @, @, config
 
     @_bindEventMethods()
-    @state.on 'all', (args...) => @trigger.apply @, args
+    @state.on 'all', (args...) => @trigger args...
     @trigger 'init'
 
     @$el.data 'view', @
@@ -96,14 +99,13 @@ class Base.View extends Backbone.View
   _bindEventMethods: ->
     for event in DOMEventList
       cb = @["on#{capitalize event}"]
-      if cb
-        @$el.on "#{event}.delegateEvents", cb.bind @
+      @$el.on "#{event}.delegateEvents", cb.bind @ if cb
 
   _getCallback: (str, allowString) ->
     return str if _.isFunction str
     split = _.compact str.split callbackStringSplitter
     return str if not split[1] and allowString
-    args = ( $.zepto.deserializeValue(value) for value in split.slice 1 )
+    args = ( deserialize value for value in split.slice 1 )
     return @[split[0]].bind @, args
 
   _bindEvents: ->
@@ -131,6 +133,10 @@ class Base.View extends Backbone.View
         for name, callback of value
           $el.on "#{name}.delegateEvents-#{@cid}", \
             @_getCallback(callback).bind @
+      else
+        for eventName, callback of value
+          if callback
+            @on "#{value}:#{eventName}", @_getCallback(callback).bind @
 
   render: ->
     @trigger 'before:render'
@@ -146,7 +152,7 @@ class Base.View extends Backbone.View
       camelized = $.camelCase event
       return if not camelized
       method = @['on' + camelized[0].toUpperCase() + camelized.substring 1]
-      method.apply @, args if method
+      method args... if method
 
   # FIXME: maybe add data-action="foo( bar, 'baz', 2, true)"
   # FIXME: add 'foo( bar )', 'foo( "bar", true, 2 )'
@@ -164,20 +170,22 @@ class Base.View extends Backbone.View
   _bindComponents: ->
     for key, value of Base.components
       items = @ractive.fragment.items or []
-      @$("x-#{key}", items.map (item) -> item.node).each (index, el) =>
+      nodes = items.map (item) -> item.node
+      @$("x-#{key}, base-#{key}", nodes).each (index, el) =>
         $el = $ el
         attrs = {}
         for attr in el.attributes
-          attrs[attr.name] = attr.value
+          attrs[$.camelCase attr.name] = attr.value
 
         value.call @, $el, @, attrs
 
   # FIXME: move this to helper fn
+  # FIXME: change to 'parseExpression'
   _parseObjectGetter: (str) ->
     # TODO:
-    #   foo ( bar )
-    #   'bar'
-    #   list[0].foo === 'hi'
+    #   foo ( bar )             # => whatever @foo @get bar resolves to
+    #   'bar'                   # => 'hi'
+    #   list[0].foo === 'hi'    # => true
     str
 
   _parseTemplate: ->
@@ -214,13 +222,13 @@ class Base.View extends Backbone.View
 
   _initRactive: ->
     # FIXME: allow for global configuration of ractive on Base
-    if @options.ractive or @ractive
+    if @options and @options.ractive or @ractive
       filters = _.clone Base.filters
       for key, value of filters
         filters[key] = value.bind @ if value and value.bind
 
-      templateName = "src/templates/views/#{$.dasherize @name}.html"
-      template = @template or _.clone(_JST[templateName]) or ''
+      templateName = "src/templates/views/#{dasherize @name}.html"
+      template = @template or _.clone(_JST[templateName]) or @$el.html()
       @ractive = new Ractive
         el: @el
         template: template
@@ -231,8 +239,24 @@ class Base.View extends Backbone.View
           do (key, val) =>
             @ractive.on key, (event, argString = '') =>
               argString = '' if typeof argString isnt 'string'
-              val.apply @, argString.split(':').map (arg, index) =>
-                $.zepto.deserializeValue arg.trim()
+              stringRe = /^(?:'(.*?)'|"(.*?)")$/
+              args = argString.split(':').map (arg, index) =>
+                isString = stringRe.test arg
+                return RegExp.$1 or RegExp.$2 if isString
+                deserialized = deserialize arg.trim()
+                return deserialized if typeof deserialized isnt 'string'
+
+                if arg is '.'
+                  keypath = event.keyPath
+                else if arg and arg[0] is '.'
+                  keypath = "#{event.keyPath}#{arg}"
+                else
+                  keyPath = arg
+
+                @get arg
+
+              args.push event.original
+              val.apply @, args
 
       adaptor = Ractive.adaptors.backboneAssociatedModel
       @ractive.bind adaptor @state
@@ -244,8 +268,8 @@ class Base.View extends Backbone.View
 
   _bindEventBubbling: ->
     @on 'all', (args...) =>
-      @broadcast.apply @, args
-      @emit.apply @, args
+      @broadcast args...
+      @emit args...
 
   trigger: (eventName, args...) ->
     if args[0] not instanceof Base.Event
@@ -269,21 +293,29 @@ class Base.View extends Backbone.View
 
     subject.get truePath
 
-  subView: (name, view) ->
-    if not view
-      if typeof name is 'string'
-        return @childView name
+  subView: (args...) ->
+    if not args[1]
+      if typeof args[0] is 'string'
+        return @childView args[0]
       else
-        view = name
-        name = null
+        view = args[0]
+    else
+      view = args[1]
+      name = args[0]
 
-    if view not instanceof View
-      view = new view(args)
+
+    unless view
+      console.warn 'No view passed to subView', args, arguments
+      return
+
+    if view not instanceof Base.View
+      view = new view
 
     view.__viewName__ = name
 
     view.parent = @
     @children.push view
+    view
 
   insertView: (selector, view) ->
     if not view
@@ -390,7 +422,7 @@ class Base.View extends Backbone.View
 
       if eventObj
         event = new Base.Event type: 'request', target: @
-        response = eventObj.callback.apply eventObj.ctx, [event].concat args
+        response = eventObj.callback.call eventObj.ctx, event, args...
         break
 
   # FIXME: have a broadcastAll and emitAll config
@@ -402,13 +434,13 @@ class Base.View extends Backbone.View
         event ?= new Base.Event type: eventName, target: @
         if not event.propagationStopped
           event.currentTarget = parent
-          parent.trigger.apply parent, arguments
+          parent.trigger arguments...
       else if not /^(app:|parent:|firstChild:|firstParent:)/.test eventName
         name = uncapitalize @name
         event = new Base.Event name: eventName, target: @, currentTarget: parent
         for newEvent in ["child:#{eventName}", "child:#{name}:#{eventName}"
           "firstChild:#{eventName}", "firstChild:#{name}:#{eventName}"]
-          parent.trigger.apply parent, [newEvent, event].concat args
+          parent.trigger newEvent, event, args...
 
   broadcast: (eventName, args...) ->
     if @children
@@ -418,7 +450,7 @@ class Base.View extends Backbone.View
           event.currentTarget = child
           for child in @children
             return if event.propagationStopped
-            child.trigger.apply child, arguments
+            child.trigger arguments...
       else if not /^(child:|request:|firstParent:|firstChild:)/.test eventName
         name = uncapitalize @name
         event = new Base.Event name: eventName, target: @
@@ -427,20 +459,15 @@ class Base.View extends Backbone.View
           for newEvent in ["parent:#{eventName}", "parent:#{name}:#{eventName}"
             "firstParent:#{eventName}", "firstParent:#{name}:#{eventName}"]
             return if event.propagationStopped
-            child.trigger.apply child, [newEvent, event].concat args
+            child.trigger newEvent, event, args...
 
 
-for method in ['get', 'set', 'toJSON', 'has', 'unset', 'escape', 'changed',
-  'clone', 'keys', 'values', 'pairs', 'invert', 'pick', 'omit', 'clear',
-  'toggle']
-  do (method) ->
-    Base.View::[method] ?= (args...) -> @state[method].apply @state, args
 
 
 # App - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 class Base.App extends Base.View
-  constructor: ->
+  constructor: (@options) ->
     currentApp = @
     for key, value of appSurrogate
       currentApp[key] = value
@@ -450,18 +477,95 @@ class Base.App extends Base.View
 
     super
 
-  views: {}
-  singletons: {}
-  collections: {}
-  models: {}
+  init: (options = @options) ->
+    @trigger 'init', options
 
   broadcast: (eventName, args...) ->
     if @children
       if not /^(child:|request:|firstParent:|firstChild:)/.test eventName
         for child in @children
-          child.trigger.apply child, ["app:#{eventName}"].concat args
+          child.trigger "app:#{eventName}",  args...
 
   moduleType: 'app'
+
+
+# Module Loading - - - - - - - - - - - - - - - - - - - - - -
+
+moduleTypes = ['model', 'view', 'singleton', 'collection', 'app',
+  'module', 'object', 'component', 'service']
+
+prepareModule = (module) ->
+  if typeof module isnt 'function'
+    fn = module.pop()
+    fn.dependencies = module
+  else
+    fn = module
+  fn
+
+getModuleArgs = (depStrings) ->
+  depStrings.map (item) ->
+    split = item.split '.'
+    if split[1]
+      return Base[split[0]] split[1]
+    for type in moduleTypes
+      if item.lastIndexOf(capitalize type) + type.length is item.length
+        return Base[item] type.substring 0, type.length - item.length - 1
+
+invokeModule = (module) ->
+  if typeof module is 'function'
+    invokeWithArgs module, getModuleArgs module.dependencies or []
+
+invokeWithArgs = (constructor, args) ->
+  Func = -> constructor args...
+  Func.prototype = constructor.prototype
+  new Func
+
+moduleQueue = []
+
+for subject in [ Base.App.prototype, Base ]
+  do (subject) ->
+    for type in moduleTypes
+      do (type) ->
+        # FIXME: add fn.name = name where module names are defined
+
+        subject["#{type}s"] ?= {}
+        subject[type] = (name, module) ->
+          if typeof name is string and not module
+            return subject[type][capitalize name]
+          else if name and module
+            module = prepareModule module
+            module.prototype.name ?= name if module.prototype
+            module.name ?= name
+            subject[type][capitalize name] = module
+          else
+            module = name
+            module = prepareModule module
+            name = module.name or module.prototype.name
+            throw new Error 'Modules must have a name'
+            subject[type][capitalize module.prototype.name] = module
+
+          if typeof module is 'function'
+            module.dependencies ?= Base.utils.getFunctionArgNames module
+
+          if module.dependencies and module.dependencies.length
+            moduleQueue.push
+              name: name
+              dependencies: _.clone module.dependencies
+              module: module
+
+          indexesToSplice = []
+          for item, index in moduleQueue
+            deps = item.dependencies
+            if "#{item.name}{capitalize type}" in deps
+              index = deps.indexOf "#{item.name}{capitalize type}"
+              deps.splice index, 1
+              if not deps.length
+                indexesToSplice.push index
+                invokeModule module
+
+          modifier = 0
+          for index in indexesToSplice
+            moduleQueue.splice index - modifier++, 1
 
 
 # Model - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -566,12 +670,28 @@ class Base.State extends Base.Model
     @compute ?= options.compute
 
     super attributes, options
-    @parent = @parents[0] or context
+    @parent = @parents[0] or options.parent or context or attributes.parent
     @name ?= lowercase @constructor.name
 
     if @parent
       @on 'all', -> (event, args...) =>
-        @parent.trigger.apply @parent, ['state:' + event].concat args
+        @parent.trigger 'state:' + event, args...
+
+
+# Object - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+class Base.Object
+  constructor: ->
+
+_.extend Base.Object::, Backbone.Events
+
+
+# Stated  - - - - - - - - - - - - - - - - - - - - - - - - -
+
+class Base.Stated extends Base.Object
+  constructor: ->
+    @addState @
+    super
 
 
 # Router - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -620,32 +740,44 @@ class Base.Singleton extends Base.Model
 
     @on 'all', (eventName, args...) =>
       if currentApp
-        currentApp.trigger.apply currentApp, \
-          ["#{uncapitalize @name}:#{eventName}"].concat args
+        currentApp.trigger "#{uncapitalize @name}:#{eventName}", args...
 
 
 # List - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-# Simple lists enhanced with underscore methods and backbone style events
-# (add, remove, reset)
 # FIXME: this is a bit buggy
-# FIXME: make @children a Base.List
 class Base.List
   constructor: (items, options = {}) ->
     @reset items, options
+    if not options.noState
+      addState @
+    @initialize arguments... if _.isFunction @initialize
 
   unshift: (items...) -> @add item, at: 0 for item in items.reverse()
   push: (items...) -> @add item, at: @length for item in items
   shift: -> @remove null, at: 0
   pop: -> @remove null, at: @length - 1
 
+  eventNamespace: 'listItem:'
+  bubbleEvents: true
+
   reset: (items, options = {}) ->
     @splice @length, @length
-    @push.apply @, items
+    @push items...
     @trigger 'reset', @, options unless options.silent
 
   add: (item, options = {}) ->
     at = options.at ?= @length
+
+    # Bubble events like backbone does
+    if @bubbleEvents and item and _.isFunction item.on
+      @listenTo item, 'all', (eventName, args...) =>
+        if @bubbleEvents
+          @trigger "#{@eventNamespace}#{@eventName}", args...
+
+    # Allow models of any type (e.g. a model here can be a view!)
+    item = new @model item if @model
+
     @splice at, null, item
     @trigger 'add', item, @, options unless options.silent
 
@@ -655,6 +787,7 @@ class Base.List
     @splice index, 1
     @trigger 'remove', item, @, options unless options.silent
     item
+    @stopListening item
 
 _.extend Base.List::, Backbone.Events
 
@@ -670,14 +803,6 @@ for method in ['each', 'contains', 'find', 'filter', 'reject', 'contains',
   Base.List::[method] = _[method] unless Base.List::[method]
 
 
-# Object - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-class Base.Object
-  constructor: ->
-
-_.extend Base.Object::, Backbone.Events
-
-
 # Event - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 class Base.Event
@@ -690,6 +815,17 @@ class Base.Event
 
   stopPropagation: ->
     @propagationStopped = true
+
+
+# Get, set syntax sugar for Base.View and Base.Router - - -
+
+for moduleType in ['View', 'Router']
+  for method in ['get', 'set', 'toJSON', 'has', 'unset', 'escape', 'changed',
+    'clone', 'keys', 'values', 'pairs', 'invert', 'pick', 'omit', 'clear',
+    'toggle']
+    do (method) ->
+      Base[moduleType]::[method] ?= (args...) ->
+        @state[method] args...
 
 
 # Basic View (for component helpers) - - - - - - - - - - - -
@@ -737,6 +873,26 @@ class BasicView extends Base.View
 
 # Helpers - - - - - - - - - - - - - - - - - - - - - - - - -
 
+dasherize = (str) ->
+  str
+    .replace(/::/g, '/')
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1_$2')
+    .replace(/([a-z\d])([A-Z])/g, '$1_$2')
+    .replace(/_/g, '-')
+    .toLowerCase()
+
+deserialize = (value) ->
+  try
+    unless value                 then value
+    else if value is 'true'      then true
+    else if value is 'false'     then false
+    else if value is 'null'      then null
+    else unless isNaN            then Number value
+    else if /^[\[\{]/.test value then JSON.parse value
+    else value
+  catch e
+    value
+
 capitalize = (str) ->
   if str then ( str[0].toUpperCase() + str.substring 1 ) else ''
 
@@ -773,7 +929,7 @@ addState = (obj) ->
     state.on 'all', (eventName, args...) =>
       split = eventName.split ':'
       if split[0] is 'change' and split[1]
-        obj.trigger.apply ["change:$state.#{split[1]}"].concat args
+        obj.trigger "change:$state.#{split[1]}", args...
 
 uncapitalize = (str) ->
   if str then ( str[0].toLowerCase() + str.substring 1 ) else ''
@@ -822,7 +978,7 @@ Base.components =
     out = {}
     for key, value of attrs
       out[key] = @get value
-    console.log 'x-log:', out
+    console.log 'base-log:', out
     $el.remove()
 
   list: ($el, view) ->
@@ -920,15 +1076,51 @@ Base.defaults =
 
 # Setup - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-for className in ['Model', 'Router', 'Collection', 'View']
+for className in ['Model', 'Router', 'Collection', 'View', 'Stated', 'App',
+  'List']
   for method in ['get', 'set', 'on', 'listenTo', 'off', 'stopListening', 'once'
     'listenToOnce', 'trigger', 'clear', 'has', 'invert', 'omit', 'pick', 'sync'
     'fetch', 'save', 'changed', 'validate', 'isValid', 'clone', 'hasChanged'
     'previous', 'destroy']
     do (method) ->
       Base[className]::['state' + capitalize method] = (args...) ->
-        @state[method].apply @state, args
+        @state[method] args...
 
 
 Base.Controller = Base.View
 window.Base = Base
+
+Base.utils =
+  # FIXME: move to plugin (service?)
+  store:
+    getItem: (name) -> JSON.parse localStorage.getItem name
+    setItem: (name, val) -> localStorage.setItem name, JSON.stringify val
+    extendItem: (name, val) -> @lsSetItem _.extend @lsGetItem(name) or {}, val
+
+  # get the arg names for a function
+  # e.g. function (foo, bar) {} => ['foo', 'bar']
+  getFunctionArgNames: (fn) ->
+    fn.toString().match(/\(.*?\)/)[0].replace(/[()\s]/g,'').split ','
+
+for module in ['List', 'Object', 'Event']
+  Base[module]::extend ?= Backbone.Model::extend
+
+# _super - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Base._super = (context, methodName, args) ->
+  context.constructor.__super__[methodName].apply context, args
+
+# Initialize - - - - - - - - - - - - - - - - - - - - - - - -
+Base.apps ?= {}
+
+# FIXME: support app prototypes vs active apps
+$ ->
+
+  $('[base-app]').each (index, el) ->
+    name = el.getAttribute 'base-app'
+    App = Base.apps[capitalize name]
+    app = Base.apps[uncapitalize name]
+    # FIXME: doesn't work for multiple base apps on one page
+    if not app or app.el isnt el
+      new App el: el
+
