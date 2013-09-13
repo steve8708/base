@@ -4,20 +4,16 @@ Maximize code reuse, minimize DOM management, optimize happiness.
 All the features you need to buld stunning HTML5 web and mobile applications with efficiency and ease.
 Lightweight, high performance, incredibly flexible, insanely powerful.
 
-
 Base.js is a project
-designed to combine all of the best feautres of [backbone](http://backbonejs.org), [angular](http://angularjs.org), [ember](http://emberjs.com), and [the many other great javascript
-MVC frameworks](http://todomvc.com/) into one cohesive, highly performance, maximally extensible package.
-
-
+designed to combine just the very the best feautres of [backbone](http://backbonejs.org), [angular](http://angularjs.org), and [ember](http://emberjs.com) with inspiration from [ many other great javascript
+MVC frameworks](http://todomvc.com/) into one cohesive, highly performant, maximally extensible package.
 
 Built with [Backbone](http://backbonejs.org/), [jQuery](http://jquery.com/), and [Ractive](http://www.ractivejs.org/)
-
 
 # Contents
 * [Simple Example](#markdown-header-simple-example)
 * [Core Concepts](#markdown-header-core-concepts)
-    * [Dynamic Templates](#markdown-header-dynamic-templates)
+    * [Live Templates](#markdown-header-live-templates)
     * [Plugins](#markdown-header-plugins)
     * [Web Components](#markdown-header-web-components)
     * [View Nesting and Subview Management](#markdown-header-view-nesting-and-subview-management)
@@ -42,6 +38,7 @@ Built with [Backbone](http://backbonejs.org/), [jQuery](http://jquery.com/), and
     * [Ember](#markdown-header-ember)
     * [Angular](#markdown-header-angular)
     * [Others](#markdown-header-others)
+* [Future of Base](#markdown-header-future-of-base)
 
 
 # Simple Example
@@ -107,7 +104,7 @@ CSS (in Stylus):
 ---
 
 
-## Dynamic Templates
+## Live Templates
 \- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 ### Tags
@@ -1176,7 +1173,7 @@ Base is built on top of backbone - so everything you get with backbone, you get 
 ## Ember
 
 ### What it lacks
-Full dynamic templates (beyond simple classnames and attributes). This really is a must as your application grows - rerendering entire views when simple lists or models change is very bad for performance, poor for user experience, and making granular upates via DOM manipulation code creates spaghetti logic fast.
+Full live templates (beyond simple classnames and attributes). This really is a must as your application grows - rerendering entire views when simple lists or models change is very bad for performance, poor for user experience, and making granular upates via DOM manipulation code creates spaghetti logic fast.
 
 Simplicity. Ember has > 93 classes to learn.
 
@@ -1217,15 +1214,15 @@ See:
 Simplicity. Everything is a POJO (plain old javascript object) so getting and setting properties is not required.
 Extensibility. Directives are amazingly flexible and powerful.
 
+Dynamic templates. Angular's live templates are best in class.
+
 See:
 
 * [Why Use Angular](http://net.tutsplus.com/tutorials/javascript-ajax/3-reasons-to-choose-angularjs-for-your-next-project/)
 * [Angular's ease of use](http://www.sitepoint.com/10-reasons-use-angularjs/)
 
-Dynamic templates. Angular's dynamic templates are best in class.
-
 ### How base fits
-All of the dynamic templates, view/controller hierarchies, event emitting and broadcasting, but without any sacrifices to performance. By using simple getters and setters you can ensure that only the properties you update trigger code to execute, no matter how deep your models get. This is critical for large web and mobile HTML5 single page applications to avoid any perceptible lag, delay, or unnecessary lapse in performance. That and powered by a familiar and flexible object inheritance model, Base gives you the best of angular without the pieces that can hurt your applications.
+All of the live templates, view/controller hierarchies, event emitting and broadcasting, but without any sacrifices to performance. By using simple getters and setters you can ensure that only the properties you update trigger code to execute, no matter how deep your models get. This is critical for large web and mobile HTML5 single page applications to avoid any perceptible lag, delay, or unnecessary lapse in performance. That and powered by a familiar and flexible object inheritance model, Base gives you the best of angular without the pieces that can hurt your applications.
 
 And all the while giving you an extensible, plugin based architecture so if you do want angular's 'dirty' model checking, just write a plugin! Decide for yourself what you do and don't want, and don't be forced into one methodology or another that can come back to bite you as your app grows, or require major refactoring just to divert some design choice your chosen framework uses that proves to not work with time.
 
@@ -1233,14 +1230,14 @@ And all the while giving you an extensible, plugin based architecture so if you 
 
 JS framework inspirations by feature:
 
-* Dynamic (a.k.a. Model Driven) Templates
+* Live Templates
     * [Meteor](http://www.meteor.com/)
     * [Derby](http://derbyjs.com/)
     * [Knockout](http://knockoutjs.com/)
     * [Angular](http://angularjs.org/)
     * [Polymer](http://www.polymer-project.org/polymer.html)
     * [Knockback](http://kmalakoff.github.io/knockback/)
-    * [Ractive](http://www.ractivejs.org/) (powers Base's dynamic templates)
+    * [Ractive](http://www.ractivejs.org/) (powers Base's live templates)
 
 
 * View Nesting and Subview Management
@@ -1272,3 +1269,49 @@ JS framework inspirations by feature:
 
 These are just a small sample of base features inspired by other js frameworks. There are many other features and nuanced inspired by the hoard of great js frameworks in addition to the ones listed above, including, but not limited to:
 [Batman](http://batmanjs.org/), [Ext](http://www.sencha.com/products/extjs), [Stapes](http://hay.github.io/stapes/), [React](http://facebook.github.io/react/), [Dart](https://www.dartlang.org/), [Thorax](http://thoraxjs.org/), and many more.
+
+
+# Future of Base
+---
+
+Ultimately, everything in this document will be pulled from the library except for the plugin core. The primary features herein will move to a 'contrib' library (similar to [Grunt Contrib](https://github.com/gruntjs/grunt-contrib)) for people who want a lot of power in one package.
+
+This is for several reasons.
+
+1. **Flexibility**.
+    Choice is key to MVC frameworks so you don't get locked into or
+    prescribed to one way of doing things. Want to use [ModelBinder](https://github.com/theironcook/Backbone.ModelBinder) for your templates? Plug it in. Prefer [Knockout](http://knockoutjs.com/), [Knockback](http://kmalakoff.github.io/knockback/), [Rivets](http://rivetsjs.com/)? Use a plugin!
+
+    Nested models? [Plug it in](https://github.com/afeld/backbone-nested). Dirty checking? You get the picture. Write reusable code, use great plugins created by others. Reduce applications to simple configuration.
+
+2. **Modernity**.
+
+    Don't get stuck with a do-everything-for-you framework and leave yourself at the whim of the framework's creators for what you can and cannot have. Want live templates for ember? Too bad. Angular without dirty model binding? Not an option. You can cross your fingers and pray that everyone will always support the latest, greatest, and sexiest new features, but that simply won't happen - for 2 reasons
+
+    * Frameworks built and maintained by a 'core team', rather than a community of plugin creators, simply cannot keep up with the ever changing js landscape. It simply moves too fast for a small team to follow
+
+    * When you are trying to be the one framework to rule them all, feature decisions are daunting. This means that if you want to add awesome new feature 'x',  everyone is now going to have to use it. But not every feature is a fit for everyone. Dirty model checking is awesome for small applications, but they can kill large applications.  Model associations are integral for large applications, but they can be overly complex for small applications.
+
+3. **Scale**
+
+    Big apps and small apps have different requirements. Features that make big apps scale make small apps overly complex. Features that make small apps easy can  give big apps performance nightmares. Apps come in all shapes and sizes, and finding you started your app on one framework, and realizing half way you should've chosen another is a refactoring nightmare.
+
+4. **Community Experimentation**
+
+    Whats more innovative than an individual, or even a team of individuals? An entire community of individuals, always tinkering and experimenting on how to push the limits of how to build beautiful and elegant applications. When 'awesome guy' has a great idea, these days they are [building their own framework](http://todomvc.com/). But this is so very redundant. Every framework has an eventemmitter (.on, .off, etc), every framework has models, views, and collections, there is no need to reinvent the wheel anymore. Where we need to innovate is in the areas that are not validated yet. How do we make our apps the next level simpler? Remove our backend entirely? Reduce the code we write and maintain? Reduce the redundant code we write?
+
+    Let's stop building the same things everyone else has built 100 times, and specialize. Go build the best damn model binder out there and make it bulletproof. And in your apps amass the most components for your needs already built and debugged by others.
+
+    Similar to [Backbone Plugins](http://backplug.io/), but more powerful, more flexible, and much more able to work nicely with others.
+
+5. **Simplicity and Reusability**
+
+    [Grunt](http://gruntjs.com/) is amazing, it complex build scripts down to dead simple [config files](https://bitbucket.org/pict/base/src/944371f873b797ce30bfe979a289177dd63fce6b/GruntFile.coffee?at=master). Just import modules built by its [incredible community](http://gruntjs.com/plugins), set some basic configs, and away you go. Save time, don't reinvent the wheel 1000 times over. Want too add dynamic spriting to your app? Use [Grunt Glue](https://bitbucket.org/carkraus/grunt-glue). Run karma tests? [Grunt Karma](https://github.com/karma-runner/grunt-karma).  Lint, concat, copy, compile, watch, connect, compress, and minify your files? [Grunt Contrib](https://github.com/gruntjs/grunt-contrib). The possibilities are undless, and the community is always growing.
+
+    Similarly, it is just as easy to write a custom grunt task you can use across all of your apps with ease, and even share with the community yourself. This means a much brighter, more reusable world for build scripts everywhere. By why limit this approach to build scripts?
+
+    Applications work in this same way. With grunt, you say 'I want my files minified', so `npm install grunt-contrib-minify` and point it to the files you want minifed. Done. With applications, we always say 'I want those images to lazyload', 'lets make those views animate on entry', or your product manager says 'how would that look as a grid?'. Find the plugin you need, pop it in, and done.
+
+
+
+
