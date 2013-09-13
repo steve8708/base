@@ -10,7 +10,7 @@ MVC frameworks](http://todomvc.com/) into one cohesive, highly performant, maxim
 
 Built with [Backbone](http://backbonejs.org/), [jQuery](http://jquery.com/), and [Ractive](http://www.ractivejs.org/)
 
-# **Contents**
+# Contents
 * [Simple Example](#markdown-header-simple-example)
 * [Core Concepts](#markdown-header-core-concepts)
     * [Live Templates](#markdown-header-live-templates)
@@ -41,7 +41,7 @@ Built with [Backbone](http://backbonejs.org/), [jQuery](http://jquery.com/), and
 * [Future of Base](#markdown-header-future-of-base)
 
 
-# **Simple Example**
+# Simple Example
 ---
 
 HTML (DOM updates automatically on model changes)
@@ -100,7 +100,7 @@ CSS (in Stylus):
 
 
 
-# **Core Concepts**
+# Core Concepts
 ---
 
 
@@ -697,16 +697,60 @@ Any event on any evented object (model, view, collection, etc) can be subscribed
 ## Dependency Injection
 \- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Documentation coming soon...
+### Defining a module
+Anything can be stored as a module at the app or base level (though the app level is most recommended).
+
+    :::coffeescript    
+    Base.app 'Pict', ->
+        class Pict extends Base.App
+            constructor: ->
+                super
+        
+    Base.apps.pict is Pict   # => true
+    Base.app('pict') is Pict # => true
+    
+    app.view 'Photo', ->
+        class Photo extends Base.View
+            constructor: ->
+                super
+            
+    app.view('Photo') is Photo # => true
+    app.views.Photo is Photo   # => true
+    
+    app.model 'MyData' ->
+        class MyData extends Base.Model
+            constructor: ->
+                super
+        
+    app.service 'http', ->
+        return {
+            get: (url, callback) ->
+                $.get url, callback
+        }
+    
+### Defining Dependencies
+Module functions are executed as soon as all dependency requirements are met. At this point the module is set to the value of the function called and any modules whose last remaining dependency is the result of the function just called while also get called.
+
+    :::coffeescript
+    # Simplest method. A 'PhotoView' arg looks for app.views.Photo, 
+    # 'httpService' arg looks for app.services.http, etc
+    app.view 'Foo' (PhotoView, httpService, MyDataModel) ->
+        class Foo extends Base.View
+            get: (url, callback) ->
+                httpService.get url, callback
+       
+       
+     # To avoid minification issues, you can instead separately define
+     # an array of dependencies
+     app.view 'Foo', ['PhotoView', 'httpService'], (Photo, http) ->
+         class Foo extends Base.View
+             constructor: ->
+                 super
+        
 
 
 
-
-
-
-
-
-# **Core Classes**
+# Core Classes
 ---
 
 ## Base.App
@@ -963,7 +1007,7 @@ HTML
 
 
 
-# **Helper Classes**
+# Helper Classes
 ---
 
 
@@ -1141,7 +1185,7 @@ Constructor for base events. Every bubbled and broadcasted view event injects a 
 
 
 
-# **JS vs Coffeescript**
+# JS vs Coffeescript
 ---
 
 Despite the examples herein being in coffeescript, like any other coffeescript library base.js does not require that you write any code in coffeescript. Just use the .extend() method to subclass Base classes
@@ -1159,7 +1203,7 @@ Despite the examples herein being in coffeescript, like any other coffeescript l
     });
 
 
-# **Comparison to other frameworks**
+# Comparison to other frameworks
 ---
 Backbone, Ember, and Angaular are amazing. Truly amazing. And built and maintainged by incredibly brilliant people.
 
@@ -1278,7 +1322,7 @@ These are just a small sample of base features inspired by other js frameworks. 
 [Batman](http://batmanjs.org/), [Ext](http://www.sencha.com/products/extjs), [Stapes](http://hay.github.io/stapes/), [React](http://facebook.github.io/react/), [Dart](https://www.dartlang.org/), [Thorax](http://thoraxjs.org/), and many more.
 
 
-# **Future of Base**
+# Future of Base
 ---
 
 Ultimately, everything in this document will be pulled from the library except for the plugin core. The primary features herein will move to a 'contrib' library (similar to [Grunt Contrib](https://github.com/gruntjs/grunt-contrib)) for people who want a lot of power in one package.
