@@ -109,15 +109,15 @@ module.exports = (grunt) ->
 
       coffee:
         files: [ 'src/coffee/**/*.coffee' ]
-        tasks: [ 'coffeelint', 'coffee', 'concat' ]
+        tasks: [ 'coffeelint', 'coffee', 'concat:build' ]
 
       ractive:
         files: [ 'src/templates/**/*.html' ]
-        tasks: [ 'ractive', 'concat' ]
+        tasks: [ 'ractive', 'concat:build' ]
 
       js:
         files: [ 'src/**/*.js' ]
-        tasks: [ 'concat' ]
+        tasks: [ 'concat:build' ]
 
       # livereload:
       #   options:
