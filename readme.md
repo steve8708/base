@@ -1280,9 +1280,9 @@ This is for several reasons.
 
 1. **Flexibility**.
     Choice is key to MVC frameworks so you don't get locked into or
-    prescribed to one way of doing things. Want to use [ModelBinder](https://github.com/theironcook/Backbone.ModelBinder) for your templates? Plug it in. Prefer [Knockout](http://knockoutjs.com/), [Knockback](http://kmalakoff.github.io/knockback/), [Rivets](http://rivetsjs.com/)? Use a plugin!
+    prescribed to one way of doing things. Want to use [ModelBinder](https://github.com/theironcook/Backbone.ModelBinder) for your templates? Plug it in. Prefer [Knockout](http://knockoutjs.com/), [Handlebars](http://handlebarsjs.com/), [Rivets](http://rivetsjs.com/)? Use a plugin!
 
-    Nested models? [Plug it in](https://github.com/afeld/backbone-nested). Dirty checking? You get the picture. Write reusable code, use great plugins created by others. Reduce applications to simple configuration.
+    Nested models? [Plug it in!](https://github.com/afeld/backbone-nested). Dirty checking? Localstorage adapter? Form validator? You get the picture. Write reusable code, use great plugins created by others. Reduce applications to simple configuration.
 
 2. **Modernity**.
 
@@ -1310,7 +1310,7 @@ This is for several reasons.
 
     Similarly, it is just as easy to write a custom grunt task you can use across all of your apps with ease, and even share with the community yourself. This means a much brighter, more reusable world for build scripts everywhere. By why limit this approach to build scripts?
 
-    Applications work in this same way. With grunt, you say 'I want my files minified', so `npm install grunt-contrib-minify` and point it to the files you want minifed. Done. With applications, we always say 'I want those images to lazyload', 'lets make those views animate on entry', or your product manager says 'how would that look as a grid?'. Find the plugin you need, pop it in, and done.
+    Applications work in this same way. With grunt, you say 'I want my files minified', so `npm install grunt-contrib-minify` and point it to the files you want minifed. Done. With applications, we always say 'I want those images to lazyload', 'lets make those views animate on entry', 'how would that look as a grid?', 'lets validate this form', 'lets cache our fetch requests'. Find the plugin you need, pop it in, and done. Easy. Less code to build, less to maintain, leverage the efforts of the community, contribute back as you please.
 
 
 
