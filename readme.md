@@ -10,7 +10,7 @@ MVC frameworks](http://todomvc.com/) into one cohesive, highly performant, maxim
 
 Built with [Backbone](http://backbonejs.org/), [jQuery](http://jquery.com/), and [Ractive](http://www.ractivejs.org/)
 
-# Contents
+# **Contents**
 * [Simple Example](#markdown-header-simple-example)
 * [Core Concepts](#markdown-header-core-concepts)
     * [Live Templates](#markdown-header-live-templates)
@@ -41,7 +41,7 @@ Built with [Backbone](http://backbonejs.org/), [jQuery](http://jquery.com/), and
 * [Future of Base](#markdown-header-future-of-base)
 
 
-# Simple Example
+# **Simple Example**
 ---
 
 HTML (DOM updates automatically on model changes)
@@ -100,12 +100,16 @@ CSS (in Stylus):
 
 
 
-# Core Concepts
+# **Core Concepts**
 ---
 
 
 ## Live Templates
 \- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+All base templates update automatically as your views and models change, no more jquery is needed! No, seriously, stop using .append(), .clone(), .addClass(), .removeClass(), etc. Just like angular, meteor, derby, and the many other fantastic live template libraries, once you use it you will not look back. No more spaghetti code, no more exponentially rising DOM manipulation complexity, no more rerendering entire views just to update one list.
+
+Base live templates are built on top of [Ractive](http://www.ractivejs.org/), check out the [examples](http://www.ractivejs.org/examples/) for amazing examples of using live templates for all kinds of applications and purposes. And see [below](#markdown-header-objects-and-methods) for how Base extends Ractive for additional power and flexibility including app level binding, route binding, singleton binding, and more.
 
 ### Tags
 
@@ -192,6 +196,9 @@ CSS (in Stylus):
 
 
 ### Event binding
+
+Base extends [Ractive](ractivejs.org) to allow multiple arguments
+with object getters
 
 #### HTML
 
@@ -699,7 +706,7 @@ Documentation coming soon...
 
 
 
-# Core Classes
+# **Core Classes**
 ---
 
 ## Base.App
@@ -956,7 +963,7 @@ HTML
 
 
 
-# Helper Classes
+# **Helper Classes**
 ---
 
 
@@ -1134,7 +1141,7 @@ Constructor for base events. Every bubbled and broadcasted view event injects a 
 
 
 
-# JS vs Coffeescript
+# **JS vs Coffeescript**
 ---
 
 Despite the examples herein being in coffeescript, like any other coffeescript library base.js does not require that you write any code in coffeescript. Just use the .extend() method to subclass Base classes
@@ -1152,7 +1159,7 @@ Despite the examples herein being in coffeescript, like any other coffeescript l
     });
 
 
-# Comparison to other frameworks
+# **Comparison to other frameworks**
 ---
 Backbone, Ember, and Angaular are amazing. Truly amazing. And built and maintainged by incredibly brilliant people.
 
@@ -1271,7 +1278,7 @@ These are just a small sample of base features inspired by other js frameworks. 
 [Batman](http://batmanjs.org/), [Ext](http://www.sencha.com/products/extjs), [Stapes](http://hay.github.io/stapes/), [React](http://facebook.github.io/react/), [Dart](https://www.dartlang.org/), [Thorax](http://thoraxjs.org/), and many more.
 
 
-# Future of Base
+# **Future of Base**
 ---
 
 Ultimately, everything in this document will be pulled from the library except for the plugin core. The primary features herein will move to a 'contrib' library (similar to [Grunt Contrib](https://github.com/gruntjs/grunt-contrib)) for people who want a lot of power in one package.
