@@ -1231,17 +1231,28 @@ So Why do we need another javascript MV* options? Because Base is a blank slate,
 ## Backbone
 \- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-### What it lacks
-Features. With (raw) Backbone you still have to write a lot of boilerplate to get anywhere near the features, simplicity, and ease of Ember and Angular.
 
 ### Where it excels
 Bulletproof ORM, ultra lightweight and efficient, classical inheritance, dead simple RESTful syncing with the server, built with jQuery.
+
+
+### What it lacks
+Features. With (raw) Backbone you still have to write a lot of boilerplate to get anywhere near the features, simplicity, and ease of Ember and Angular.
 
 ### How Base Fits
 Base is built on top of backbone - so everything you get with backbone, you get with base!
 
 ## Ember
 \- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+### Where it excels
+Scaling. Ember can handle your very large single page application with efficiency and ease. View (controller) nesting and management, event bubbling, simple property binding, ORM, classical inheritance, and other critical features for large scale apps.
+
+See:
+
+* [Why use Ember](http://eviltrout.com/2013/02/10/why-discourse-uses-emberjs.html)
+* [Ember compared to other MVC Frameworks](http://codebrief.com/2012/01/the-top-10-javascript-mvc-frameworks-reviewed/)
+
 
 ### What it lacks
 Full live templates (beyond simple classnames and attributes). This really is a must as your application grows - rerendering entire views when simple lists or models change is very bad for performance, poor for user experience, and making granular upates via DOM manipulation code creates spaghetti logic fast.
@@ -1253,14 +1264,6 @@ See:
 * [Ember Confusion](http://wekeroad.com/2013/03/06/ember-confuses-me)
 * [Ember Complexity](https://gist.github.com/viatropos/2767098)
 
-### Where it excels
-Scaling. Ember can handle your very large single page application with efficiency and ease. View (controller) nesting and management, event bubbling, simple property binding, ORM, classical inheritance, and other critical features for large scale apps.
-
-See:
-
-* [Why use Ember](http://eviltrout.com/2013/02/10/why-discourse-uses-emberjs.html)
-* [Ember compared to other MVC Frameworks](http://codebrief.com/2012/01/the-top-10-javascript-mvc-frameworks-reviewed/)
-
 
 ### How Base Fits
 Base takes a lot of great ideas from Ember. View management, event bubbling, property binding, etc. That while minimizing the amount of class types you need to accomplish these things (everything in Base distills down to simple models, collections, lists, and views), and much more.
@@ -1270,6 +1273,18 @@ Specific features inspired by ember include Base's Base.State class and associat
 
 ## Angular
 \- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+### Where it excels
+Simplicity. Everything is a POJO (plain old javascript object) so getting and setting properties is not required.
+Extensibility. Directives are amazingly flexible and powerful.
+
+Dynamic templates. Angular's live templates are best in class.
+
+See:
+
+* [Why Use Angular](http://net.tutsplus.com/tutorials/javascript-ajax/3-reasons-to-choose-angularjs-for-your-next-project/)
+* [Angular's ease of use](http://www.sitepoint.com/10-reasons-use-angularjs/)
+
 ### What it lacks
 Angular is great for small projects. But as your app grows, or when you want to start supporting mobile devices, serious issues can arise:
 
@@ -1282,16 +1297,6 @@ See:
 * [Angular Performance Limits](http://eviltrout.com/2013/06/15/ember-vs-angular.html)
 * [Angular Scaling Limits](http://stackoverflow.com/a/18381836/1959717)
 
-### Where it excels
-Simplicity. Everything is a POJO (plain old javascript object) so getting and setting properties is not required.
-Extensibility. Directives are amazingly flexible and powerful.
-
-Dynamic templates. Angular's live templates are best in class.
-
-See:
-
-* [Why Use Angular](http://net.tutsplus.com/tutorials/javascript-ajax/3-reasons-to-choose-angularjs-for-your-next-project/)
-* [Angular's ease of use](http://www.sitepoint.com/10-reasons-use-angularjs/)
 
 ### How base fits
 All of the live templates, view/controller hierarchies, event emitting and broadcasting, but without any sacrifices to performance. By using simple getters and setters you can ensure that only the properties you update trigger code to execute, no matter how deep your models get. This is critical for large web and mobile HTML5 single page applications to avoid any perceptible lag, delay, or unnecessary lapse in performance. That and powered by a familiar and flexible object inheritance model, Base gives you the best of angular without the pieces that can hurt your applications.
@@ -1310,6 +1315,8 @@ JS framework inspirations by feature:
     * [Polymer](http://www.polymer-project.org/polymer.html)
     * [Knockback](http://kmalakoff.github.io/knockback/)
     * [Ractive](http://www.ractivejs.org/) (powers Base's live templates)
+    * [Rivets](http://rivetsjs.com/)
+    * [Batman](http://batmanjs.org/)
 
 
 * View Nesting and Subview Management
