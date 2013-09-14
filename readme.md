@@ -6,7 +6,7 @@ Lightweight, high performance, incredibly flexible, insanely powerful.
 
 Base.js is a project
 designed to combine just the very the best feautres of [backbone](http://backbonejs.org), [angular](http://angularjs.org), and [ember](http://emberjs.com) with inspiration from [ many other great javascript
-MVC frameworks](http://todomvc.com/) into one cohesive, highly performant, maximally extensible package.
+MVC frameworks](http://todomvc.com/) into one cohesive, highly performant, maximally flexible and extensible package.
 
 Built with [Backbone](http://backbonejs.org/), [jQuery](http://jquery.com/), and [Ractive](http://www.ractivejs.org/)
 
@@ -105,7 +105,7 @@ CSS (in Stylus):
 
 
 ## Live Templates
-\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 All base templates update automatically as your views and models change, no more jquery is needed! No, seriously, stop using .append(), .clone(), .addClass(), .removeClass(), etc. Just like angular, meteor, derby, and the many other fantastic live template libraries, once you use it you will not look back. No more spaghetti code, no more exponentially rising DOM manipulation complexity, no more rerendering entire views just to update one list.
 
@@ -244,7 +244,7 @@ with object getters
 
 
 ## Plugins
-\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Extend the functionality of any type of module. Configurable at the Base (global) level, app level, and the per module level (also by module type). The ultimate goal is to distill applications development to basic configuration, through the use of building and applying reusable components. This is heavily inspired by [grunt](http://gruntjs.com/).
 
@@ -322,7 +322,7 @@ The ultimate goal here is to maximize code reusability across applications, prov
 
 
 ## Web Components
-\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Web components are custom HTML tags with special behaviors for making application markup dead simple. These can range from basic simplications (e.g. '<base-icon name="foo">' as a simpler form of typing <i class="icon sprite-foo"></i>) to highly dynamic components (e.g. <base-collection> that automatically creates and destroys subviews as a paired collection changes)
 
@@ -368,7 +368,7 @@ Web components are custom HTML tags with special behaviors for making applicatio
 
 ## View Nesting and Subview Management
 
-\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 ### Defining Nestings in JS
 
@@ -517,7 +517,7 @@ Web components are custom HTML tags with special behaviors for making applicatio
 
 
 ## Nested Models and Collections
-\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     :::coffeescript
     class PhotoModel extensd Base.Model
@@ -581,7 +581,7 @@ Web components are custom HTML tags with special behaviors for making applicatio
 
 
 ## State Management
-\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Nearly all Base classes support state models (view, router, model, collection, app, etc). This lets you attach properties to models, collections, routers, etc
 without clashing with data you want synced with your backend (or other persistence layer such as localStorage)
@@ -660,7 +660,7 @@ All foolowing methods work for all stated classes (routers, models, views, colle
 
 
 ## Simplified Event Binding
-\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Any event on any evented object (model, view, collection, etc) can be subscribed to directly by camelizing the event name.
 
@@ -695,66 +695,81 @@ Any event on any evented object (model, view, collection, etc) can be subscribed
 
 
 ## Dependency Injection
-\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 ### Defining a module
 Anything can be stored as a module at the app or base level (though the app level is most recommended).
 
-    :::coffeescript    
+    :::coffeescript
     Base.app 'Pict', ->
         class Pict extends Base.App
             constructor: ->
                 super
-        
+
     Base.apps.pict is Pict   # => true
     Base.app('pict') is Pict # => true
-    
+
     app.view 'Photo', ->
         class Photo extends Base.View
             constructor: ->
                 super
-            
+
     app.view('Photo') is Photo # => true
     app.views.Photo is Photo   # => true
-    
+
     app.model 'MyData' ->
         class MyData extends Base.Model
             constructor: ->
                 super
-        
+
     app.service 'http', ->
         return {
             get: (url, callback) ->
                 $.get url, callback
         }
-    
+
 ### Defining Dependencies
 Module functions are executed as soon as all dependency requirements are met. At this point the module is set to the value of the function called and any modules whose last remaining dependency is the result of the function just called while also get called.
 
     :::coffeescript
-    # Simplest method. A 'PhotoView' arg looks for app.views.Photo, 
+    # Simplest method. A 'PhotoView' arg looks for app.views.Photo,
     # 'httpService' arg looks for app.services.http, etc
     app.view 'Foo' (PhotoView, httpService, MyDataModel) ->
         class Foo extends Base.View
             get: (url, callback) ->
                 httpService.get url, callback
-       
-       
+
+
      # To avoid minification issues, you can instead separately define
      # an array of dependencies
      app.view 'Foo', ['PhotoView', 'httpService'], (Photo, http) ->
          class Foo extends Base.View
              constructor: ->
                  super
-        
 
+
+### Require Syntax
+
+    :::coffeescript
+    Base.define 'foobar', (require) ->
+        # Base can figure out your dependencies. It will first
+        # look in the 'app' context for your module, followed by the
+        # global (Base) context
+        foo = require 'foo'
+
+        bar = app.require 'bar'
+
+        baz = Base.require 'baz'
+
+    app.define 'FooView', ->
+        class Foo extends
 
 
 # Core Classes
 ---
 
 ## Base.App
-\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 ### Class
 
@@ -777,7 +792,7 @@ Module functions are executed as soon as all dependency requirements are met. At
 
 
 ## Base.View
-\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 ### Class
 
@@ -883,7 +898,7 @@ Module functions are executed as soon as all dependency requirements are met. At
 
 
 ## Base.Model
-\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 ### Class
 
@@ -944,7 +959,7 @@ Module functions are executed as soon as all dependency requirements are met. At
 
 
 ## Base.Singleton
-\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Singletons inherit from Base.Model and are accessible via the app object
 and anywhere via templates
@@ -970,7 +985,7 @@ HTML
 
 
 ## Base.Collection
-\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 ### Class
 
@@ -1012,7 +1027,7 @@ HTML
 
 
 ## Base.List
-\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 An evented array, similar to a backbone collection, but can store any type of data. Used internally to store view children (view.children) and listen to events and changes
 
@@ -1082,7 +1097,7 @@ An evented array, similar to a backbone collection, but can store any type of da
 
 
 ## Base.Router
-\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 ### Class
 
@@ -1109,7 +1124,7 @@ An evented array, similar to a backbone collection, but can store any type of da
 
 
 ## Base.State
-\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Inherits from Base.Model
 The state model used by Base classes. Bubbles all events received to parent
@@ -1131,7 +1146,7 @@ State models must be inited with a parent (the owner of the state model in which
 
 
 ## Base.Stated
-\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Easier wasy of creating a new stated object. Inherits from Base.Object
 
@@ -1151,7 +1166,7 @@ Easier wasy of creating a new stated object. Inherits from Base.Object
 
 
 ## Base.Object
-\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Simple evented object contrsuctor. Supports full Backbone events API 'on', 'off', 'listenTo', etc
 
@@ -1167,7 +1182,7 @@ Simple evented object contrsuctor. Supports full Backbone events API 'on', 'off'
 
 
 ## Base.Event
-\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Constructor for base events. Every bubbled and broadcasted view event injects a first argument that is an instanceof Base.Event which supports
 
@@ -1199,6 +1214,9 @@ Despite the examples herein being in coffeescript, like any other coffeescript l
       someMethod: function () {
         // The JS way of calling super (if you ever find you need it)
         Base.View.prototype.someMethod.apply(this, arguments);
+
+        // Alternatively, you can use Base._super to help out with this
+        return Base._super(this, 'someMethod', arguments);
       }
     });
 
@@ -1211,6 +1229,7 @@ So Why do we need another javascript MV* options? Because Base is a blank slate,
 
 
 ## Backbone
+\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 ### What it lacks
 Features. With (raw) Backbone you still have to write a lot of boilerplate to get anywhere near the features, simplicity, and ease of Ember and Angular.
@@ -1222,6 +1241,7 @@ Bulletproof ORM, ultra lightweight and efficient, classical inheritance, dead si
 Base is built on top of backbone - so everything you get with backbone, you get with base!
 
 ## Ember
+\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 ### What it lacks
 Full live templates (beyond simple classnames and attributes). This really is a must as your application grows - rerendering entire views when simple lists or models change is very bad for performance, poor for user experience, and making granular upates via DOM manipulation code creates spaghetti logic fast.
@@ -1249,6 +1269,7 @@ Specific features inspired by ember include Base's Base.State class and associat
 
 
 ## Angular
+\- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### What it lacks
 Angular is great for small projects. But as your app grows, or when you want to start supporting mobile devices, serious issues can arise:
 
