@@ -5,7 +5,7 @@ All the features you need to buld stunning HTML5 web and mobile applications wit
 Lightweight, high performance, incredibly flexible, insanely powerful.
 
 Base.js is a project
-designed to combine the very the best feautres of [backbone](http://backbonejs.org), [angular](http://angularjs.org), and [ember](http://emberjs.com) with inspiration from [ many other great javascript
+designed to combine the very best feautres of [backbone](http://backbonejs.org), [angular](http://angularjs.org), and [ember](http://emberjs.com) with inspiration from [ many other great javascript
 MVC frameworks](http://todomvc.com/) into one cohesive, highly performant, maximally flexible and extensible package.
 
 Built with [Backbone](http://backbonejs.org/), [jQuery](http://jquery.com/), and [Ractive](http://www.ractivejs.org/)
