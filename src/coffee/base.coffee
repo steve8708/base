@@ -1,6 +1,5 @@
 ###
   TODO: AMD support ( require, define )
-  Module support ( Base.module('foo', ->) )
 ###
 
 
@@ -29,8 +28,6 @@ class Base
   constructor: ->
     super
 
-_.extend Base::, Backbone.Events
-
 Base.noConflict = ->
   window.Base = originalBase
   Base
@@ -49,7 +46,7 @@ class Base.View extends Backbone.View
   constructor: (@options = {}, attributes) ->
     @name ?= @constructor.name
     @attributes ?= {}
-    @attributes['data-view'] ?= @name.replace(/view/i, '').toLowerCase()
+    @attributes['data-view'] ?= dasherize @name.replace /view/i, ''
     @children ?= new Base.List @options.children or []
     @ractive ?= true
 
@@ -84,6 +81,12 @@ class Base.View extends Backbone.View
 
   moduleType: 'view'
 
+  # FIXME: implement by looping up, finding the app for this view, and routing
+  # through Base.require
+  require: ->
+
+  define: ->
+
   # FIXME: accept @bindAttributes: '*' to render all non objects into dom
   # FIXME: acces @bindAttributeParirs:
   #   'data-name': 'name', 'data-app-mode': 'mode'
@@ -92,9 +95,10 @@ class Base.View extends Backbone.View
     if @bindAttributes
       for attr in @bindAttributes
         do (attr) =>
-          @$el.attr "data-#{attr}", @get attr
+          domAttr = dasherize attr
+          @$el.attr "data-#{domAttr}", @get attr
           @on "change:#{attr}", (model, value) =>
-            @$el.attr "data-#{attr}", value
+            @$el.attr "data-#{domAttr}", value
 
   _bindEventMethods: ->
     for event in DOMEventList
@@ -238,12 +242,18 @@ class Base.View extends Backbone.View
         if typeof val is 'function' and key[0] isnt '_'
           do (key, val) =>
             @ractive.on key, (event, argString = '') =>
+              return if key is 'set' and not event.original
+
               argString = '' if typeof argString isnt 'string'
               stringRe = /^(?:'(.*?)'|"(.*?)")$/
-              args = argString.split(':').map (arg, index) =>
+              argArray = _.compact argString.split /\s*?(:|,)\s*?/
+              args = argArray.map (arg, index) =>
+                arg = arg.trim()
+
                 isString = stringRe.test arg
                 return RegExp.$1 or RegExp.$2 if isString
-                deserialized = deserialize arg.trim()
+
+                deserialized = deserialize arg
                 return deserialized if typeof deserialized isnt 'string'
 
                 if arg is '.'
@@ -261,6 +271,7 @@ class Base.View extends Backbone.View
       adaptor = Ractive.adaptors.backboneAssociatedModel
       @ractive.bind adaptor @state
       @ractive.bind adaptor currentApp.state, '$app'
+      @ractive.bind adaptor currentApp.router.state, '$router'
 
       for key, val of app.singletons
         if val instanceof Base.Model or val instanceof Base.Collection
@@ -418,7 +429,7 @@ class Base.View extends Backbone.View
     parent = @
     while parent = parent.parent
       eventObj = parent["onRequest#{capitalize eventName}"] or \
-        _.last child._events["request:#{eventName}"]
+        _.last parent._events["request:#{eventName}"]
 
       if eventObj
         event = new Base.Event type: 'request', target: @
@@ -477,6 +488,12 @@ class Base.App extends Base.View
 
     super
 
+  # FIXME: implement based off Base.require
+  require: ->
+
+  # FIXME: implement based off Base.define
+  define: ->
+
   init: (options = @options) ->
     @trigger 'init', options
 
@@ -492,7 +509,7 @@ class Base.App extends Base.View
 # Module Loading - - - - - - - - - - - - - - - - - - - - - -
 
 moduleTypes = ['model', 'view', 'singleton', 'collection', 'app',
-  'module', 'object', 'component', 'service']
+  'module', 'object', 'component', 'service', 'filter']
 
 prepareModule = (module) ->
   if typeof module isnt 'function'
@@ -699,8 +716,32 @@ class Base.Stated extends Base.Object
 class Base.Router extends Backbone.Router
   constructor: ->
     @name ?= @constructor.name
+    @stateOptions = _.defaults @stateOptions or {},
+      relations: @relations
+      compute: @compute
+
     addState @
     super
+    currentApp.router = @
+    @on 'route', (router, route) =>
+      @set 'route', route
+      @set 'path', route.split '/'
+
+      params = {}
+      split = location.href.split('?')[1].split /&|=/
+      for item, index in split
+        continue if index % 2
+        split[decodeURI item] = decodeURI split[index + 1]
+
+      @set 'params', params
+
+  setParams: (obj, reset) ->
+    params = if reset then {} else @get 'params'
+    _.extend params, obj
+    @set 'params', obj
+
+  relations:
+    params: Base.Model
 
   go: (route) ->
     @navigate route, true
@@ -1105,10 +1146,26 @@ Base.utils =
 for module in ['List', 'Object', 'Event']
   Base[module]::extend ?= Backbone.Model::extend
 
-# _super - - - - - - - - - - - - - - - - - - - - - - - - - -
+# FIXME: make define pic apart the name
+# e.g. define 'PicView' = Base.view 'Pic'
+Base.define = Base.service
+
+# FIXME: implement
+Base.require = (name, appContext = null) ->
+
+# FIXME: implement
+Base.define = (name, appContext = null) ->
 
 Base._super = (context, methodName, args) ->
   context.constructor.__super__[methodName].apply context, args
+
+# Looks through a function for require('foo')
+parseRequirements = (fn) ->
+  fn
+    .toString()
+    # FIXME: look for ([a-zA-Z]*?).require\('.*?'\)/g instead
+    .match(/require\('.*?'\)/g)
+    .map (item) -> item.match(/require\('(.*?)'\)/)[1]
 
 # Initialize - - - - - - - - - - - - - - - - - - - - - - - -
 Base.apps ?= {}

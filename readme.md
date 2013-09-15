@@ -5,7 +5,7 @@ All the features you need to buld stunning HTML5 web and mobile applications wit
 Lightweight, high performance, incredibly flexible, insanely powerful.
 
 Base.js is a project
-designed to combine just the very the best feautres of [backbone](http://backbonejs.org), [angular](http://angularjs.org), and [ember](http://emberjs.com) with inspiration from [ many other great javascript
+designed to combine the very the best feautres of [backbone](http://backbonejs.org), [angular](http://angularjs.org), and [ember](http://emberjs.com) with inspiration from [ many other great javascript
 MVC frameworks](http://todomvc.com/) into one cohesive, highly performant, maximally flexible and extensible package.
 
 Built with [Backbone](http://backbonejs.org/), [jQuery](http://jquery.com/), and [Ractive](http://www.ractivejs.org/)
@@ -181,11 +181,11 @@ Base live templates are built on top of [Ractive](http://www.ractivejs.org/), ch
     {{/}}
 
     <!-- Routes -->
-    {{# $route.path[0] == 'share' && $route.params.foo == 'bar' }}
+    {{# $router.path[0] == 'share' && $router.params.foo == 'bar' }}
       We're on the shar epage and foo is bar!
     {{/}}
 
-    {{# $route.string == 'share/photo' }}
+    {{# $router.route == 'share/photo' }}
       You're sharing a photo!
     {{/}}
 
@@ -273,7 +273,7 @@ The ultimate goal here is to maximize code reusability across applications, prov
     Base.view.plugin 'ractive', (view, config) ->
       @ractive = new Ractive el: @el, template: @template, data: @toJSON()
       @ractive.bind Ractive.adaptors.backboneAssociatedModel @state
-      @on 'render', -> @ractive.render()
+      @on 'render', => @ractive.render()
 
     # Applies to all classes
     Base.plugin 'state', (module, config) ->
@@ -281,35 +281,18 @@ The ultimate goal here is to maximize code reusability across applications, prov
       @state.on 'all', (eventName, args…) =>
         @trigger.apply @, ["state:#{eventName}"].concat args
 
-      # Apply methods
-      for name in ['get', 'set', 'toggle']
-        do (name) =>
-          @["#{name}State"] = (args…) => @state[name].apply @state, args
-
-      # Or return methods to apply to the module
-      return (
-        getState: (name) -> @state.get name
-        setState: (name, value) -> @state.set name, value
-      )
-
+      # You can return methods to apply to the module
+      getState: (name) -> @state.get name
+      setState: (name, value) -> @state.set name, value
 
     App.view.plugin 'fadeInImages', (view, config) ->
       @on 'render', ->
-        # You can access config.className or use config as a function
-        # to set defaults
-        config = config(className: 'hide', selector: 'img')
+        # You can use config.className or apply config as a function to set defaults
+        config = config className: 'hide', selector: 'img'
 
         $images = @$ config.selector
-        $images.addClass config.className or 'hide'
+        $images.addClass config.className
         $images.on 'load', (e) => $(e.target).removeClass config.className
-
-    App.view.plugin 'lazyLoadImages', (view, config) ->
-      @on 'render': ->
-         $images = @$ config.selector or 'img'
-         $images.each (i, el) =>
-            el.setAttribute config.attr or 'data-src', el.src
-            el.src = ''
-         _.defer => $images.each (i, el) => el.src = el.getAttribute 'src'
 
     # Plugins can also apply to specific module types
     App.plugin ['view', 'collection', 'model'], 'state', ->
@@ -1347,7 +1330,7 @@ JS framework inspirations by feature:
 
 
 These are just a small sample of base features inspired by other js frameworks. There are many other features and nuanced inspired by the hoard of great js frameworks in addition to the ones listed above, including, but not limited to:
-[Batman](http://batmanjs.org/), [Ext](http://www.sencha.com/products/extjs), [Stapes](http://hay.github.io/stapes/), [React](http://facebook.github.io/react/), [Dart](https://www.dartlang.org/), [Thorax](http://thoraxjs.org/), and many more.
+[Ext](http://www.sencha.com/products/extjs), [Stapes](http://hay.github.io/stapes/), [React](http://facebook.github.io/react/), [Dart](https://www.dartlang.org/), [Thorax](http://thoraxjs.org/), and many more.
 
 
 # Future of Base
@@ -1371,26 +1354,26 @@ This is for several reasons.
 
     * When you are trying to be the one framework to rule them all, feature decisions are daunting. This means that if you want to add awesome new feature 'x',  everyone is now going to have to use it. But not every feature is a fit for everyone. Dirty model checking is awesome for small applications, but they can kill large applications.  Model associations are integral for large applications, but they can be overly complex for small applications.
 
-3. **Scale**
+3. **Scalability**
 
     Big apps and small apps have different requirements. Features that make big apps scale make small apps overly complex. Features that make small apps easy can  give big apps performance nightmares. Apps come in all shapes and sizes, and finding you started your app on one framework, and realizing half way you should've chosen another is a refactoring nightmare.
 
-4. **Community Innovation**
+    With base, you simply plug in the features you need when you need them. Keep it light and simple to start, make it big and powerful and you grow. No stress that your framework was the wrong choice, that you went all in on one that is too complex to start or too simple to scale. Now your framework can adapt to fit your needs at every step of your application's lifestyle. You are in full control.
+
+4. **Simplicity and Reusability**
+
+    [Grunt](http://gruntjs.com/) is amazing, it breaks complex build scripts down to dead simple [config files](https://bitbucket.org/pict/base/src/944371f873b797ce30bfe979a289177dd63fce6b/GruntFile.coffee?at=master). Just import modules built by its [incredible community](http://gruntjs.com/plugins), set some basic configs, and away you go. Save time, don't reinvent the wheel 1000 times over. Want too add dynamic spriting to your app? Use [Grunt Glue](https://bitbucket.org/carkraus/grunt-glue). Run karma tests? [Grunt Karma](https://github.com/karma-runner/grunt-karma).  Lint, concat, copy, compile, watch, connect, compress, and minify your files? [Grunt Contrib](https://github.com/gruntjs/grunt-contrib). The possibilities are undless, and the community is always growing.
+
+    Similarly, it is just as easy to write a custom grunt task you can use across all of your apps with ease, and even share with the community yourself. This means a much brighter, more reusable world for build scripts everywhere. By why limit this approach to build scripts?
+
+    Applications work in this same way. With grunt, you say 'I want my files minified', so `npm install grunt-contrib-minify` and point it to the files you want minifed. Done. With applications, we always say 'I want those images to lazyload', 'lets make those views animate on entry', 'how would that look as a grid?', 'lets validate this form', 'lets cache our fetch requests'. Find the plugin you need, pop it in, and done. Easy. Less code to build, less to maintain, leverage the efforts of the community, contribute back as you please.
+
+5. **Community Innovation**
 
     Whats more innovative than an individual, or even a team of individuals? An entire community of individuals, always tinkering and experimenting on how to push the limits of how to build beautiful and elegant applications. When 'awesome guy' has a great idea, these days they are [building their own framework](http://todomvc.com/). But this is so very redundant. Every framework has an eventemmitter (.on, .off, etc), every framework has models, views, and collections, there is no need to reinvent the wheel anymore. Where we need to innovate is in the areas that are not validated yet. How do we make our apps the next level simpler? Remove our backend entirely? Reduce the code we write and maintain? Reduce the redundant code we write?
 
     Let's stop building the same things everyone else has built 100 times, and specialize. Go build the best damn model binder out there and make it bulletproof. And in your apps amass the most components for your needs already built and debugged by others.
 
     Similar to [Backbone Plugins](http://backplug.io/), but more powerful, more flexible, and much more able to work nicely with others.
-
-5. **Simplicity and Reusability**
-
-    [Grunt](http://gruntjs.com/) is amazing, it complex build scripts down to dead simple [config files](https://bitbucket.org/pict/base/src/944371f873b797ce30bfe979a289177dd63fce6b/GruntFile.coffee?at=master). Just import modules built by its [incredible community](http://gruntjs.com/plugins), set some basic configs, and away you go. Save time, don't reinvent the wheel 1000 times over. Want too add dynamic spriting to your app? Use [Grunt Glue](https://bitbucket.org/carkraus/grunt-glue). Run karma tests? [Grunt Karma](https://github.com/karma-runner/grunt-karma).  Lint, concat, copy, compile, watch, connect, compress, and minify your files? [Grunt Contrib](https://github.com/gruntjs/grunt-contrib). The possibilities are undless, and the community is always growing.
-
-    Similarly, it is just as easy to write a custom grunt task you can use across all of your apps with ease, and even share with the community yourself. This means a much brighter, more reusable world for build scripts everywhere. By why limit this approach to build scripts?
-
-    Applications work in this same way. With grunt, you say 'I want my files minified', so `npm install grunt-contrib-minify` and point it to the files you want minifed. Done. With applications, we always say 'I want those images to lazyload', 'lets make those views animate on entry', 'how would that look as a grid?', 'lets validate this form', 'lets cache our fetch requests'. Find the plugin you need, pop it in, and done. Easy. Less code to build, less to maintain, leverage the efforts of the community, contribute back as you please.
-
-
 
 
