@@ -162,7 +162,7 @@ class Base.View extends Backbone.View
       camelized = camelize event
       return if not camelized
       method = @['on' + camelized[0].toUpperCase() + camelized.substring 1]
-      method args... if method
+      method.apply @, args if method
 
   # FIXME: maybe add data-action="foo( bar, 'baz', 2, true)"
   # FIXME: add 'foo( bar )', 'foo( "bar", true, 2 )'
@@ -277,7 +277,9 @@ class Base.View extends Backbone.View
       adaptor = Ractive.adaptors.backboneAssociatedModel
       @ractive.bind adaptor @state
       @ractive.bind adaptor currentApp.state, '$app'
-      @ractive.bind adaptor currentApp.router.state, '$router'
+
+      if currentApp.router
+        @ractive.bind adaptor currentApp.router.state, '$router'
 
       parents = []
       parent = @
