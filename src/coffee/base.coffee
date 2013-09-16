@@ -159,7 +159,7 @@ class Base.View extends Backbone.View
 
   _bindSpecialEventMethods: ->
     @on 'all', (event, args...) =>
-      camelized = $.camelCase event
+      camelized = camelize event
       return if not camelized
       method = @['on' + camelized[0].toUpperCase() + camelized.substring 1]
       method args... if method
@@ -185,7 +185,7 @@ class Base.View extends Backbone.View
         $el = $ el
         attrs = {}
         for attr in el.attributes
-          attrs[$.camelCase attr.name] = attr.value
+          attrs[camelize attr.name] = attr.value
 
         value.call @, $el, @, attrs
 
@@ -967,6 +967,11 @@ dasherize = (str) ->
     .replace(/_/g, '-')
     .toLowerCase()
 
+camelize = (str) ->
+  str
+    .replace /[^\d\w]+(.)?/g, (match, chr) ->
+      if chr then chr.toUpperCase() else ''
+
 deserialize = (value) ->
   try
     unless value                 then value
@@ -1044,7 +1049,7 @@ Base.components =
 
   view: ($el, view, attrs) ->
     viewName = attrs.view or attrs.type
-    View = currentApp.views[ capitalize $.camelCase viewName ] or BasicView
+    View = currentApp.views[ capitalize camelize viewName ] or BasicView
     name = attrs.name
     # FIXME: reactie templates won't work here beacuse no relations
     data = @get(attrs.data) or view.state
@@ -1100,7 +1105,7 @@ Base.plugins =
       @on 'render', =>
         for el in $ '[outlet], [data-outlet]', @ractive.fragment.items
           $el = $ el
-          outlet = $.camelCase $el.attr('data-outlet') or $el.attr 'outlet'
+          outlet = camelize $el.attr('data-outlet') or $el.attr 'outlet'
           if not _.contains bound, outlet
             bound.push outlet
             @$[outlet] = @$ "[data-outlet='#{outlet}'], [outlet='#{outlet}']"
