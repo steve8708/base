@@ -1,4 +1,4 @@
-/* base.js v0.0.17 */ 
+/* base.js v0.0.18 */ 
 
 (function (Ractive) {
 
@@ -387,7 +387,7 @@
         }
         method = _this['on' + camelized[0].toUpperCase() + camelized.substring(1)];
         if (method) {
-          return method.apply(null, args);
+          return method.apply(_this, args);
         }
       });
     };
@@ -573,7 +573,9 @@
         adaptor = Ractive.adaptors.backboneAssociatedModel;
         this.ractive.bind(adaptor(this.state));
         this.ractive.bind(adaptor(currentApp.state, '$app'));
-        this.ractive.bind(adaptor(currentApp.router.state, '$router'));
+        if (currentApp.router) {
+          this.ractive.bind(adaptor(currentApp.router.state, '$router'));
+        }
         parents = [];
         parent = this;
         while (parent = parent.parent) {
