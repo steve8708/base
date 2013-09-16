@@ -1218,11 +1218,10 @@ So Why do we need another javascript MV* options? Because Base is a blank slate,
 ### Where it excels
 Bulletproof ORM, ultra lightweight and efficient, classical inheritance, dead simple RESTful syncing with the server, built with jQuery.
 
-
 ### What it lacks
 Features. With (raw) Backbone you still have to write a lot of boilerplate to get anywhere near the features, simplicity, and ease of Ember and Angular.
 
-### How Base Fits
+### Base's Approach
 Base is built on top of backbone - so everything you get with backbone, you get with base!
 
 ## Ember
@@ -1248,7 +1247,7 @@ See:
 * [Ember Complexity](https://gist.github.com/viatropos/2767098)
 
 
-### How Base Fits
+### Base's Approach
 Base takes a lot of great ideas from Ember. View management, event bubbling, property binding, etc. That while minimizing the amount of class types you need to accomplish these things (everything in Base distills down to simple models, collections, lists, and views), and much more.
 
 Specific features inspired by ember include Base's Base.State class and associated state management, Base's 'compute' configuration (dynamic model properties),
@@ -1281,7 +1280,7 @@ See:
 * [Angular Scaling Limits](http://stackoverflow.com/a/18381836/1959717)
 
 
-### How base fits
+### Base's Approach
 All of the live templates, view/controller hierarchies, event emitting and broadcasting, but without any sacrifices to performance. By using simple getters and setters you can ensure that only the properties you update trigger code to execute, no matter how deep your models get. This is critical for large web and mobile HTML5 single page applications to avoid any perceptible lag, delay, or unnecessary lapse in performance. That and powered by a familiar and flexible object inheritance model, Base gives you the best of angular without the pieces that can hurt your applications.
 
 And all the while giving you an extensible, plugin based architecture so if you do want angular's 'dirty' model checking, just write a plugin! Decide for yourself what you do and don't want, and don't be forced into one methodology or another that can come back to bite you as your app grows, or require major refactoring just to divert some design choice your chosen framework uses that proves to not work with time.
@@ -1362,7 +1361,7 @@ This is for several reasons.
 
 4. **Simplicity and Reusability**
 
-    [Grunt](http://gruntjs.com/) is amazing, it breaks complex build scripts down to dead simple [config files](https://bitbucket.org/pict/base/src/944371f873b797ce30bfe979a289177dd63fce6b/GruntFile.coffee?at=master). Just import modules built by its [incredible community](http://gruntjs.com/plugins), set some basic configs, and away you go. Save time, don't reinvent the wheel 1000 times over. Want too add dynamic spriting to your app? Use [Grunt Glue](https://bitbucket.org/carkraus/grunt-glue). Run karma tests? [Grunt Karma](https://github.com/karma-runner/grunt-karma).  Lint, concat, copy, compile, watch, connect, compress, and minify your files? [Grunt Contrib](https://github.com/gruntjs/grunt-contrib). The possibilities are undless, and the community is always growing.
+    [Grunt](http://gruntjs.com/) is amazing, it breaks complex build scripts down to dead simple [config files](https://bitbucket.org/pict/base/src/944371f873b797ce30bfe979a289177dd63fce6b/GruntFile.coffee?at=master). Just import modules built by its [incredible community](http://gruntjs.com/plugins), set some basic configs, and away you go. Save time, don't reinvent the wheel 1000 times over. Want to add dynamic spriting to your app? Use [Grunt Glue](https://bitbucket.org/carkraus/grunt-glue). Run karma tests? [Grunt Karma](https://github.com/karma-runner/grunt-karma).  Lint, concat, copy, compile, watch, connect, compress, and minify your files? [Grunt Contrib](https://github.com/gruntjs/grunt-contrib). The possibilities are undless, and the community is always growing.
 
     Similarly, it is just as easy to write a custom grunt task you can use across all of your apps with ease, and even share with the community yourself. This means a much brighter, more reusable world for build scripts everywhere. By why limit this approach to build scripts?
 

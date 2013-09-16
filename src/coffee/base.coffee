@@ -81,6 +81,12 @@ class Base.View extends Backbone.View
 
   moduleType: 'view'
 
+  lookup: (keypath) ->
+    parent = @
+    while parent = parent.parent
+      value = parent.get keypath
+      return value if value?
+
   # FIXME: implement by looping up, finding the app for this view, and routing
   # through Base.require
   require: ->
@@ -272,6 +278,30 @@ class Base.View extends Backbone.View
       @ractive.bind adaptor @state
       @ractive.bind adaptor currentApp.state, '$app'
       @ractive.bind adaptor currentApp.router.state, '$router'
+
+      parents = []
+      parent = @
+      parents.push parent while parent = parent.parent
+      for parent in parents
+        parentName = uncapitalize parent.name
+        @ractive.bind adaptor parent.state, "$parent.#{parentName}"
+
+      # parents = []
+      # parentsObj = {}
+      # parent = @
+      # parents.push parent while parent = parent.parent
+      # _.extend parentsObj, parents.reverse()...
+
+      # @on 'all', (event, model, args...) ->
+      #   split = event.split ':'
+      #   return unless split[0] is 'parent'
+      #   unless split[1] in ['change', 'add', 'remove', 'reset'] and split[2]
+      #     return
+      #   for parent in parents
+      #     if parent.state is model
+      #   # FIXME: will only work if using deep model for 'parents' property
+      #   @ractive.set "$parent.#{split[2]}", @get split[2]
+
 
       for key, val of app.singletons
         if val instanceof Base.Model or val instanceof Base.Collection
@@ -486,10 +516,22 @@ class Base.App extends Base.View
 
     @template ?= _JST["src/templates/app.html"]
 
+    $win = $ window
+    $win.on "resize.appResize-#{@cid}", =>
+      @set
+        windowWidth: $win.width(),
+        windowHeight: $win.height(),
+        documentWidth: document.width,
+        documentHeight: document.height
+
     super
 
   # FIXME: implement based off Base.require
   require: ->
+
+  destroy: ->
+    $(window).off "resize.appResize-#{@cid}"
+    super
 
   # FIXME: implement based off Base.define
   define: ->
@@ -722,6 +764,9 @@ class Base.Router extends Backbone.Router
 
     addState @
     super
+
+    @set 'params', {} if not @get 'params'
+
     currentApp.router = @
     @on 'route', (router, route) =>
       @set 'route', route
@@ -1166,6 +1211,24 @@ parseRequirements = (fn) ->
     # FIXME: look for ([a-zA-Z]*?).require\('.*?'\)/g instead
     .match(/require\('.*?'\)/g)
     .map (item) -> item.match(/require\('(.*?)'\)/)[1]
+
+# TODO
+# Maybe services don't need a namespace
+Base.services.require = (string) ->
+  camelSplit = string.split /(?![a-z])(?=[A-Z])/
+  moduleType = _.last(camelSplit).toLowerCase()
+
+  if moduleType in moduleTypes
+    moduleName = string.substring 0, string.length - camelSplit.length
+    accessor = "#{moduleType}s"
+    return currentApp[accessor][moduleName] or Base[accessor][moduleName]
+  else
+    moduleName = string
+    for type in ['app', 'singleton', 'service', 'module', 'object']
+      module = currentApp[type][moduleName] or Base[type][moduleName]
+      return module if module
+
+
 
 # Initialize - - - - - - - - - - - - - - - - - - - - - - - -
 Base.apps ?= {}
