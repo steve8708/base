@@ -1,4 +1,4 @@
-/* base.js v0.0.15 */ 
+/* base.js v0.0.16 */ 
 
 (function (Ractive) {
 
@@ -104,25 +104,29 @@
 })(window.Ractive || require && require('ractive'));
 /*
   TODO: AMD support ( require, define )
-  Module support ( Base.module('foo', ->) )
 */
 
 
 (function() {
-  var Base, BasicView, DOMEventList, addState, appSurrogate, arr, callbackStringSplitter, capitalize, className, currentApp, method, originalBase, uncapitalize, _fn, _fn1, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _m, _ref, _ref1, _ref2, _ref3, _ref4,
+  var Base, BasicView, DOMEventList, Ractive, addState, appSurrogate, arr, callbackStringSplitter, capitalize, className, currentApp, dasherize, deserialize, getModuleArgs, invokeModule, invokeWithArgs, method, module, moduleQueue, moduleType, moduleTypes, originalBase, parseRequirements, prepareModule, subject, uncapitalize, _base, _fn, _fn1, _fn2, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _len5, _len6, _len7, _m, _n, _o, _p, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    __slice = [].slice;
+    __slice = [].slice,
+    __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
   originalBase = window.Base;
 
   currentApp = null;
 
-  appSurrogate = {};
+  appSurrogate = {
+    singletons: {}
+  };
 
   if (window._JST == null) {
     window._JST = {};
   }
+
+  Ractive = window.Ractive || (typeof window.require === 'function' ? require('Ractive') : void 0);
 
   arr = [];
 
@@ -141,8 +145,6 @@
     return Base;
 
   })();
-
-  _.extend(Base.prototype, Backbone.Events);
 
   Base.noConflict = function() {
     window.Base = originalBase;
@@ -169,10 +171,13 @@
         this.attributes = {};
       }
       if ((_base = this.attributes)['data-view'] == null) {
-        _base['data-view'] = this.name.replace(/view/i, '').toLowerCase();
+        _base['data-view'] = dasherize(this.name.replace(/view/i, ''));
       }
       if (this.children == null) {
         this.children = new Base.List(this.options.children || []);
+      }
+      if (this.ractive == null) {
+        this.ractive = true;
       }
       this.stateOptions = _.defaults(this.stateOptions || {}, {
         relations: this.relations,
@@ -213,6 +218,21 @@
 
     View.prototype.moduleType = 'view';
 
+    View.prototype.lookup = function(keypath) {
+      var parent, value;
+      parent = this;
+      while (parent = parent.parent) {
+        value = parent.get(keypath);
+        if (value != null) {
+          return value;
+        }
+      }
+    };
+
+    View.prototype.require = function() {};
+
+    View.prototype.define = function() {};
+
     View.prototype._bindAttributes = function() {
       var attr, _i, _len, _ref, _results,
         _this = this;
@@ -222,9 +242,11 @@
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           attr = _ref[_i];
           _results.push((function(attr) {
-            _this.$el.attr("data-" + attr, _this.get(attr));
+            var domAttr;
+            domAttr = dasherize(attr);
+            _this.$el.attr("data-" + domAttr, _this.get(attr));
             return _this.on("change:" + attr, function(model, value) {
-              return _this.$el.attr("data-" + attr, value);
+              return _this.$el.attr("data-" + domAttr, value);
             });
           })(attr));
         }
@@ -262,7 +284,7 @@
         _results = [];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           value = _ref[_i];
-          _results.push($.zepto.deserializeValue(value));
+          _results.push(deserialize(value));
         }
         return _results;
       })();
@@ -270,7 +292,7 @@
     };
 
     View.prototype._bindEvents = function() {
-      var $el, callback, item, key, name, prefix, selector, value, _base, _i, _len, _ref, _ref1, _ref2, _ref3, _results;
+      var $el, callback, eventName, item, key, name, prefix, selector, value, _base, _i, _len, _ref, _ref1, _ref2, _ref3, _results;
       if (this.events) {
         _ref = this.events;
         for (key in _ref) {
@@ -320,7 +342,19 @@
             return _results1;
           }).call(this));
         } else {
-          _results.push(void 0);
+          _results.push((function() {
+            var _results1;
+            _results1 = [];
+            for (eventName in value) {
+              callback = value[eventName];
+              if (callback) {
+                _results1.push(this.on("" + value + ":" + eventName, this._getCallback(callback).bind(this)));
+              } else {
+                _results1.push(void 0);
+              }
+            }
+            return _results1;
+          }).call(this));
         }
       }
       return _results;
@@ -353,7 +387,7 @@
         }
         method = _this['on' + camelized[0].toUpperCase() + camelized.substring(1)];
         if (method) {
-          return method.apply(_this, args);
+          return method.apply(null, args);
         }
       });
     };
@@ -393,23 +427,24 @@
     };
 
     View.prototype._bindComponents = function() {
-      var items, key, value, _ref, _results,
+      var items, key, nodes, value, _ref, _results,
         _this = this;
       _ref = Base.components;
       _results = [];
       for (key in _ref) {
         value = _ref[key];
         items = this.ractive.fragment.items || [];
-        _results.push(this.$("x-" + key, items.map(function(item) {
+        nodes = items.map(function(item) {
           return item.node;
-        })).each(function(index, el) {
+        });
+        _results.push(this.$("x-" + key + ", base-" + key, nodes).each(function(index, el) {
           var $el, attr, attrs, _i, _len, _ref1;
           $el = $(el);
           attrs = {};
           _ref1 = el.attributes;
           for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
             attr = _ref1[_i];
-            attrs[attr.name] = attr.value;
+            attrs[$.camelCase(attr.name)] = attr.value;
           }
           return value.call(_this, $el, _this, attrs);
         }));
@@ -471,9 +506,9 @@
     };
 
     View.prototype._initRactive = function() {
-      var adaptor, filters, key, template, templateName, val, value, _ref, _results,
+      var adaptor, filters, key, parent, parentName, parents, template, templateName, val, value, _i, _len, _ref, _results,
         _this = this;
-      if (this.options.ractive || this.ractive) {
+      if (this.options && this.options.ractive || this.ractive) {
         filters = _.clone(Base.filters);
         for (key in filters) {
           value = filters[key];
@@ -481,8 +516,8 @@
             filters[key] = value.bind(this);
           }
         }
-        templateName = "src/templates/views/" + ($.dasherize(this.name)) + ".html";
-        template = this.template || _.clone(_JST[templateName]) || '';
+        templateName = "src/templates/views/" + (dasherize(this.name)) + ".html";
+        template = this.template || _.clone(_JST[templateName]) || this.$el.html();
         this.ractive = new Ractive({
           el: this.el,
           template: template,
@@ -497,15 +532,40 @@
           if (typeof val === 'function' && key[0] !== '_') {
             (function(key, val) {
               return _this.ractive.on(key, function(event, argString) {
+                var argArray, args, stringRe;
                 if (argString == null) {
                   argString = '';
+                }
+                if (key === 'set' && !event.original) {
+                  return;
                 }
                 if (typeof argString !== 'string') {
                   argString = '';
                 }
-                return val.apply(_this, argString.split(':').map(function(arg, index) {
-                  return $.zepto.deserializeValue(arg.trim());
-                }));
+                stringRe = /^(?:'(.*?)'|"(.*?)")$/;
+                argArray = _.compact(argString.split(/\s*?(:|,)\s*?/));
+                args = argArray.map(function(arg, index) {
+                  var deserialized, isString, keyPath, keypath;
+                  arg = arg.trim();
+                  isString = stringRe.test(arg);
+                  if (isString) {
+                    return RegExp.$1 || RegExp.$2;
+                  }
+                  deserialized = deserialize(arg);
+                  if (typeof deserialized !== 'string') {
+                    return deserialized;
+                  }
+                  if (arg === '.') {
+                    keypath = event.keyPath;
+                  } else if (arg && arg[0] === '.') {
+                    keypath = "" + event.keyPath + arg;
+                  } else {
+                    keyPath = arg;
+                  }
+                  return _this.get(arg);
+                });
+                args.push(event.original);
+                return val.apply(_this, args);
               });
             })(key, val);
           }
@@ -513,6 +573,17 @@
         adaptor = Ractive.adaptors.backboneAssociatedModel;
         this.ractive.bind(adaptor(this.state));
         this.ractive.bind(adaptor(currentApp.state, '$app'));
+        this.ractive.bind(adaptor(currentApp.router.state, '$router'));
+        parents = [];
+        parent = this;
+        while (parent = parent.parent) {
+          parents.push(parent);
+        }
+        for (_i = 0, _len = parents.length; _i < _len; _i++) {
+          parent = parents[_i];
+          parentName = uncapitalize(parent.name);
+          this.ractive.bind(adaptor(parent.state, "$parent." + parentName));
+        }
         _ref = app.singletons;
         _results = [];
         for (key in _ref) {
@@ -570,21 +641,30 @@
       return subject.get(truePath);
     };
 
-    View.prototype.subView = function(name, view) {
-      if (!view) {
-        if (typeof name === 'string') {
-          return this.childView(name);
+    View.prototype.subView = function() {
+      var args, name, view;
+      args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+      if (!args[1]) {
+        if (typeof args[0] === 'string') {
+          return this.childView(args[0]);
         } else {
-          view = name;
-          name = null;
+          view = args[0];
         }
+      } else {
+        view = args[1];
+        name = args[0];
       }
-      if (!(view instanceof View)) {
-        view = new view(args);
+      if (!view) {
+        console.warn('No view passed to subView', args, arguments);
+        return;
+      }
+      if (!(view instanceof Base.View)) {
+        view = new view;
       }
       view.__viewName__ = name;
       view.parent = this;
-      return this.children.push(view);
+      this.children.push(view);
+      return view;
     };
 
     View.prototype.insertView = function(selector, view) {
@@ -732,18 +812,18 @@
     };
 
     View.prototype.request = function() {
-      var args, event, eventName, eventObj, parent, response, _results;
+      var args, event, eventName, eventObj, parent, response, _ref, _results;
       eventName = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
       parent = this;
       _results = [];
       while (parent = parent.parent) {
-        eventObj = parent["onRequest" + (capitalize(eventName))] || _.last(child._events["request:" + eventName]);
+        eventObj = parent["onRequest" + (capitalize(eventName))] || _.last(parent._events["request:" + eventName]);
         if (eventObj) {
           event = new Base.Event({
             type: 'request',
             target: this
           });
-          response = eventObj.callback.apply(eventObj.ctx, [event].concat(args));
+          response = (_ref = eventObj.callback).call.apply(_ref, [eventObj.ctx, event].concat(__slice.call(args)));
           break;
         } else {
           _results.push(void 0);
@@ -780,7 +860,7 @@
           _results = [];
           for (_i = 0, _len = _ref.length; _i < _len; _i++) {
             newEvent = _ref[_i];
-            _results.push(parent.trigger.apply(parent, [newEvent, event].concat(args)));
+            _results.push(parent.trigger.apply(parent, [newEvent, event].concat(__slice.call(args))));
           }
           return _results;
         }
@@ -823,7 +903,7 @@
               if (event.propagationStopped) {
                 return;
               }
-              child.trigger.apply(child, [newEvent, event].concat(args));
+              child.trigger.apply(child, [newEvent, event].concat(__slice.call(args)));
             }
           }
         }
@@ -834,25 +914,13 @@
 
   })(Backbone.View);
 
-  _ref = ['get', 'set', 'toJSON', 'has', 'unset', 'escape', 'changed', 'clone', 'keys', 'values', 'pairs', 'invert', 'pick', 'omit', 'clear', 'toggle'];
-  _fn = function(method) {
-    var _base;
-    return (_base = Base.View.prototype)[method] != null ? (_base = Base.View.prototype)[method] : _base[method] = function() {
-      var args;
-      args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-      return this.state[method].apply(this.state, args);
-    };
-  };
-  for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-    method = _ref[_i];
-    _fn(method);
-  }
-
   Base.App = (function(_super) {
     __extends(App, _super);
 
-    function App() {
-      var key, value;
+    function App(options) {
+      var $win, key, value,
+        _this = this;
+      this.options = options;
       currentApp = this;
       for (key in appSurrogate) {
         value = appSurrogate[key];
@@ -862,27 +930,44 @@
       if (this.template == null) {
         this.template = _JST["src/templates/app.html"];
       }
+      $win = $(window);
+      $win.on("resize.appResize-" + this.cid, function() {
+        return _this.set({
+          windowWidth: $win.width(),
+          windowHeight: $win.height(),
+          documentWidth: document.width,
+          documentHeight: document.height
+        });
+      });
       App.__super__.constructor.apply(this, arguments);
     }
 
-    App.prototype.views = {};
+    App.prototype.require = function() {};
 
-    App.prototype.singletons = {};
+    App.prototype.destroy = function() {
+      $(window).off("resize.appResize-" + this.cid);
+      return App.__super__.destroy.apply(this, arguments);
+    };
 
-    App.prototype.collections = {};
+    App.prototype.define = function() {};
 
-    App.prototype.models = {};
+    App.prototype.init = function(options) {
+      if (options == null) {
+        options = this.options;
+      }
+      return this.trigger('init', options);
+    };
 
     App.prototype.broadcast = function() {
-      var args, child, eventName, _j, _len1, _ref1, _results;
+      var args, child, eventName, _i, _len, _ref, _results;
       eventName = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
       if (this.children) {
         if (!/^(child:|request:|firstParent:|firstChild:)/.test(eventName)) {
-          _ref1 = this.children;
+          _ref = this.children;
           _results = [];
-          for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-            child = _ref1[_j];
-            _results.push(child.trigger.apply(child, ["app:" + eventName].concat(args)));
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            child = _ref[_i];
+            _results.push(child.trigger.apply(child, ["app:" + eventName].concat(__slice.call(args))));
           }
           return _results;
         }
@@ -894,6 +979,127 @@
     return App;
 
   })(Base.View);
+
+  moduleTypes = ['model', 'view', 'singleton', 'collection', 'app', 'module', 'object', 'component', 'service', 'filter'];
+
+  prepareModule = function(module) {
+    var fn;
+    if (typeof module !== 'function') {
+      fn = module.pop();
+      fn.dependencies = module;
+    } else {
+      fn = module;
+    }
+    return fn;
+  };
+
+  getModuleArgs = function(depStrings) {
+    return depStrings.map(function(item) {
+      var split, type, _i, _len;
+      split = item.split('.');
+      if (split[1]) {
+        return Base[split[0]](split[1]);
+      }
+      for (_i = 0, _len = moduleTypes.length; _i < _len; _i++) {
+        type = moduleTypes[_i];
+        if (item.lastIndexOf(capitalize(type)) + type.length === item.length) {
+          return Base[item](type.substring(0, type.length - item.length - 1));
+        }
+      }
+    });
+  };
+
+  invokeModule = function(module) {
+    if (typeof module === 'function') {
+      return invokeWithArgs(module, getModuleArgs(module.dependencies || []));
+    }
+  };
+
+  invokeWithArgs = function(constructor, args) {
+    var Func;
+    Func = function() {
+      return constructor.apply(null, args);
+    };
+    Func.prototype = constructor.prototype;
+    return new Func;
+  };
+
+  moduleQueue = [];
+
+  _ref = [Base.App.prototype, Base];
+  _fn = function(subject) {
+    var type, _j, _len1, _results;
+    _results = [];
+    for (_j = 0, _len1 = moduleTypes.length; _j < _len1; _j++) {
+      type = moduleTypes[_j];
+      _results.push((function(type) {
+        var _name;
+        if (subject[_name = "" + type + "s"] == null) {
+          subject[_name] = {};
+        }
+        return subject[type] = function(name, module) {
+          var deps, index, indexesToSplice, item, modifier, _base, _k, _l, _len2, _len3, _ref1, _results1;
+          if (typeof name === string && !module) {
+            return subject[type][capitalize(name)];
+          } else if (name && module) {
+            module = prepareModule(module);
+            if (module.prototype) {
+              if ((_base = module.prototype).name == null) {
+                _base.name = name;
+              }
+            }
+            if (module.name == null) {
+              module.name = name;
+            }
+            subject[type][capitalize(name)] = module;
+          } else {
+            module = name;
+            module = prepareModule(module);
+            name = module.name || module.prototype.name;
+            throw new Error('Modules must have a name');
+            subject[type][capitalize(module.prototype.name)] = module;
+          }
+          if (typeof module === 'function') {
+            if (module.dependencies == null) {
+              module.dependencies = Base.utils.getFunctionArgNames(module);
+            }
+          }
+          if (module.dependencies && module.dependencies.length) {
+            moduleQueue.push({
+              name: name,
+              dependencies: _.clone(module.dependencies),
+              module: module
+            });
+          }
+          indexesToSplice = [];
+          for (index = _k = 0, _len2 = moduleQueue.length; _k < _len2; index = ++_k) {
+            item = moduleQueue[index];
+            deps = item.dependencies;
+            if (_ref1 = "" + item.name + "{capitalize type}", __indexOf.call(deps, _ref1) >= 0) {
+              index = deps.indexOf("" + item.name + "{capitalize type}");
+              deps.splice(index, 1);
+              if (!deps.length) {
+                indexesToSplice.push(index);
+                invokeModule(module);
+              }
+            }
+          }
+          modifier = 0;
+          _results1 = [];
+          for (_l = 0, _len3 = indexesToSplice.length; _l < _len3; _l++) {
+            index = indexesToSplice[_l];
+            _results1.push(moduleQueue.splice(index - modifier++, 1));
+          }
+          return _results1;
+        };
+      })(type));
+    }
+    return _results;
+  };
+  for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+    subject = _ref[_i];
+    _fn(subject);
+  }
 
   Base.Model = (function(_super) {
     __extends(Model, _super);
@@ -1050,7 +1256,7 @@
         this.compute = options.compute;
       }
       State.__super__.constructor.call(this, attributes, options);
-      this.parent = this.parents[0] || context;
+      this.parent = this.parents[0] || options.parent || context || attributes.parent;
       if (this.name == null) {
         this.name = lowercase(this.constructor.name);
       }
@@ -1058,9 +1264,9 @@
         this.on('all', function() {
           var _this = this;
           return function() {
-            var args, event;
+            var args, event, _ref2;
             event = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
-            return _this.parent.trigger.apply(_this.parent, ['state:' + event].concat(args));
+            return (_ref2 = _this.parent).trigger.apply(_ref2, ['state:' + event].concat(__slice.call(args)));
           };
         });
       }
@@ -1070,16 +1276,72 @@
 
   })(Base.Model);
 
+  Base.Object = (function() {
+    function Object() {}
+
+    return Object;
+
+  })();
+
+  _.extend(Base.Object.prototype, Backbone.Events);
+
+  Base.Stated = (function(_super) {
+    __extends(Stated, _super);
+
+    function Stated() {
+      this.addState(this);
+      Stated.__super__.constructor.apply(this, arguments);
+    }
+
+    return Stated;
+
+  })(Base.Object);
+
   Base.Router = (function(_super) {
     __extends(Router, _super);
 
     function Router() {
+      var _this = this;
       if (this.name == null) {
         this.name = this.constructor.name;
       }
+      this.stateOptions = _.defaults(this.stateOptions || {}, {
+        relations: this.relations,
+        compute: this.compute
+      });
       addState(this);
       Router.__super__.constructor.apply(this, arguments);
+      if (!this.get('params')) {
+        this.set('params', {});
+      }
+      currentApp.router = this;
+      this.on('route', function(router, route) {
+        var index, item, params, split, _j, _len1;
+        _this.set('route', route);
+        _this.set('path', route.split('/'));
+        params = {};
+        split = location.href.split('?')[1].split(/&|=/);
+        for (index = _j = 0, _len1 = split.length; _j < _len1; index = ++_j) {
+          item = split[index];
+          if (index % 2) {
+            continue;
+          }
+          split[decodeURI(item)] = decodeURI(split[index + 1]);
+        }
+        return _this.set('params', params);
+      });
     }
+
+    Router.prototype.setParams = function(obj, reset) {
+      var params;
+      params = reset ? {} : this.get('params');
+      _.extend(params, obj);
+      return this.set('params', obj);
+    };
+
+    Router.prototype.relations = {
+      params: Base.Model
+    };
 
     Router.prototype.go = function(route) {
       return this.navigate(route, true);
@@ -1135,7 +1397,7 @@
         var args, eventName;
         eventName = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
         if (currentApp) {
-          return currentApp.trigger.apply(currentApp, ["" + (uncapitalize(_this.name)) + ":" + eventName].concat(args));
+          return currentApp.trigger.apply(currentApp, ["" + (uncapitalize(_this.name)) + ":" + eventName].concat(__slice.call(args)));
         }
       });
     }
@@ -1150,6 +1412,12 @@
         options = {};
       }
       this.reset(items, options);
+      if (!options.noState) {
+        addState(this);
+      }
+      if (_.isFunction(this.initialize)) {
+        this.initialize.apply(this, arguments);
+      }
     }
 
     List.prototype.unshift = function() {
@@ -1191,6 +1459,10 @@
       });
     };
 
+    List.prototype.eventNamespace = 'listItem:';
+
+    List.prototype.bubbleEvents = true;
+
     List.prototype.reset = function(items, options) {
       if (options == null) {
         options = {};
@@ -1203,11 +1475,24 @@
     };
 
     List.prototype.add = function(item, options) {
-      var at;
+      var at,
+        _this = this;
       if (options == null) {
         options = {};
       }
       at = options.at != null ? options.at : options.at = this.length;
+      if (this.bubbleEvents && item && _.isFunction(item.on)) {
+        this.listenTo(item, 'all', function() {
+          var args, eventName;
+          eventName = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
+          if (_this.bubbleEvents) {
+            return _this.trigger.apply(_this, ["" + _this.eventNamespace + _this.eventName].concat(__slice.call(args)));
+          }
+        });
+      }
+      if (this.model) {
+        item = new this.model(item);
+      }
       this.splice(at, null, item);
       if (!options.silent) {
         return this.trigger('add', item, this, options);
@@ -1227,7 +1512,8 @@
       if (!options.silent) {
         this.trigger('remove', item, this, options);
       }
-      return item;
+      item;
+      return this.stopListening(item);
     };
 
     return List;
@@ -1252,15 +1538,6 @@
     }
   }
 
-  Base.Object = (function() {
-    function Object() {}
-
-    return Object;
-
-  })();
-
-  _.extend(Base.Object.prototype, Backbone.Events);
-
   Base.Event = (function() {
     function Event(options) {
       this.options = options;
@@ -1281,6 +1558,24 @@
     return Event;
 
   })();
+
+  _ref3 = ['View', 'Router'];
+  for (_l = 0, _len3 = _ref3.length; _l < _len3; _l++) {
+    moduleType = _ref3[_l];
+    _ref4 = ['get', 'set', 'toJSON', 'has', 'unset', 'escape', 'changed', 'clone', 'keys', 'values', 'pairs', 'invert', 'pick', 'omit', 'clear', 'toggle'];
+    _fn1 = function(method) {
+      var _base;
+      return (_base = Base[moduleType].prototype)[method] != null ? (_base = Base[moduleType].prototype)[method] : _base[method] = function() {
+        var args, _ref5;
+        args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+        return (_ref5 = this.state)[method].apply(_ref5, args);
+      };
+    };
+    for (_m = 0, _len4 = _ref4.length; _m < _len4; _m++) {
+      method = _ref4[_m];
+      _fn1(method);
+    }
+  }
 
   BasicView = (function(_super) {
     __extends(BasicView, _super);
@@ -1340,6 +1635,34 @@
 
   })(Base.View);
 
+  dasherize = function(str) {
+    return str.replace(/::/g, '/').replace(/([A-Z]+)([A-Z][a-z])/g, '$1_$2').replace(/([a-z\d])([A-Z])/g, '$1_$2').replace(/_/g, '-').toLowerCase();
+  };
+
+  deserialize = function(value) {
+    var e;
+    try {
+      if (!value) {
+        return value;
+      } else if (value === 'true') {
+        return true;
+      } else if (value === 'false') {
+        return false;
+      } else if (value === 'null') {
+        return null;
+      } else if (!isNaN) {
+        return Number(value);
+      } else if (/^[\[\{]/.test(value)) {
+        return JSON.parse(value);
+      } else {
+        return value;
+      }
+    } catch (_error) {
+      e = _error;
+      return value;
+    }
+  };
+
   capitalize = function(str) {
     if (str) {
       return str[0].toUpperCase() + str.substring(1);
@@ -1390,7 +1713,7 @@
         eventName = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
         split = eventName.split(':');
         if (split[0] === 'change' && split[1]) {
-          return obj.trigger.apply(["change:$state." + split[1]].concat(args));
+          return obj.trigger.apply(obj, ["change:$state." + split[1]].concat(__slice.call(args)));
         }
       });
     }
@@ -1428,11 +1751,11 @@
         }, attrs)));
       };
       this.on("reset:" + path, function() {
-        var child, _l, _len3, _ref3, _results;
-        _ref3 = _this.childViews(view);
+        var child, _len5, _n, _ref5, _results;
+        _ref5 = _this.childViews(view);
         _results = [];
-        for (_l = 0, _len3 = _ref3.length; _l < _len3; _l++) {
-          child = _ref3[_l];
+        for (_n = 0, _len5 = _ref5.length; _n < _len5; _n++) {
+          child = _ref5[_n];
           _results.push(child.destroy());
         }
         return _results;
@@ -1468,7 +1791,7 @@
         value = attrs[key];
         out[key] = this.get(value);
       }
-      console.log('x-log:', out);
+      console.log('base-log:', out);
       return $el.remove();
     },
     list: function($el, view) {}
@@ -1478,11 +1801,11 @@
     view: {
       ractive: function(view, config) {},
       actions: function(view, config) {
-        var event, _l, _len3, _results,
+        var event, _len5, _n, _results,
           _this = this;
         _results = [];
-        for (_l = 0, _len3 = DOMEventList.length; _l < _len3; _l++) {
-          event = DOMEventList[_l];
+        for (_n = 0, _len5 = DOMEventList.length; _n < _len5; _n++) {
+          event = DOMEventList[_n];
           _results.push((function(event) {
             var callback;
             callback = function(e) {
@@ -1502,11 +1825,11 @@
           _this = this;
         bound = [];
         return this.on('render', function() {
-          var $el, el, events, key, outlet, value, _l, _len3, _ref3, _ref4, _results;
-          _ref3 = $('[outlet], [data-outlet]', _this.ractive.fragment.items);
+          var $el, el, events, key, outlet, value, _len5, _n, _ref5, _ref6, _results;
+          _ref5 = $('[outlet], [data-outlet]', _this.ractive.fragment.items);
           _results = [];
-          for (_l = 0, _len3 = _ref3.length; _l < _len3; _l++) {
-            el = _ref3[_l];
+          for (_n = 0, _len5 = _ref5.length; _n < _len5; _n++) {
+            el = _ref5[_n];
             $el = $(el);
             outlet = $.camelCase($el.attr('data-outlet') || $el.attr('outlet'));
             if (!_.contains(bound, outlet)) {
@@ -1519,9 +1842,9 @@
                   events.push(RegExp.$1.toLowerCase());
                 }
               }
-              _ref4 = _this._events;
-              for (key in _ref4) {
-                value = _ref4[key];
+              _ref6 = _this._events;
+              for (key in _ref6) {
+                value = _ref6[key];
                 if ((new RegExp("^([^:]*?):" + outlet, 'i')).test(key)) {
                   events.push(RegExp.$1.toLowerCase());
                 }
@@ -1598,25 +1921,113 @@
     }
   };
 
-  _ref3 = ['Model', 'Router', 'Collection', 'View'];
-  for (_l = 0, _len3 = _ref3.length; _l < _len3; _l++) {
-    className = _ref3[_l];
-    _ref4 = ['get', 'set', 'on', 'listenTo', 'off', 'stopListening', 'once', 'listenToOnce', 'trigger', 'clear', 'has', 'invert', 'omit', 'pick', 'sync', 'fetch', 'save', 'changed', 'validate', 'isValid', 'clone', 'hasChanged', 'previous', 'destroy'];
-    _fn1 = function(method) {
+  _ref5 = ['Model', 'Router', 'Collection', 'View', 'Stated', 'App', 'List'];
+  for (_n = 0, _len5 = _ref5.length; _n < _len5; _n++) {
+    className = _ref5[_n];
+    _ref6 = ['get', 'set', 'on', 'listenTo', 'off', 'stopListening', 'once', 'listenToOnce', 'trigger', 'clear', 'has', 'invert', 'omit', 'pick', 'sync', 'fetch', 'save', 'changed', 'validate', 'isValid', 'clone', 'hasChanged', 'previous', 'destroy'];
+    _fn2 = function(method) {
       return Base[className].prototype['state' + capitalize(method)] = function() {
-        var args;
+        var args, _ref7;
         args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-        return this.state[method].apply(this.state, args);
+        return (_ref7 = this.state)[method].apply(_ref7, args);
       };
     };
-    for (_m = 0, _len4 = _ref4.length; _m < _len4; _m++) {
-      method = _ref4[_m];
-      _fn1(method);
+    for (_o = 0, _len6 = _ref6.length; _o < _len6; _o++) {
+      method = _ref6[_o];
+      _fn2(method);
     }
   }
 
   Base.Controller = Base.View;
 
   window.Base = Base;
+
+  Base.utils = {
+    store: {
+      getItem: function(name) {
+        return JSON.parse(localStorage.getItem(name));
+      },
+      setItem: function(name, val) {
+        return localStorage.setItem(name, JSON.stringify(val));
+      },
+      extendItem: function(name, val) {
+        return this.lsSetItem(_.extend(this.lsGetItem(name) || {}, val));
+      }
+    },
+    getFunctionArgNames: function(fn) {
+      return fn.toString().match(/\(.*?\)/)[0].replace(/[()\s]/g, '').split(',');
+    }
+  };
+
+  _ref7 = ['List', 'Object', 'Event'];
+  for (_p = 0, _len7 = _ref7.length; _p < _len7; _p++) {
+    module = _ref7[_p];
+    if ((_base = Base[module].prototype).extend == null) {
+      _base.extend = Backbone.Model.prototype.extend;
+    }
+  }
+
+  Base.define = Base.service;
+
+  Base.require = function(name, appContext) {
+    if (appContext == null) {
+      appContext = null;
+    }
+  };
+
+  Base.define = function(name, appContext) {
+    if (appContext == null) {
+      appContext = null;
+    }
+  };
+
+  Base._super = function(context, methodName, args) {
+    return context.constructor.__super__[methodName].apply(context, args);
+  };
+
+  parseRequirements = function(fn) {
+    return fn.toString().match(/require\('.*?'\)/g).map(function(item) {
+      return item.match(/require\('(.*?)'\)/)[1];
+    });
+  };
+
+  Base.services.require = function(string) {
+    var accessor, camelSplit, moduleName, type, _len8, _q, _ref8;
+    camelSplit = string.split(/(?![a-z])(?=[A-Z])/);
+    moduleType = _.last(camelSplit).toLowerCase();
+    if (__indexOf.call(moduleTypes, moduleType) >= 0) {
+      moduleName = string.substring(0, string.length - camelSplit.length);
+      accessor = "" + moduleType + "s";
+      return currentApp[accessor][moduleName] || Base[accessor][moduleName];
+    } else {
+      moduleName = string;
+      _ref8 = ['app', 'singleton', 'service', 'module', 'object'];
+      for (_q = 0, _len8 = _ref8.length; _q < _len8; _q++) {
+        type = _ref8[_q];
+        module = currentApp[type][moduleName] || Base[type][moduleName];
+        if (module) {
+          return module;
+        }
+      }
+    }
+  };
+
+  if (Base.apps == null) {
+    Base.apps = {};
+  }
+
+  $(function() {
+    return $('[base-app]').each(function(index, el) {
+      var App, app, name;
+      name = el.getAttribute('base-app');
+      App = Base.apps[capitalize(name)];
+      app = Base.apps[uncapitalize(name)];
+      if (!app || app.el !== el) {
+        return new App({
+          el: el
+        });
+      }
+    });
+  });
 
 }).call(this);
