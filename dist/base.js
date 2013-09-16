@@ -1,4 +1,4 @@
-/* base.js v0.0.16 */ 
+/* base.js v0.0.17 */ 
 
 (function (Ractive) {
 
@@ -108,7 +108,7 @@
 
 
 (function() {
-  var Base, BasicView, DOMEventList, Ractive, addState, appSurrogate, arr, callbackStringSplitter, capitalize, className, currentApp, dasherize, deserialize, getModuleArgs, invokeModule, invokeWithArgs, method, module, moduleQueue, moduleType, moduleTypes, originalBase, parseRequirements, prepareModule, subject, uncapitalize, _base, _fn, _fn1, _fn2, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _len5, _len6, _len7, _m, _n, _o, _p, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7,
+  var Base, BasicView, DOMEventList, Ractive, addState, appSurrogate, arr, callbackStringSplitter, camelize, capitalize, className, currentApp, dasherize, deserialize, getModuleArgs, invokeModule, invokeWithArgs, method, module, moduleQueue, moduleType, moduleTypes, originalBase, parseRequirements, prepareModule, subject, uncapitalize, _base, _fn, _fn1, _fn2, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _len5, _len6, _len7, _m, _n, _o, _p, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     __slice = [].slice,
@@ -381,7 +381,7 @@
       return this.on('all', function() {
         var args, camelized, event, method;
         event = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
-        camelized = $.camelCase(event);
+        camelized = camelize(event);
         if (!camelized) {
           return;
         }
@@ -444,7 +444,7 @@
           _ref1 = el.attributes;
           for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
             attr = _ref1[_i];
-            attrs[$.camelCase(attr.name)] = attr.value;
+            attrs[camelize(attr.name)] = attr.value;
           }
           return value.call(_this, $el, _this, attrs);
         }));
@@ -1639,6 +1639,16 @@
     return str.replace(/::/g, '/').replace(/([A-Z]+)([A-Z][a-z])/g, '$1_$2').replace(/([a-z\d])([A-Z])/g, '$1_$2').replace(/_/g, '-').toLowerCase();
   };
 
+  camelize = function(str) {
+    return str.replace(/[^\d\w]+(.)?/g, function(match, chr) {
+      if (chr) {
+        return chr.toUpperCase();
+      } else {
+        return '';
+      }
+    });
+  };
+
   deserialize = function(value) {
     var e;
     try {
@@ -1771,7 +1781,7 @@
     view: function($el, view, attrs) {
       var View, data, html, name, viewName;
       viewName = attrs.view || attrs.type;
-      View = currentApp.views[capitalize($.camelCase(viewName))] || BasicView;
+      View = currentApp.views[capitalize(camelize(viewName))] || BasicView;
       name = attrs.name;
       data = this.get(attrs.data) || view.state;
       html = $el.html();
@@ -1831,7 +1841,7 @@
           for (_n = 0, _len5 = _ref5.length; _n < _len5; _n++) {
             el = _ref5[_n];
             $el = $(el);
-            outlet = $.camelCase($el.attr('data-outlet') || $el.attr('outlet'));
+            outlet = camelize($el.attr('data-outlet') || $el.attr('outlet'));
             if (!_.contains(bound, outlet)) {
               bound.push(outlet);
               _this.$[outlet] = _this.$("[data-outlet='" + outlet + "'], [outlet='" + outlet + "']");
