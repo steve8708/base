@@ -415,7 +415,7 @@ class Base.View extends Backbone.View
     if findOne then foundView else views
 
   is: (arg) ->
-    if not arg or arg is @ or @$el.is arg
+    if not arg or arg is @ # or @$el.is arg
       return true
 
     switch typeof arg
@@ -466,7 +466,8 @@ class Base.View extends Backbone.View
 
       if eventObj
         event = new Base.Event type: 'request', target: @
-        response = eventObj.callback.call eventObj.ctx, event, args...
+        response = (eventObj.callback or eventObj)
+          .call (eventObj.ctx or parent), event, args...
         break
 
   # FIXME: have a broadcastAll and emitAll config
