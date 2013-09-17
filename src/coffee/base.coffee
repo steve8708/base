@@ -146,7 +146,7 @@ class Base.View extends Backbone.View
       else
         for eventName, callback of value
           if callback
-            @on "#{value}:#{eventName}", @_getCallback(callback).bind @
+            @on "#{key}:#{eventName}", @_getCallback(callback).bind @
 
   render: (dontRerender) ->
     return if dontRerender and @_hasRendered
@@ -677,7 +677,8 @@ class Base.Model extends Backbone.AssociatedModel
         isCollection = false
         _super = value
         while _super = _super.__super__
-          isCollection = true if _super is Backbone.Collection::
+          if _super and _super.initialize is Backbone.Collection::initialize
+            isCollection = true
 
         # @defaults[key] ?= if isCollection then [] else {}
 
@@ -1043,13 +1044,23 @@ Base.components =
     insertView = (model) =>
       newView = new View _.extend { data: model, html: html, view: view, \
           parent: @,  name: name, path: path, model: model }, attrs
+
+      newView.model ?= model
+      newView.set 'model', model
+
       @subView newView
       newView.render true
       $el.append newView.$el
 
-    @on "reset:#{path}", => child.destroy() for child in @childViews view
     @on "remove:#{path}", (model) => @childView( model: model ).destroy()
     @on "add:#{path}", insertView
+    @on "reset:#{path}", (models, options) =>
+      # FIXME: this isn't working?
+      for child in @children
+        if (child.get('model') or child.model) in options.previousModels
+          child.destroy()
+
+      insertView model for model in models
 
     collection = @get path
     collection.each insertView if collection
