@@ -1,4 +1,4 @@
-/* base.js v0.0.20 */ 
+/* base.js v0.0.21 */ 
 
 (function (Ractive) {
 
@@ -348,7 +348,7 @@
             for (eventName in value) {
               callback = value[eventName];
               if (callback) {
-                _results1.push(this.on("" + value + ":" + eventName, this._getCallback(callback).bind(this)));
+                _results1.push(this.on("" + key + ":" + eventName, this._getCallback(callback).bind(this)));
               } else {
                 _results1.push(void 0);
               }
@@ -1168,7 +1168,7 @@
           isCollection = false;
           _super = value;
           while (_super = _super.__super__) {
-            if (_super === Backbone.Collection.prototype) {
+            if (_super && _super.initialize === Backbone.Collection.prototype.initialize) {
               isCollection = true;
             }
           }
@@ -1756,26 +1756,36 @@
           path: path,
           model: model
         }, attrs));
+        if (newView.model == null) {
+          newView.model = model;
+        }
+        newView.set('model', model);
         _this.subView(newView);
         newView.render(true);
         return $el.append(newView.$el);
       };
-      this.on("reset:" + path, function() {
-        var child, _len5, _n, _ref5, _results;
-        _ref5 = _this.childViews(view);
-        _results = [];
-        for (_n = 0, _len5 = _ref5.length; _n < _len5; _n++) {
-          child = _ref5[_n];
-          _results.push(child.destroy());
-        }
-        return _results;
-      });
       this.on("remove:" + path, function(model) {
         return _this.childView({
           model: model
         }).destroy();
       });
       this.on("add:" + path, insertView);
+      this.on("reset:" + path, function(models, options) {
+        var child, model, _len5, _len6, _n, _o, _ref5, _ref6, _results;
+        _ref5 = _this.children;
+        for (_n = 0, _len5 = _ref5.length; _n < _len5; _n++) {
+          child = _ref5[_n];
+          if (_ref6 = child.get('model') || child.model, __indexOf.call(options.previousModels, _ref6) >= 0) {
+            child.destroy();
+          }
+        }
+        _results = [];
+        for (_o = 0, _len6 = models.length; _o < _len6; _o++) {
+          model = models[_o];
+          _results.push(insertView(model));
+        }
+        return _results;
+      });
       collection = this.get(path);
       if (collection) {
         return collection.each(insertView);
