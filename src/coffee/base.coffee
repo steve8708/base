@@ -148,7 +148,10 @@ class Base.View extends Backbone.View
           if callback
             @on "#{value}:#{eventName}", @_getCallback(callback).bind @
 
-  render: ->
+  render: (dontRerender) ->
+    return if dontRerender and @_hasRendered
+
+    @_hasRendered = true
     @trigger 'before:render'
     @beforeRender() if @beforeRender
     @_initRactive() if @ractive
@@ -179,19 +182,13 @@ class Base.View extends Backbone.View
 
   _bindComponents: ->
     for key, value of Base.components
-      items = @ractive.fragment.items or []
-      $nodes = $ items.map (item) -> item.node
-      tagNames = "x-#{key}, base-#{key}"
-      $nodes.filter(tagNames)
-        .add($nodes.find tagNames)
-        .add(@$ tagNames)
-        .each (index, el) =>
-          $el = $ el
-          attrs = {}
-          for attr in el.attributes
-            attrs[camelize attr.name] = attr.value
-
-          value.call @, $el, @, attrs
+      # items = @ractive.fragment.items or []
+      @$el.find("x-#{key}, base-#{key}").each (index, el) =>
+        $el = $ el
+        attrs = {}
+        for attr in el.attributes
+          attrs[camelize attr.name] = attr.value
+        value.call @, $el, @, attrs
 
   # FIXME: move this to helper fn
   # FIXME: change to 'parseExpression'
@@ -595,7 +592,7 @@ for subject in [ Base.App.prototype, Base ]
 
         subject["#{type}s"] ?= {}
         subject[type] = (name, module) ->
-          if typeof name is string and not module
+          if typeof name is 'string' and not module
             return subject[type][capitalize name]
           else if name and module
             module = prepareModule module
@@ -654,9 +651,9 @@ class Base.Model extends Backbone.AssociatedModel
       @on 'change', =>
         try
           # FIXME: circular structure error
-          console.log JSON.stringify @toJSON(), null, 2
+          console.info JSON.stringify @toJSON(), null, 2
         catch e
-          console.log e
+          console.info e
 
   destroy: ->
     @off()
@@ -944,10 +941,10 @@ class BasicView extends Base.View
     @set 'model', options.model if options.model
     @set 'html', html if html
 
-    if @ractive
+    # if @ractive
       @render()
-    else
-      @$el.html html
+    # else
+      # @$el.html html
 
     # FIXME: this isn't working
     if data
@@ -1044,15 +1041,18 @@ Base.components =
     $el.empty()
 
     insertView = (model) =>
-      @insertView $el,
-        new View _.extend { data: model, html: html, view: view, \
+      newView = new View _.extend { data: model, html: html, view: view, \
           parent: @,  name: name, path: path, model: model }, attrs
+      @subView newView
+      newView.render true
+      $el.append newView.$el
 
     @on "reset:#{path}", => child.destroy() for child in @childViews view
     @on "remove:#{path}", (model) => @childView( model: model ).destroy()
     @on "add:#{path}", insertView
 
-    @get(path).each insertView
+    collection = @get path
+    collection.each insertView if collection
 
   view: ($el, view, attrs) ->
     viewName = attrs.view or attrs.type
@@ -1064,19 +1064,26 @@ Base.components =
     html = $el.html()
     $el.empty()
 
-    @subView new View _.extend {
-      el: $el[0]
+    newView = new View _.extend {
       html: html
       view: view
       name: name
       data: data
     }, attrs
 
+    newView.render true
+    @subView newView
+    $el.append newView.$el
+
+  icon: ($el, view, attrs) ->
+
+  switch: ($el, view, attrs) ->
+
   log: ($el, view, attrs) ->
     out = {}
     for key, value of attrs
       out[key] = @get value
-    console.log 'base-log:', out
+    console.info 'base-log:', out
     $el.remove()
 
   list: ($el, view) ->
@@ -1120,6 +1127,7 @@ Base.plugins =
       #     @$el.on "#{camelSplit}.delegateEvents"
 
       @on 'render', =>
+        # FIXME: maybe don't use ractive nodes
         nodes = ( @ractive.fragment.items or []).map (item) -> item.node
         $items = $ '[outlet], [base-outlet]', nodes
         for el in $items
