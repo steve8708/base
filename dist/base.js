@@ -1,4 +1,4 @@
-/* base.js v0.0.19 */ 
+/* base.js v0.0.20 */ 
 
 (function (Ractive) {
 
@@ -360,7 +360,11 @@
       return _results;
     };
 
-    View.prototype.render = function() {
+    View.prototype.render = function(dontRerender) {
+      if (dontRerender && this._hasRendered) {
+        return;
+      }
+      this._hasRendered = true;
       this.trigger('before:render');
       if (this.beforeRender) {
         this.beforeRender();
@@ -427,18 +431,13 @@
     };
 
     View.prototype._bindComponents = function() {
-      var $nodes, items, key, tagNames, value, _ref, _results,
+      var key, value, _ref, _results,
         _this = this;
       _ref = Base.components;
       _results = [];
       for (key in _ref) {
         value = _ref[key];
-        items = this.ractive.fragment.items || [];
-        $nodes = $(items.map(function(item) {
-          return item.node;
-        }));
-        tagNames = "x-" + key + ", base-" + key;
-        _results.push($nodes.filter(tagNames).add($nodes.find(tagNames)).add(this.$(tagNames)).each(function(index, el) {
+        _results.push(this.$el.find("x-" + key + ", base-" + key).each(function(index, el) {
           var $el, attr, attrs, _i, _len, _ref1;
           $el = $(el);
           attrs = {};
@@ -1042,7 +1041,7 @@
         }
         return subject[type] = function(name, module) {
           var deps, index, indexesToSplice, item, modifier, _base, _k, _l, _len2, _len3, _ref1, _results1;
-          if (typeof name === string && !module) {
+          if (typeof name === 'string' && !module) {
             return subject[type][capitalize(name)];
           } else if (name && module) {
             module = prepareModule(module);
@@ -1137,10 +1136,10 @@
         this.on('change', function() {
           var e;
           try {
-            return console.log(JSON.stringify(_this.toJSON(), null, 2));
+            return console.info(JSON.stringify(_this.toJSON(), null, 2));
           } catch (_error) {
             e = _error;
-            return console.log(e);
+            return console.info(e);
           }
         });
       }
@@ -1609,14 +1608,7 @@
       if (options.model) {
         this.set('model', options.model);
       }
-      if (html) {
-        this.set('html', html);
-      }
-      if (this.ractive) {
-        this.render();
-      } else {
-        this.$el.html(html);
-      }
+      this.set('html', html(html ? this.render() : void 0));
       if (data) {
         if (!data.toJSON) {
           this.set(data);
@@ -1743,7 +1735,7 @@
 
   Base.components = {
     collection: function($el, view, attrs) {
-      var View, html, insertView, name, path,
+      var View, collection, html, insertView, name, path,
         _this = this;
       if (attrs == null) {
         attrs = {};
@@ -1754,7 +1746,8 @@
       html = $el.html();
       $el.empty();
       insertView = function(model) {
-        return _this.insertView($el, new View(_.extend({
+        var newView;
+        newView = new View(_.extend({
           data: model,
           html: html,
           view: view,
@@ -1762,7 +1755,10 @@
           name: name,
           path: path,
           model: model
-        }, attrs)));
+        }, attrs));
+        _this.subView(newView);
+        newView.render(true);
+        return $el.append(newView.$el);
       };
       this.on("reset:" + path, function() {
         var child, _len5, _n, _ref5, _results;
@@ -1780,24 +1776,31 @@
         }).destroy();
       });
       this.on("add:" + path, insertView);
-      return this.get(path).each(insertView);
+      collection = this.get(path);
+      if (collection) {
+        return collection.each(insertView);
+      }
     },
     view: function($el, view, attrs) {
-      var View, data, html, name, viewName;
+      var View, data, html, name, newView, viewName;
       viewName = attrs.view || attrs.type;
       View = currentApp.views[capitalize(camelize(viewName))] || BasicView;
       name = attrs.name;
       data = this.get(attrs.data) || view.state;
       html = $el.html();
       $el.empty();
-      return this.subView(new View(_.extend({
-        el: $el[0],
+      newView = new View(_.extend({
         html: html,
         view: view,
         name: name,
         data: data
-      }, attrs)));
+      }, attrs));
+      newView.render(true);
+      this.subView(newView);
+      return $el.append(newView.$el);
     },
+    icon: function($el, view, attrs) {},
+    "switch": function($el, view, attrs) {},
     log: function($el, view, attrs) {
       var key, out, value;
       out = {};
@@ -1805,7 +1808,7 @@
         value = attrs[key];
         out[key] = this.get(value);
       }
-      console.log('base-log:', out);
+      console.info('base-log:', out);
       return $el.remove();
     },
     list: function($el, view) {}
