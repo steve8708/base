@@ -1,4 +1,4 @@
-/* base.js v0.0.18 */ 
+/* base.js v0.0.19 */ 
 
 (function (Ractive) {
 
@@ -427,17 +427,18 @@
     };
 
     View.prototype._bindComponents = function() {
-      var items, key, nodes, value, _ref, _results,
+      var $nodes, items, key, tagNames, value, _ref, _results,
         _this = this;
       _ref = Base.components;
       _results = [];
       for (key in _ref) {
         value = _ref[key];
         items = this.ractive.fragment.items || [];
-        nodes = items.map(function(item) {
+        $nodes = $(items.map(function(item) {
           return item.node;
-        });
-        _results.push(this.$("x-" + key + ", base-" + key, nodes).each(function(index, el) {
+        }));
+        tagNames = "x-" + key + ", base-" + key;
+        _results.push($nodes.filter(tagNames).add($nodes.find(tagNames)).add(this.$(tagNames)).each(function(index, el) {
           var $el, attr, attrs, _i, _len, _ref1;
           $el = $(el);
           attrs = {};
@@ -543,7 +544,7 @@
                   argString = '';
                 }
                 stringRe = /^(?:'(.*?)'|"(.*?)")$/;
-                argArray = _.compact(argString.split(/\s*?(:|,)\s*?/));
+                argArray = _.compact(argString.split(/\s*[:,]+\s*/));
                 args = argArray.map(function(arg, index) {
                   var deserialized, isString, keyPath, keypath;
                   arg = arg.trim();
@@ -586,7 +587,7 @@
           parentName = uncapitalize(parent.name);
           this.ractive.bind(adaptor(parent.state, "$parent." + parentName));
         }
-        _ref = app.singletons;
+        _ref = currentApp.singletons;
         _results = [];
         for (key in _ref) {
           val = _ref[key];
@@ -637,7 +638,7 @@
         if (path.indexOf('$app.') === 0) {
           subject = app;
         } else {
-          subject = app.singletons[path.split('.')[0].substring(1)];
+          subject = currentApp.singletons[path.split('.')[0].substring(1)];
         }
       }
       return subject.get(truePath);
@@ -982,7 +983,7 @@
 
   })(Base.View);
 
-  moduleTypes = ['model', 'view', 'singleton', 'collection', 'app', 'module', 'object', 'component', 'service', 'filter'];
+  moduleTypes = ['model', 'view', 'singleton', 'collection', 'app', 'module', 'component', 'service', 'filter'];
 
   prepareModule = function(module) {
     var fn;
@@ -1317,20 +1318,21 @@
         this.set('params', {});
       }
       currentApp.router = this;
-      this.on('route', function(router, route) {
-        var index, item, params, split, _j, _len1;
-        _this.set('route', route);
-        _this.set('path', route.split('/'));
-        params = {};
-        split = location.href.split('?')[1].split(/&|=/);
+      this.on('route', function(router, route, params) {
+        var index, item, queryParams, split, _j, _len1;
+        _this.set('route', route.join('/'));
+        _this.set('path', route);
+        queryParams = {};
+        split = (location.href.split('?')[1] || '').split(/[&=]/);
         for (index = _j = 0, _len1 = split.length; _j < _len1; index = ++_j) {
           item = split[index];
-          if (index % 2) {
+          if (index % 2 || !item) {
             continue;
           }
-          split[decodeURI(item)] = decodeURI(split[index + 1]);
+          queryParams[decodeURI(item)] = decodeURI(split[index + 1]);
         }
-        return _this.set('params', params);
+        _this.set('params', params);
+        return _this.set('queryParams', queryParams);
       });
     }
 
@@ -1833,35 +1835,41 @@
         return _results;
       },
       outlets: function(view, config) {
-        var bound,
+        var boundOutlets,
           _this = this;
-        bound = [];
+        boundOutlets = [];
         return this.on('render', function() {
-          var $el, el, events, key, outlet, value, _len5, _n, _ref5, _ref6, _results;
-          _ref5 = $('[outlet], [data-outlet]', _this.ractive.fragment.items);
+          var $el, $items, el, eventName, events, key, nodes, outlet, outletEventRe, outletMethodRe, value, _len5, _n, _ref5, _results;
+          nodes = (_this.ractive.fragment.items || []).map(function(item) {
+            return item.node;
+          });
+          $items = $('[outlet], [base-outlet]', nodes);
           _results = [];
-          for (_n = 0, _len5 = _ref5.length; _n < _len5; _n++) {
-            el = _ref5[_n];
+          for (_n = 0, _len5 = $items.length; _n < _len5; _n++) {
+            el = $items[_n];
             $el = $(el);
-            outlet = camelize($el.attr('data-outlet') || $el.attr('outlet'));
-            if (!_.contains(bound, outlet)) {
-              bound.push(outlet);
-              _this.$[outlet] = _this.$("[data-outlet='" + outlet + "'], [outlet='" + outlet + "']");
+            outlet = camelize($el.attr('base-outlet') || $el.attr('outlet'));
+            if (__indexOf.call(boundOutlets, outlet) < 0) {
+              boundOutlets.push(outlet);
+              _this.$[outlet] = _this.$("[base-outlet='" + outlet + "'], [outlet='" + outlet + "']");
               events = [];
+              outletMethodRe = new RegExp("on(.*)?" + outlet, 'i');
               for (key in _this) {
                 value = _this[key];
-                if ((new RegExp("on(.*)?" + outlet, 'i')).test(key)) {
+                if (outletMethodRe.test(key)) {
                   events.push(RegExp.$1.toLowerCase());
                 }
               }
-              _ref6 = _this._events;
-              for (key in _ref6) {
-                value = _ref6[key];
-                if ((new RegExp("^([^:]*?):" + outlet, 'i')).test(key)) {
+              outletEventRe = new RegExp("^([^:]*?):" + outlet, 'i');
+              _ref5 = _this._events;
+              for (key in _ref5) {
+                value = _ref5[key];
+                if (outletEventRe.test(key)) {
                   events.push(RegExp.$1.toLowerCase());
                 }
               }
-              _results.push($el.on(events.join, function(e) {
+              eventName = events.join(' ') + '.delegateEvents';
+              _results.push(_this.$el.on(eventName, "[data-outlet=" + outlet + "]", function(e) {
                 return _this.trigger([event.type, outlet].join(':'), e);
               }));
             } else {
@@ -1878,12 +1886,8 @@
   };
 
   Base.filters = {
-    uncapitalize: function(str) {
-      return str && (str[0].toLowerCase() + str.substring(1)) || '';
-    },
-    capitalize: function(str) {
-      return str && (str[0].toUpperCase() + str.substring(1)) || '';
-    },
+    uncapitalize: uncapitalize,
+    capitalize: capitalize,
     uppercase: function(str) {
       return str.toUpperCase();
     },
@@ -1964,7 +1968,12 @@
       },
       extendItem: function(name, val) {
         return this.lsSetItem(_.extend(this.lsGetItem(name) || {}, val));
-      }
+      },
+      camelize: camelize,
+      dasherize: dasherize,
+      capitalize: capitalize,
+      uncapitalize: uncapitalize,
+      deserialize: deserialize
     },
     getFunctionArgNames: function(fn) {
       return fn.toString().match(/\(.*?\)/)[0].replace(/[()\s]/g, '').split(',');
