@@ -180,14 +180,18 @@ class Base.View extends Backbone.View
   _bindComponents: ->
     for key, value of Base.components
       items = @ractive.fragment.items or []
-      nodes = items.map (item) -> item.node
-      @$("x-#{key}, base-#{key}", nodes).each (index, el) =>
-        $el = $ el
-        attrs = {}
-        for attr in el.attributes
-          attrs[camelize attr.name] = attr.value
+      $nodes = $ items.map (item) -> item.node
+      tagNames = "x-#{key}, base-#{key}"
+      $nodes.filter(tagNames)
+        .add($nodes.find tagNames)
+        .add(@$ tagNames)
+        .each (index, el) =>
+          $el = $ el
+          attrs = {}
+          for attr in el.attributes
+            attrs[camelize attr.name] = attr.value
 
-        value.call @, $el, @, attrs
+          value.call @, $el, @, attrs
 
   # FIXME: move this to helper fn
   # FIXME: change to 'parseExpression'
@@ -252,7 +256,7 @@ class Base.View extends Backbone.View
 
               argString = '' if typeof argString isnt 'string'
               stringRe = /^(?:'(.*?)'|"(.*?)")$/
-              argArray = _.compact argString.split /\s*?(:|,)\s*?/
+              argArray = _.compact argString.split /\s*[:,]+\s*/
               args = argArray.map (arg, index) =>
                 arg = arg.trim()
 
@@ -305,7 +309,7 @@ class Base.View extends Backbone.View
       #   @ractive.set "$parent.#{split[2]}", @get split[2]
 
 
-      for key, val of app.singletons
+      for key, val of currentApp.singletons
         if val instanceof Base.Model or val instanceof Base.Collection
           @ractive.bind adaptor val, "$#{key}"
 
@@ -332,7 +336,7 @@ class Base.View extends Backbone.View
       if path.indexOf('$app.') is 0
         subject = app
       else
-        subject = app.singletons[path.split('.')[0].substring 1]
+        subject = currentApp.singletons[path.split('.')[0].substring 1]
 
     subject.get truePath
 
@@ -553,7 +557,7 @@ class Base.App extends Base.View
 # Module Loading - - - - - - - - - - - - - - - - - - - - - -
 
 moduleTypes = ['model', 'view', 'singleton', 'collection', 'app',
-  'module', 'object', 'component', 'service', 'filter']
+  'module', 'component', 'service', 'filter']
 
 prepareModule = (module) ->
   if typeof module isnt 'function'
@@ -770,17 +774,18 @@ class Base.Router extends Backbone.Router
     @set 'params', {} if not @get 'params'
 
     currentApp.router = @
-    @on 'route', (router, route) =>
-      @set 'route', route
-      @set 'path', route.split '/'
+    @on 'route', (router, route, params) =>
+      @set 'route', route.join '/'
+      @set 'path', route
 
-      params = {}
-      split = location.href.split('?')[1].split /&|=/
+      queryParams = {}
+      split = (location.href.split('?')[1] or '').split /[&=]/
       for item, index in split
-        continue if index % 2
-        split[decodeURI item] = decodeURI split[index + 1]
+        continue if index % 2 or not item
+        queryParams[decodeURI item] = decodeURI split[index + 1]
 
       @set 'params', params
+      @set 'queryParams', queryParams
 
   setParams: (obj, reset) ->
     params = if reset then {} else @get 'params'
@@ -1102,25 +1107,52 @@ Base.plugins =
             _.debounce callback, 1, true
 
     outlets: (view, config) ->
-      bound = []
+      boundOutlets = []
+
+      # FIXME: this methodology is more efficient than below
+      # for key, value of @
+      #   return if value.indexOf('on') isnt 0
+      #   camelSplit = key.split string.split /(?![a-z])(?=[A-Z])/
+      #   eventName = (camelSplit[1] or '').toLowerCase()
+      #   return if not eventName
+      #   outletName = uncapitalize
+      #   if eventName
+      #     @$el.on "#{camelSplit}.delegateEvents"
 
       @on 'render', =>
-        for el in $ '[outlet], [data-outlet]', @ractive.fragment.items
+        nodes = ( @ractive.fragment.items or []).map (item) -> item.node
+        $items = $ '[outlet], [base-outlet]', nodes
+        for el in $items
           $el = $ el
-          outlet = camelize $el.attr('data-outlet') or $el.attr 'outlet'
-          if not _.contains bound, outlet
-            bound.push outlet
-            @$[outlet] = @$ "[data-outlet='#{outlet}'], [outlet='#{outlet}']"
+          outlet = camelize $el.attr('base-outlet') or $el.attr 'outlet'
+
+          unless outlet in boundOutlets
+            boundOutlets.push outlet
+            @$[outlet] = @$ "[base-outlet='#{outlet}'], [outlet='#{outlet}']"
             events = []
+
+            outletMethodRe = new RegExp "on(.*)?#{outlet}", 'i'
             for key, value of @
-              if ( new RegExp "on(.*)?#{outlet}", 'i' ).test key
+              if outletMethodRe.test key
                 events.push RegExp.$1.toLowerCase()
 
+            # FIXME: this won't work for parents and children listening
+            # for 'child:click:foobar' or 'parent:click:foobar'
+            # loop through parents = look for child:event:outlet and
+            # child:name:event:outlet
+            # or onChildClickFoobar: ->
+            outletEventRe = new RegExp "^([^:]*?):#{outlet}", 'i'
             for key, value of @_events
-              if ( new RegExp "^([^:]*?):#{outlet}", 'i' ).test key
+              if outletEventRe.test key
                 events.push RegExp.$1.toLowerCase()
 
-            $el.on events.join, (e) =>
+            # parent = @
+            # while parent = parent.parent
+            #   for key, value of parent._events
+            #     for prefix in ['child:', "child:#{uncapitalize @name}"]
+
+            eventName = events.join(' ') + '.delegateEvents'
+            @$el.on eventName, "[data-outlet=#{outlet}]", (e) =>
               @trigger [ event.type, outlet ].join(':'), e
 
   all:
@@ -1130,8 +1162,8 @@ Base.plugins =
 # Filters - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Base.filters =
-  uncapitalize: (str) -> str and (str[0].toLowerCase() + str.substring 1) or ''
-  capitalize: (str) -> str and (str[0].toUpperCase() + str.substring 1) or ''
+  uncapitalize: uncapitalize
+  capitalize: capitalize
   uppercase: (str) -> str.toUpperCase()
   lowercase: (str) -> str.toLowerCase()
   json: (obj) -> JSON.stringify obj, null, 2
@@ -1189,6 +1221,11 @@ Base.utils =
     getItem: (name) -> JSON.parse localStorage.getItem name
     setItem: (name, val) -> localStorage.setItem name, JSON.stringify val
     extendItem: (name, val) -> @lsSetItem _.extend @lsGetItem(name) or {}, val
+    camelize: camelize
+    dasherize: dasherize
+    capitalize: capitalize
+    uncapitalize: uncapitalize
+    deserialize: deserialize
 
   # get the arg names for a function
   # e.g. function (foo, bar) {} => ['foo', 'bar']
