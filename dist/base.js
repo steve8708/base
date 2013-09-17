@@ -1,4 +1,4 @@
-/* base.js v0.0.21 */ 
+/* base.js v0.0.22 */ 
 
 (function (Ractive) {
 
@@ -758,7 +758,7 @@
 
     View.prototype.is = function(arg) {
       var key, name, str, strip, thisKey, value;
-      if (!arg || arg === this || this.$el.is(arg)) {
+      if (!arg || arg === this) {
         return true;
       }
       switch (typeof arg) {
@@ -825,7 +825,7 @@
             type: 'request',
             target: this
           });
-          response = (_ref = eventObj.callback).call.apply(_ref, [eventObj.ctx, event].concat(__slice.call(args)));
+          response = (_ref = eventObj.callback || eventObj).call.apply(_ref, [eventObj.ctx || parent, event].concat(__slice.call(args)));
           break;
         } else {
           _results.push(void 0);
