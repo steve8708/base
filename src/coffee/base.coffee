@@ -58,7 +58,7 @@ class Base.View extends Backbone.View
       compute: @compute
 
     @relations ?= {}
-    @relations.$state = Base.State
+    # @relations.$state = Base.State
     addState @
     @_bindEvents()
 
@@ -168,6 +168,8 @@ class Base.View extends Backbone.View
       camelized = camelize event
       return if not camelized
       method = @['on' + camelized[0].toUpperCase() + camelized.substring 1]
+      if type(args[0]) is 'array' and not args[0].length
+        console.log 'special method args', args
       method.apply @, args if method
 
   # FIXME: maybe add data-action="foo( bar, 'baz', 2, true)"
@@ -386,6 +388,16 @@ class Base.View extends Backbone.View
   childView: (arg) ->
     @childViews arg, true
 
+  destroyView: (arg, all) ->
+    child = if all then @findView arg else @childView arg
+    child.destroy() if child
+    child
+
+  destroyViews: (arg, all) ->
+    children = if all then @findViews arg else @childViews arg
+    child.destroy() for child in children
+    children
+
   childViews: (arg, findOne) ->
     @findViews arg, findOne, true
 
@@ -469,8 +481,8 @@ class Base.View extends Backbone.View
 
       if eventObj
         event = new Base.Event type: 'request', target: @
-        response = (eventObj.callback or eventObj)
-          .call (eventObj.ctx or parent), event, args...
+        callback = eventObj.callback or eventObj
+        response = callback.call (eventObj.ctx or parent), event, args...
         break
 
   # FIXME: have a broadcastAll and emitAll config
@@ -482,12 +494,14 @@ class Base.View extends Backbone.View
         event ?= new Base.Event type: eventName, target: @
         if not event.propagationStopped
           event.currentTarget = parent
+          # console.log 'trigger args', arguments
           parent.trigger arguments...
       else if not /^(app:|parent:|firstChild:|firstParent:)/.test eventName
         name = uncapitalize @name
         event = new Base.Event name: eventName, target: @, currentTarget: parent
         for newEvent in ["child:#{eventName}", "child:#{name}:#{eventName}"
           "firstChild:#{eventName}", "firstChild:#{name}:#{eventName}"]
+          # console.log 'trigger args', [event].concat args
           parent.trigger newEvent, event, args...
 
   broadcast: (eventName, args...) ->
@@ -498,6 +512,7 @@ class Base.View extends Backbone.View
           event.currentTarget = child
           for child in @children
             return if event.propagationStopped
+            # console.log 'trigger args', arguments
             child.trigger arguments...
       else if not /^(child:|request:|firstParent:|firstChild:)/.test eventName
         name = uncapitalize @name
@@ -507,6 +522,7 @@ class Base.View extends Backbone.View
           for newEvent in ["parent:#{eventName}", "parent:#{name}:#{eventName}"
             "firstParent:#{eventName}", "firstParent:#{name}:#{eventName}"]
             return if event.propagationStopped
+            # console.log 'trigger args', [event].concat args
             child.trigger newEvent, event, args...
 
 
@@ -643,9 +659,9 @@ class Base.Model extends Backbone.AssociatedModel
     for key, value of _.extend options.compute or {}, @compute
       @computeProperty key, value
 
-    unless @ instanceof Base.State
-      @relations ?= {}
-      @relations.$state = Base.State
+    # unless @ instanceof Base.State
+    #   @relations ?= {}
+    #   @relations.$state = Base.State
 
     @_mapRelations _.extend {}, @relations, options.relations
     super
@@ -700,7 +716,7 @@ class Base.Model extends Backbone.AssociatedModel
 
   computeProperty: (name, args) ->
     args = _.clone args
-    switch Base.$.type args
+    switch type args
       when "object" then obj = args
       when "array"  then obj = fn: args.pop(), triggers: args
 
@@ -852,6 +868,7 @@ class Base.List
   push: (items...) -> @add item, at: @length for item in items
   shift: -> @remove null, at: 0
   pop: -> @remove null, at: @length - 1
+  empty: -> @splice 0, Infinity
 
   eventNamespace: 'listItem:'
   bubbleEvents: true
@@ -968,6 +985,9 @@ class BasicView extends Base.View
 
 # Helpers - - - - - - - - - - - - - - - - - - - - - - - - -
 
+type = (obj) ->
+  ({}).toString.call(obj).match(/\s([a-zA-Z]+)/)[1].toLowerCase()
+
 dasherize = (str) ->
   str
     .replace(/::/g, '/')
@@ -1000,11 +1020,11 @@ addState = (obj) ->
   if obj not instanceof Base.State
     stateAttributes = obj.state or {}
     obj.blacklist ?= []
-    obj.blacklist.push '$state'
+    # obj.blacklist.push '$state'
 
     if obj instanceof Base.Model
-      obj.set '$state', _.defaults stateAttributes, obj.stateDefaults
-      state = obj.state = obj.get '$state'
+      # obj.set '$state', _.defaults stateAttributes, obj.stateDefaults
+      # state = obj.state = obj.get '$state'
     else
       stateAttributes = _.defaults stateAttributes, obj.stateDefaults \
         or obj.defaults
@@ -1025,11 +1045,11 @@ addState = (obj) ->
           if split[0] is 'change' and split[1]
             @set "$parent.#{split[1]}", @parent.state.get split[1]
 
-    state.set '$state', state if obj instanceof Base.View
-    state.on 'all', (eventName, args...) =>
-      split = eventName.split ':'
-      if split[0] is 'change' and split[1]
-        obj.trigger "change:$state.#{split[1]}", args...
+    # state.set '$state', state if obj instanceof Base.View
+    # state.on 'all', (eventName, args...) =>
+    #   split = eventName.split ':'
+    #   if split[0] is 'change' and split[1]
+    #     obj.trigger "change:$state.#{split[1]}", args...
 
 uncapitalize = (str) ->
   if str then ( str[0].toLowerCase() + str.substring 1 ) else ''
@@ -1054,17 +1074,21 @@ Base.components =
 
       @subView newView
       newView.render true
+
+      collectionViews.push newView
+
       $el.append newView.$el
 
-    @on "remove:#{path}", (model) => @childView( model: model ).destroy()
-    @on "add:#{path}", insertView
-    @on "reset:#{path}", (models, options) =>
-      # FIXME: this isn't working?
-      for child in @children
-        model = if child then child.get and child.get('model') or child.model
-        if model in options.previousModels
-          child.destroy()
+    collectionViews = []
 
+    @on "add:#{path}", insertView
+
+    @on "remove:#{path}", (model) =>
+      @childView( (view) => view.model is model ).destroy()
+
+    @on "reset:#{path}", (models, options) =>
+      view.destroy() for view in collectionViews
+      collectionViews = []
       models.each insertView
 
     collection = @get path
@@ -1267,11 +1291,13 @@ Base.utils =
     getItem: (name) -> JSON.parse localStorage.getItem name
     setItem: (name, val) -> localStorage.setItem name, JSON.stringify val
     extendItem: (name, val) -> @lsSetItem _.extend @lsGetItem(name) or {}, val
-    camelize: camelize
-    dasherize: dasherize
-    capitalize: capitalize
-    uncapitalize: uncapitalize
-    deserialize: deserialize
+
+  camelize: camelize
+  dasherize: dasherize
+  capitalize: capitalize
+  uncapitalize: uncapitalize
+  deserialize: deserialize
+  types: type
 
   # get the arg names for a function
   # e.g. function (foo, bar) {} => ['foo', 'bar']
