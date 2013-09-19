@@ -32,7 +32,7 @@ Base.noConflict = ->
   window.Base = originalBase
   Base
 
-Base.$ ?= window.$
+Base.$ ?= window.$ || window.jQuery || window.Zepto
 
 # Config - - - - - - - - - - - - - - - - - - - - - - - - - -
 
