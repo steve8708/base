@@ -32,6 +32,7 @@ Base.noConflict = ->
   window.Base = originalBase
   Base
 
+Base.$ ?= window.$
 
 # Config - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -49,6 +50,8 @@ class Base.View extends Backbone.View
     @attributes['data-view'] ?= dasherize @name.replace /view/i, ''
     @children ?= new Base.List @options.children or []
     @ractive ?= true
+
+    this.parent ?= @options.parent if @options.parent
 
     @stateOptions = _.defaults @stateOptions or {},
       relations: @relations
@@ -442,7 +445,7 @@ class Base.View extends Backbone.View
       @ractive.teardown()
       @ractive.unbind()
 
-    $([document, window]).off ".delegateEvents-#{@cid}"
+    Base.$([document, window]).off ".delegateEvents-#{@cid}"
     @state.off()
     @state.stopListening()
     @state.cleanup() if @state.cleanup()
@@ -515,7 +518,7 @@ class Base.App extends Base.View
   constructor: (@options) ->
     currentApp = @
     for key, value of appSurrogate
-      currentApp[key] = value
+      currentApp[key] ?= value
     appSurrogate = null
 
     @template ?= _JST["src/templates/app.html"]
@@ -534,7 +537,7 @@ class Base.App extends Base.View
   require: ->
 
   destroy: ->
-    $(window).off "resize.appResize-#{@cid}"
+    Base.$(window).off "resize.appResize-#{@cid}"
     super
 
   # FIXME: implement based off Base.define
@@ -697,7 +700,7 @@ class Base.Model extends Backbone.AssociatedModel
 
   computeProperty: (name, args) ->
     args = _.clone args
-    switch $.type args
+    switch Base.$.type args
       when "object" then obj = args
       when "array"  then obj = fn: args.pop(), triggers: args
 
@@ -1020,7 +1023,7 @@ addState = (obj) ->
         @listenTo @parent.state, 'all', (eventName, args) =>
           split = eventName.split ':'
           if split[0] is 'change' and split[1]
-            @set "$state.#{split[1]}", state.get split[1]
+            @set "$parent.#{split[1]}", @parent.state.get split[1]
 
     state.set '$state', state if obj instanceof Base.View
     state.on 'all', (eventName, args...) =>
@@ -1058,10 +1061,11 @@ Base.components =
     @on "reset:#{path}", (models, options) =>
       # FIXME: this isn't working?
       for child in @children
-        if (child.get('model') or child.model) in options.previousModels
+        model = if child then child.get and child.get('model') or child.model
+        if model in options.previousModels
           child.destroy()
 
-      insertView model for model in models
+      models.each insertView
 
     collection = @get path
     collection.each insertView if collection
@@ -1124,6 +1128,26 @@ Base.plugins =
             cb.call @
           @$el.on event, "[data-action-#{event}], [action-#{event}]", \
             _.debounce callback, 1, true
+
+    inherit: (view, config) ->
+      return unless @inherit
+
+      for path in @inherit
+        do (path) =>
+          @set path, @lookup path
+          @on "parent:change:#{path}", (event, model, value) => @set path, value
+
+      null
+
+    map: (view, config) ->
+      return unless @map
+
+      for key, val of @map
+        do (key, val) =>
+          @set key, @lookup val
+          @on "parent:change:#{value}", (event, model, value) => @set key, value
+
+      null
 
     outlets: (view, config) ->
       boundOutlets = []
@@ -1207,6 +1231,8 @@ Base.defaults =
       ractive: true
       components: true
       manage: true
+      inherit: true
+      map: true
       eventSugar: true # onChangeActive: -> 'foobar'
 
   model:
@@ -1298,9 +1324,9 @@ Base.services.require = (string) ->
 Base.apps ?= {}
 
 # FIXME: support app prototypes vs active apps
-$ ->
+Base.$ ->
 
-  $('[base-app]').each (index, el) ->
+  Base.$('[base-app]').each (index, el) ->
     name = el.getAttribute 'base-app'
     App = Base.apps[capitalize name]
     app = Base.apps[uncapitalize name]
