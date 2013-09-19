@@ -1,4 +1,4 @@
-/* base.js v0.0.22 */ 
+/* base.js v0.0.23 */ 
 
 (function (Ractive) {
 
@@ -151,6 +151,10 @@
     return Base;
   };
 
+  if (Base.$ == null) {
+    Base.$ = window.$ || window.jQuery || window.Zepto;
+  }
+
   Base.config = {
     debug: {
       logModelChanges: false
@@ -178,6 +182,11 @@
       }
       if (this.ractive == null) {
         this.ractive = true;
+      }
+      if (this.options.parent) {
+        if (this.parent == null) {
+          this.parent = this.options.parent;
+        }
       }
       this.stateOptions = _.defaults(this.stateOptions || {}, {
         relations: this.relations,
@@ -793,7 +802,7 @@
         this.ractive.teardown();
         this.ractive.unbind();
       }
-      $([document, window]).off(".delegateEvents-" + this.cid);
+      Base.$([document, window]).off(".delegateEvents-" + this.cid);
       this.state.off();
       this.state.stopListening();
       if (this.state.cleanup()) {
@@ -926,7 +935,9 @@
       currentApp = this;
       for (key in appSurrogate) {
         value = appSurrogate[key];
-        currentApp[key] = value;
+        if (currentApp[key] == null) {
+          currentApp[key] = value;
+        }
       }
       appSurrogate = null;
       if (this.template == null) {
@@ -947,7 +958,7 @@
     App.prototype.require = function() {};
 
     App.prototype.destroy = function() {
-      $(window).off("resize.appResize-" + this.cid);
+      Base.$(window).off("resize.appResize-" + this.cid);
       return App.__super__.destroy.apply(this, arguments);
     };
 
@@ -1197,7 +1208,7 @@
       var callback, obj, trigger, _j, _len1, _ref1,
         _this = this;
       args = _.clone(args);
-      switch ($.type(args)) {
+      switch (Base.$.type(args)) {
         case "object":
           obj = args;
           break;
@@ -1706,7 +1717,7 @@
             var split;
             split = eventName.split(':');
             if (split[0] === 'change' && split[1]) {
-              return _this.set("$state." + split[1], state.get(split[1]));
+              return _this.set("$parent." + split[1], _this.parent.state.get(split[1]));
             }
           });
         }
@@ -1771,20 +1782,16 @@
       });
       this.on("add:" + path, insertView);
       this.on("reset:" + path, function(models, options) {
-        var child, model, _len5, _len6, _n, _o, _ref5, _ref6, _results;
+        var child, model, _len5, _n, _ref5;
         _ref5 = _this.children;
         for (_n = 0, _len5 = _ref5.length; _n < _len5; _n++) {
           child = _ref5[_n];
-          if (_ref6 = child.get('model') || child.model, __indexOf.call(options.previousModels, _ref6) >= 0) {
+          model = child ? child.get && child.get('model') || child.model : void 0;
+          if (__indexOf.call(options.previousModels, model) >= 0) {
             child.destroy();
           }
         }
-        _results = [];
-        for (_o = 0, _len6 = models.length; _o < _len6; _o++) {
-          model = models[_o];
-          _results.push(insertView(model));
-        }
-        return _results;
+        return models.each(insertView);
       });
       collection = this.get(path);
       if (collection) {
@@ -1846,6 +1853,44 @@
           })(event));
         }
         return _results;
+      },
+      inherit: function(view, config) {
+        var path, _fn2, _len5, _n, _ref5,
+          _this = this;
+        if (!this.inherit) {
+          return;
+        }
+        _ref5 = this.inherit;
+        _fn2 = function(path) {
+          _this.set(path, _this.lookup(path));
+          return _this.on("parent:change:" + path, function(event, model, value) {
+            return _this.set(path, value);
+          });
+        };
+        for (_n = 0, _len5 = _ref5.length; _n < _len5; _n++) {
+          path = _ref5[_n];
+          _fn2(path);
+        }
+        return null;
+      },
+      map: function(view, config) {
+        var key, val, _fn2, _ref5,
+          _this = this;
+        if (!this.map) {
+          return;
+        }
+        _ref5 = this.map;
+        _fn2 = function(key, val) {
+          _this.set(key, _this.lookup(val));
+          return _this.on("parent:change:" + value, function(event, model, value) {
+            return _this.set(key, value);
+          });
+        };
+        for (key in _ref5) {
+          val = _ref5[key];
+          _fn2(key, val);
+        }
+        return null;
       },
       outlets: function(view, config) {
         var boundOutlets,
@@ -1936,6 +1981,8 @@
         ractive: true,
         components: true,
         manage: true,
+        inherit: true,
+        map: true,
         eventSugar: true
       }
     },
@@ -2050,8 +2097,8 @@
     Base.apps = {};
   }
 
-  $(function() {
-    return $('[base-app]').each(function(index, el) {
+  Base.$(function() {
+    return Base.$('[base-app]').each(function(index, el) {
       var App, app, name;
       name = el.getAttribute('base-app');
       App = Base.apps[capitalize(name)];
