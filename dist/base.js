@@ -1,4 +1,4 @@
-/* base.js v0.0.23 */ 
+/* base.js v0.0.24 */ 
 
 (function (Ractive) {
 
@@ -7,7 +7,7 @@
 
     if ( path ) {
       path += '.';
-      pathMatcher = new RegExp( '^' + path.replace( /\./g, '\\.' ) );
+      pathMatcher = new RegExp( '^' + path.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&') );
       pathLength = path.length;
     }
 
@@ -104,11 +104,12 @@
 })(window.Ractive || require && require('ractive'));
 /*
   TODO: AMD support ( require, define )
+  TODO: UNIT TESTS
 */
 
 
 (function() {
-  var Base, BasicView, DOMEventList, Ractive, addState, appSurrogate, arr, callbackStringSplitter, camelize, capitalize, className, currentApp, dasherize, deserialize, getModuleArgs, invokeModule, invokeWithArgs, method, module, moduleQueue, moduleType, moduleTypes, originalBase, parseRequirements, prepareModule, subject, uncapitalize, _base, _fn, _fn1, _fn2, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _len5, _len6, _len7, _m, _n, _o, _p, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7,
+  var Base, BasicView, DOMEventList, Ractive, addState, appSurrogate, arr, callbackStringSplitter, camelize, capitalize, className, currentApp, dasherize, deserialize, getModuleArgs, invokeModule, invokeWithArgs, method, module, moduleQueue, moduleType, moduleTypes, originalBase, parseRequirements, prepareModule, subject, type, uncapitalize, _base, _fn, _fn1, _fn2, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _len5, _len6, _len7, _m, _n, _o, _p, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     __slice = [].slice,
@@ -136,6 +137,22 @@
   unload, click, dblclick, mousedown, mouseup, mousemove, mouseover,\
   mouseout, mouseenter, mouseleave, change, select, submit, keydown,\
   keypress, keyup, error, touchstart, touchend, touchmove'.split(/\s*,\s*/);
+
+  if ((Function.prototype.name == null) && (Object.defineProperty != null)) {
+    Object.defineProperty(Function.prototype, 'name', {
+      get: function() {
+        var funcNameRegex, results;
+        funcNameRegex = /function\s+(.{1,})\s*\(/;
+        results = funcNameRegex.exec(this.toString());
+        if (results && results.length > 1) {
+          return results[1];
+        } else {
+          return "";
+        }
+      },
+      set: function(value) {}
+    });
+  }
 
   Base = (function() {
     function Base() {
@@ -165,7 +182,7 @@
     __extends(View, _super);
 
     function View(options, attributes) {
-      var config, key, type, value, _base, _i, _len, _ref, _ref1,
+      var config, key, plugins, type, value, _base, _i, _len, _ref, _ref1,
         _this = this;
       this.options = options != null ? options : {};
       if (this.name == null) {
@@ -195,18 +212,18 @@
       if (this.relations == null) {
         this.relations = {};
       }
-      this.relations.$state = Base.State;
       addState(this);
       this._bindEvents();
       View.__super__.constructor.apply(this, arguments);
       this._bindAttributes();
+      plugins = _.result(this, 'plugins');
       _ref = ['view', 'all'];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         type = _ref[_i];
         _ref1 = Base.plugins[type];
         for (key in _ref1) {
           value = _ref1[key];
-          config = this.plugins && this.plugins[key] || Base.defaults.view.plugins[key] || Base.defaults.all.plugins[key];
+          config = plugins && plugins[key] || Base.defaults[type].plugins[key];
           if (config) {
             value.call(this, this, config);
           }
@@ -279,7 +296,7 @@
     };
 
     View.prototype._getCallback = function(str, allowString) {
-      var args, split, value;
+      var args, split, value, _ref;
       if (_.isFunction(str)) {
         return str;
       }
@@ -297,7 +314,7 @@
         }
         return _results;
       })();
-      return this[split[0]].bind(this, args);
+      return (_ref = this[split[0]]).bind.apply(_ref, [this].concat(__slice.call(args)));
     };
 
     View.prototype._bindEvents = function() {
@@ -399,6 +416,9 @@
           return;
         }
         method = _this['on' + camelized[0].toUpperCase() + camelized.substring(1)];
+        if (type(args[0]) === 'array' && !args[0].length) {
+          console.log('special method args', args);
+        }
         if (method) {
           return method.apply(_this, args);
         }
@@ -704,6 +724,25 @@
       return this.childViews(arg, true);
     };
 
+    View.prototype.destroyView = function(arg, all) {
+      var child;
+      child = all ? this.findView(arg) : this.childView(arg);
+      if (child) {
+        child.destroy();
+      }
+      return child;
+    };
+
+    View.prototype.destroyViews = function(arg, all) {
+      var child, children, _i, _len;
+      children = all ? this.findViews(arg) : this.childViews(arg);
+      for (_i = 0, _len = children.length; _i < _len; _i++) {
+        child = children[_i];
+        child.destroy();
+      }
+      return children;
+    };
+
     View.prototype.childViews = function(arg, findOne) {
       return this.findViews(arg, findOne, true);
     };
@@ -823,7 +862,7 @@
     };
 
     View.prototype.request = function() {
-      var args, event, eventName, eventObj, parent, response, _ref, _results;
+      var args, callback, event, eventName, eventObj, parent, response, _results;
       eventName = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
       parent = this;
       _results = [];
@@ -834,7 +873,8 @@
             type: 'request',
             target: this
           });
-          response = (_ref = eventObj.callback || eventObj).call.apply(_ref, [eventObj.ctx || parent, event].concat(__slice.call(args)));
+          callback = eventObj.callback || eventObj;
+          response = callback.call.apply(callback, [eventObj.ctx || parent, event].concat(__slice.call(args)));
           break;
         } else {
           _results.push(void 0);
@@ -1134,12 +1174,6 @@
         value = _ref1[key];
         this.computeProperty(key, value);
       }
-      if (!(this instanceof Base.State)) {
-        if (this.relations == null) {
-          this.relations = {};
-        }
-        this.relations.$state = Base.State;
-      }
       this._mapRelations(_.extend({}, this.relations, options.relations));
       Model.__super__.constructor.apply(this, arguments);
       addState(this);
@@ -1208,7 +1242,7 @@
       var callback, obj, trigger, _j, _len1, _ref1,
         _this = this;
       args = _.clone(args);
-      switch (Base.$.type(args)) {
+      switch (type(args)) {
         case "object":
           obj = args;
           break;
@@ -1473,6 +1507,10 @@
       });
     };
 
+    List.prototype.empty = function() {
+      return this.splice(0, Infinity);
+    };
+
     List.prototype.eventNamespace = 'listItem:';
 
     List.prototype.bubbleEvents = true;
@@ -1642,6 +1680,10 @@
 
   })(Base.View);
 
+  type = function(obj) {
+    return {}.toString.call(obj).match(/\s([a-zA-Z]+)/)[1].toLowerCase();
+  };
+
   dasherize = function(str) {
     return str.replace(/::/g, '/').replace(/([A-Z]+)([A-Z][a-z])/g, '$1_$2').replace(/([a-z\d])([A-Z])/g, '$1_$2').replace(/_/g, '-').toLowerCase();
   };
@@ -1696,10 +1738,8 @@
       if (obj.blacklist == null) {
         obj.blacklist = [];
       }
-      obj.blacklist.push('$state');
       if (obj instanceof Base.Model) {
-        obj.set('$state', _.defaults(stateAttributes, obj.stateDefaults));
-        state = obj.state = obj.get('$state');
+
       } else {
         stateAttributes = _.defaults(stateAttributes, obj.stateDefaults || obj.defaults);
         state = obj.state = new Base.State(stateAttributes, obj.stateOptions, obj);
@@ -1713,7 +1753,7 @@
         });
         if (this.parent && this.parent.state) {
           state.set('$parent', this.parent.state.toJSON());
-          this.listenTo(this.parent.state, 'all', function(eventName, args) {
+          return this.listenTo(this.parent.state, 'all', function(eventName, args) {
             var split;
             split = eventName.split(':');
             if (split[0] === 'change' && split[1]) {
@@ -1722,17 +1762,6 @@
           });
         }
       }
-      if (obj instanceof Base.View) {
-        state.set('$state', state);
-      }
-      return state.on('all', function() {
-        var args, eventName, split;
-        eventName = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
-        split = eventName.split(':');
-        if (split[0] === 'change' && split[1]) {
-          return obj.trigger.apply(obj, ["change:$state." + split[1]].concat(__slice.call(args)));
-        }
-      });
     }
   };
 
@@ -1746,7 +1775,7 @@
 
   Base.components = {
     collection: function($el, view, attrs) {
-      var View, collection, html, insertView, name, path,
+      var View, collection, collectionViews, html, insertView, name, path,
         _this = this;
       if (attrs == null) {
         attrs = {};
@@ -1773,24 +1802,23 @@
         newView.set('model', model);
         _this.subView(newView);
         newView.render(true);
+        collectionViews.push(newView);
         return $el.append(newView.$el);
       };
+      collectionViews = [];
+      this.on("add:" + path, insertView);
       this.on("remove:" + path, function(model) {
-        return _this.childView({
-          model: model
+        return _this.childView(function(view) {
+          return view.model === model;
         }).destroy();
       });
-      this.on("add:" + path, insertView);
       this.on("reset:" + path, function(models, options) {
-        var child, model, _len5, _n, _ref5;
-        _ref5 = _this.children;
-        for (_n = 0, _len5 = _ref5.length; _n < _len5; _n++) {
-          child = _ref5[_n];
-          model = child ? child.get && child.get('model') || child.model : void 0;
-          if (__indexOf.call(options.previousModels, model) >= 0) {
-            child.destroy();
-          }
+        var _len5, _n;
+        for (_n = 0, _len5 = collectionViews.length; _n < _len5; _n++) {
+          view = collectionViews[_n];
+          view.destroy();
         }
+        collectionViews = [];
         return models.each(insertView);
       });
       collection = this.get(path);
@@ -1939,8 +1967,51 @@
       }
     },
     all: {
-      state: function() {}
+      state: function() {},
+      localStore: function(module, config) {
+        var attrs, getStore, name, omit, setStore, store,
+          _this = this;
+        store = Base.utils.store;
+        name = config.id || this.name;
+        attrs = config.attributes;
+        omit = config.omit;
+        getStore = function(fullStateStore) {
+          var currentStore, thisStore;
+          currentStore = store.getItem('stateStore' || {});
+          thisStore = currentStore[name] != null ? currentStore[name] : currentStore[name] = {};
+          if (fullStateStore) {
+            return currentStore;
+          } else {
+            return thisStore;
+          }
+        };
+        setStore = function() {
+          var currentStore, data;
+          currentStore = getStore(true);
+          data = _this.toJSON();
+          if (attrs) {
+            data = _.pick(data, attrs);
+          }
+          if (omit) {
+            data = _.omit(attrs, data);
+          }
+          _.extend(currentStore[name], data);
+          return store.setItem('stateStore', currentStore);
+        };
+        this.set(getStore());
+        return this.on('change', setStore);
+      }
     }
+  };
+
+  Base.plugins.all.localStore.clear = Base.plugins.all.localStore.clearItem = function(id) {
+    var newStore, store;
+    store = Base.utils.store;
+    newStore = id ? store.getItem('stateStore' || {}) : {};
+    if (id) {
+      newStore[id] = {};
+    }
+    return store.setItem('stateStore', newStore);
   };
 
   Base.filters = {
@@ -2028,13 +2099,14 @@
       },
       extendItem: function(name, val) {
         return this.lsSetItem(_.extend(this.lsGetItem(name) || {}, val));
-      },
-      camelize: camelize,
-      dasherize: dasherize,
-      capitalize: capitalize,
-      uncapitalize: uncapitalize,
-      deserialize: deserialize
+      }
     },
+    camelize: camelize,
+    dasherize: dasherize,
+    capitalize: capitalize,
+    uncapitalize: uncapitalize,
+    deserialize: deserialize,
+    types: type,
     getFunctionArgNames: function(fn) {
       return fn.toString().match(/\(.*?\)/)[0].replace(/[()\s]/g, '').split(',');
     }
@@ -2073,7 +2145,7 @@
   };
 
   Base.services.require = function(string) {
-    var accessor, camelSplit, moduleName, type, _len8, _q, _ref8;
+    var accessor, camelSplit, moduleName, _len8, _q, _ref8;
     camelSplit = string.split(/(?![a-z])(?=[A-Z])/);
     moduleType = _.last(camelSplit).toLowerCase();
     if (__indexOf.call(moduleTypes, moduleType) >= 0) {
