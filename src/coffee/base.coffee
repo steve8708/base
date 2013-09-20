@@ -21,6 +21,19 @@ DOMEventList = 'blur, focus, focusin, focusout, load, resize, scroll,
   mouseout, mouseenter, mouseleave, change, select, submit, keydown,
   keypress, keyup, error, touchstart, touchend, touchmove'.split /\s*,\s*/
 
+
+# IE function.name shim
+
+if not Function::name? and Object.defineProperty?
+  Object.defineProperty Function::, 'name',
+    get: ->
+      funcNameRegex = /function\s+(.{1,})\s*\(/
+      results = funcNameRegex.exec @toString()
+      if results and results.length > 1 then results[1] else ""
+
+    set: (value) ->
+
+
 # Base Class - - - - - - - - - - - - - - - - - - - - - - - -
 
 # FIXME: have all other classes call Base.apply() to psuedo-inherit
@@ -67,10 +80,10 @@ class Base.View extends Backbone.View
 
     @_bindAttributes()
 
+    plugins = _.result @, 'plugins'
     for type in ['view', 'all']
       for key, value of Base.plugins[type]
-        config = @plugins and @plugins[key] or Base.defaults.view.plugins[key] \
-          or Base.defaults.all.plugins[key]
+        config = plugins and plugins[key] or Base.defaults[type].plugins[key]
         if config
           value.call @, @, config
 
@@ -119,8 +132,9 @@ class Base.View extends Backbone.View
     return str if _.isFunction str
     split = _.compact str.split callbackStringSplitter
     return str if not split[1] and allowString
+    # FIXME: this may be the correct behavior
     args = ( deserialize value for value in split.slice 1 )
-    return @[split[0]].bind @, args
+    return @[split[0]].bind @, args...
 
   _bindEvents: ->
     if @events
@@ -1226,6 +1240,41 @@ Base.plugins =
 
   all:
     state: ->
+
+    localStore: (module, config) ->
+      # FIXME: create a localStorage manager so all under one namespace,
+      # e.g. 'base' or 'plugins'
+      store = Base.utils.store
+      name = config.id or @name # Maybe prefix names with module name
+      attrs = config.attributes
+      omit = config.omit
+
+      getStore = (fullStateStore) =>
+        currentStore = store.getItem 'stateStore' or {}
+        thisStore = currentStore[name] ?= {}
+        if fullStateStore then currentStore else thisStore
+
+      setStore = =>
+        currentStore = getStore true
+        data = @toJSON()
+        if attrs then data = _.pick data, attrs
+        if omit  then data = _.omit attrs, data
+        _.extend currentStore[name], data
+        store.setItem 'stateStore', currentStore
+
+      @set getStore()
+      # FIXME: this may have performance issues on some browsers, mauy need to
+      # use window unload or an interval instead
+      @on 'change', setStore
+
+
+Base.plugins.all.localStore.clear = \
+Base.plugins.all.localStore.clearItem = (id) ->
+  store = Base.utils.store
+  newStore = if id then store.getItem 'stateStore' or {} else {}
+  if id then newStore[id] = {}
+  store.setItem 'stateStore', newStore
+
 
 
 # Filters - - - - - - - - - - - - - - - - - - - - - - - - -

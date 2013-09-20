@@ -126,6 +126,8 @@ module.exports = (grunt) ->
 
     uglify:
       main:
+        options:
+          mangle: false
         files:
           'dist/base.min.js': [ 'dist/base.js' ]
 

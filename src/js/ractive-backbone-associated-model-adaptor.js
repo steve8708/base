@@ -5,7 +5,7 @@
 
     if ( path ) {
       path += '.';
-      pathMatcher = new RegExp( '^' + path.replace( /\./g, '\\.' ) );
+      pathMatcher = new RegExp( '^' + path.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&') );
       pathLength = path.length;
     }
 
