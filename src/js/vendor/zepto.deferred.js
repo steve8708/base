@@ -1,4 +1,18 @@
-(function ($) {
+;(function ($) {
+  // String to Object options format cache
+  var optionsCache = {};
+
+  var core_slice = [].slice;
+
+  // Convert String-formatted options into Object-formatted ones and store in cache
+  function createOptions( options ) {
+    var object = optionsCache[ options ] = {};
+    $.each( options.match( /\S+/g ) || [], function( _, flag ) {
+      object[ flag ] = true;
+    });
+    return object;
+  }
+
   $.Callbacks = function( options ) {
 
     // Convert options from String-formatted to Object-formatted if needed
