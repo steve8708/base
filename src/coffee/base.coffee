@@ -748,6 +748,11 @@ class Base.Model extends Backbone.AssociatedModel
 
     for trigger in obj.triggers
       @on "change:#{trigger}", callback
+      split = trigger.split '.'
+
+      for item, index in split
+        name = split.slice 0, split.length - index
+        @on "change:#{name.join '.'}", callback
 
     try
       callback()
@@ -775,6 +780,7 @@ class Base.State extends Base.Model
 
     if @parent
       @on 'all', -> (event, args...) =>
+        console.log 'steate event - - - - - - - - - - - - - - - -> ', event
         @parent.trigger 'state:' + event, args...
 
 
