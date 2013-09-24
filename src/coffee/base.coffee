@@ -671,15 +671,17 @@ class Base.Model extends Backbone.AssociatedModel
   constructor: (defaults = {}, options = {}) ->
     @name ?= @constructor.name
 
-    for key, value of _.extend options.compute or {}, @compute
-      @computeProperty key, value
-
     # unless @ instanceof Base.State
     #   @relations ?= {}
     #   @relations.$state = Base.State
 
     @_mapRelations _.extend {}, @relations, options.relations
+
     super
+
+    for key, value of _.extend options.compute or {}, @compute
+      @computeProperty key, value
+
     addState @
 
     if Base.config.debug.logModelChanges
@@ -726,7 +728,7 @@ class Base.Model extends Backbone.AssociatedModel
       @relations = newRelations
 
   toJSON: (withBlacklist) ->
-    json = Backbone.AssociatedModel::toJSON.call @
+    json = Backbone.AssociatedModel::toJSON.call @, withBlacklist
     if withBlacklist then json else _.omit json, @blacklist
 
   computeProperty: (name, args) ->
@@ -1165,6 +1167,7 @@ Base.plugins =
 
             cb = @_getCallback action
             cb.call @
+
           @$el.on event, "[data-action-#{event}], [action-#{event}]", \
             _.debounce callback, 1, true
 
@@ -1201,42 +1204,49 @@ Base.plugins =
       #   if eventName
       #     @$el.on "#{camelSplit}.delegateEvents"
 
+      # FIXME: this may not work
+      # FIXME: this may have performance issues
       @on 'render', =>
         # FIXME: maybe don't use ractive nodes
         nodes = ( @ractive.fragment.items or []).map (item) -> item.node
         $items = $ '[outlet], [base-outlet]', nodes
+
         for el in $items
           $el = $ el
-          outlet = camelize $el.attr('base-outlet') or $el.attr 'outlet'
+          outlets = camelize $el.attr('base-outlet') or $el.attr 'outlet'
+          outletsArr = outlets.split /\s/
 
-          unless outlet in boundOutlets
-            boundOutlets.push outlet
-            @$[outlet] = @$ "[base-outlet='#{outlet}'], [outlet='#{outlet}']"
-            events = []
+          for outlet in outlets
+            do (outlet) =>
+              unless outlet in boundOutlets
+                boundOutlets.push outlet
+                @$[outlet] = \
+                  @$ "[base-outlet~='#{outlet}'], [outlet~='#{outlet}']"
+                events = []
 
-            outletMethodRe = new RegExp "on(.*)?#{outlet}", 'i'
-            for key, value of @
-              if outletMethodRe.test key
-                events.push RegExp.$1.toLowerCase()
+                outletMethodRe = new RegExp "on(.*)?#{outlet}", 'i'
+                for key, value of @
+                  if outletMethodRe.test key
+                    events.push RegExp.$1.toLowerCase()
 
-            # FIXME: this won't work for parents and children listening
-            # for 'child:click:foobar' or 'parent:click:foobar'
-            # loop through parents = look for child:event:outlet and
-            # child:name:event:outlet
-            # or onChildClickFoobar: ->
-            outletEventRe = new RegExp "^([^:]*?):#{outlet}", 'i'
-            for key, value of @_events
-              if outletEventRe.test key
-                events.push RegExp.$1.toLowerCase()
+                # FIXME: this won't work for parents and children listening
+                # for 'child:click:foobar' or 'parent:click:foobar'
+                # loop through parents = look for child:event:outlet and
+                # child:name:event:outlet
+                # or onChildClickFoobar: ->
+                outletEventRe = new RegExp "^([^:]*?):#{outlet}", 'i'
+                for key, value of @_events
+                  if outletEventRe.test key
+                    events.push RegExp.$1.toLowerCase()
 
-            # parent = @
-            # while parent = parent.parent
-            #   for key, value of parent._events
-            #     for prefix in ['child:', "child:#{uncapitalize @name}"]
+                # parent = @
+                # while parent = parent.parent
+                #   for key, value of parent._events
+                #     for prefix in ['child:', "child:#{uncapitalize @name}"]
 
-            eventName = events.join(' ') + '.delegateEvents'
-            @$el.on eventName, "[data-outlet=#{outlet}]", (e) =>
-              @trigger [ event.type, outlet ].join(':'), e
+                eventName = events.join(' ') + '.delegateEvents'
+                @$el.on eventName, "[data-outlet=#{outlet}]", (e) =>
+                  @trigger [ event.type, outlet ].join(':'), e
 
   all:
     state: ->

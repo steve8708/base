@@ -20,7 +20,7 @@
         value = model.get( keypath );
 
         if ( value && value.toJSON ) {
-          value = value.toJSON();
+          value = value.toJSON(true);
         }
 
         setView( keypath, value );
@@ -90,7 +90,7 @@
         view.on( 'set', setModel );
 
         // initialise
-        view.set( path ? prefix( model.toJSON() ) : model.toJSON() );
+        view.set( path ? prefix( model.toJSON(true) ) : model.toJSON(true) );
       },
 
       teardown: function ( view ) {
