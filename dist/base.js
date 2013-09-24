@@ -1,4 +1,4 @@
-/* base.js v0.0.25 */ 
+/* base.js v0.0.26 */ 
 
 (function (Ractive) {
 
@@ -212,6 +212,7 @@
       if (this.relations == null) {
         this.relations = {};
       }
+      this.relations.$state = Base.State;
       addState(this);
       this._bindEvents();
       View.__super__.constructor.apply(this, arguments);
@@ -1169,6 +1170,12 @@
       if (this.name == null) {
         this.name = this.constructor.name;
       }
+      if (!(this instanceof Base.State)) {
+        if (this.relations == null) {
+          this.relations = {};
+        }
+        this.relations.$state = Base.State;
+      }
       this._mapRelations(_.extend({}, this.relations, options.relations));
       Model.__super__.constructor.apply(this, arguments);
       _ref1 = _.extend(options.compute || {}, this.compute);
@@ -1738,8 +1745,10 @@
       if (obj.blacklist == null) {
         obj.blacklist = [];
       }
+      obj.blacklist.push('$state');
       if (obj instanceof Base.Model) {
-
+        obj.set('$state', _.defaults(stateAttributes, obj.stateDefaults));
+        state = obj.state = obj.get('$state');
       } else {
         stateAttributes = _.defaults(stateAttributes, obj.stateDefaults || obj.defaults);
         state = obj.state = new Base.State(stateAttributes, obj.stateOptions, obj);
@@ -1753,7 +1762,7 @@
         });
         if (this.parent && this.parent.state) {
           state.set('$parent', this.parent.state.toJSON());
-          return this.listenTo(this.parent.state, 'all', function(eventName, args) {
+          this.listenTo(this.parent.state, 'all', function(eventName, args) {
             var split;
             split = eventName.split(':');
             if (split[0] === 'change' && split[1]) {
@@ -1762,6 +1771,17 @@
           });
         }
       }
+      if (obj instanceof Base.View) {
+        state.set('$state', state);
+      }
+      return state.on('all', function() {
+        var args, eventName, split;
+        eventName = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
+        split = eventName.split(':');
+        if (split[0] === 'change' && split[1]) {
+          return obj.trigger.apply(obj, ["change:$state." + split[1]].concat(__slice.call(args)));
+        }
+      });
     }
   };
 
