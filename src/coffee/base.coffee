@@ -72,7 +72,7 @@ class Base.View extends Backbone.View
       compute: @compute
 
     @relations ?= {}
-    # @relations.$state = Base.State
+    @relations.$state = Base.State
     addState @
     @_bindEvents()
 
@@ -671,9 +671,9 @@ class Base.Model extends Backbone.AssociatedModel
   constructor: (defaults = {}, options = {}) ->
     @name ?= @constructor.name
 
-    # unless @ instanceof Base.State
-    #   @relations ?= {}
-    #   @relations.$state = Base.State
+    unless @ instanceof Base.State
+      @relations ?= {}
+      @relations.$state = Base.State
 
     @_mapRelations _.extend {}, @relations, options.relations
 
@@ -1037,11 +1037,11 @@ addState = (obj) ->
   if obj not instanceof Base.State
     stateAttributes = obj.state or {}
     obj.blacklist ?= []
-    # obj.blacklist.push '$state'
+    obj.blacklist.push '$state'
 
     if obj instanceof Base.Model
-      # obj.set '$state', _.defaults stateAttributes, obj.stateDefaults
-      # state = obj.state = obj.get '$state'
+      obj.set '$state', _.defaults stateAttributes, obj.stateDefaults
+      state = obj.state = obj.get '$state'
     else
       stateAttributes = _.defaults stateAttributes, obj.stateDefaults \
         or obj.defaults
@@ -1062,11 +1062,11 @@ addState = (obj) ->
           if split[0] is 'change' and split[1]
             @set "$parent.#{split[1]}", @parent.state.get split[1]
 
-    # state.set '$state', state if obj instanceof Base.View
-    # state.on 'all', (eventName, args...) =>
-    #   split = eventName.split ':'
-    #   if split[0] is 'change' and split[1]
-    #     obj.trigger "change:$state.#{split[1]}", args...
+    state.set '$state', state if obj instanceof Base.View
+    state.on 'all', (eventName, args...) =>
+      split = eventName.split ':'
+      if split[0] is 'change' and split[1]
+        obj.trigger "change:$state.#{split[1]}", args...
 
 uncapitalize = (str) ->
   if str then ( str[0].toLowerCase() + str.substring 1 ) else ''
