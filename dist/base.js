@@ -1,4 +1,4 @@
-/* base.js v0.0.26 */ 
+/* base.js v0.0.27 */ 
 
 (function (Ractive) {
 
@@ -1246,7 +1246,7 @@
     };
 
     Model.prototype.computeProperty = function(name, args) {
-      var callback, obj, trigger, _j, _len1, _ref1,
+      var callback, index, item, obj, split, trigger, _j, _k, _len1, _len2, _ref1,
         _this = this;
       args = _.clone(args);
       switch (type(args)) {
@@ -1272,6 +1272,12 @@
       for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
         trigger = _ref1[_j];
         this.on("change:" + trigger, callback);
+        split = trigger.split('.');
+        for (index = _k = 0, _len2 = split.length; _k < _len2; index = ++_k) {
+          item = split[index];
+          name = split.slice(0, split.length - index);
+          this.on("change:" + (name.join('.')), callback);
+        }
       }
       try {
         return callback();
@@ -1320,6 +1326,7 @@
           return function() {
             var args, event, _ref2;
             event = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
+            console.log('steate event - - - - - - - - - - - - - - - -> ', event);
             return (_ref2 = _this.parent).trigger.apply(_ref2, ['state:' + event].concat(__slice.call(args)));
           };
         });
