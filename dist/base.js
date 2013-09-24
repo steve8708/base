@@ -1,4 +1,4 @@
-/* base.js v0.0.24 */ 
+/* base.js v0.0.25 */ 
 
 (function (Ractive) {
 
@@ -22,7 +22,7 @@
         value = model.get( keypath );
 
         if ( value && value.toJSON ) {
-          value = value.toJSON();
+          value = value.toJSON(true);
         }
 
         setView( keypath, value );
@@ -92,7 +92,7 @@
         view.on( 'set', setModel );
 
         // initialise
-        view.set( path ? prefix( model.toJSON() ) : model.toJSON() );
+        view.set( path ? prefix( model.toJSON(true) ) : model.toJSON(true) );
       },
 
       teardown: function ( view ) {
@@ -1169,13 +1169,13 @@
       if (this.name == null) {
         this.name = this.constructor.name;
       }
+      this._mapRelations(_.extend({}, this.relations, options.relations));
+      Model.__super__.constructor.apply(this, arguments);
       _ref1 = _.extend(options.compute || {}, this.compute);
       for (key in _ref1) {
         value = _ref1[key];
         this.computeProperty(key, value);
       }
-      this._mapRelations(_.extend({}, this.relations, options.relations));
-      Model.__super__.constructor.apply(this, arguments);
       addState(this);
       if (Base.config.debug.logModelChanges) {
         this.on('change', function() {
@@ -1230,7 +1230,7 @@
 
     Model.prototype.toJSON = function(withBlacklist) {
       var json;
-      json = Backbone.AssociatedModel.prototype.toJSON.call(this);
+      json = Backbone.AssociatedModel.prototype.toJSON.call(this, withBlacklist);
       if (withBlacklist) {
         return json;
       } else {
@@ -1925,7 +1925,7 @@
           _this = this;
         boundOutlets = [];
         return this.on('render', function() {
-          var $el, $items, el, eventName, events, key, nodes, outlet, outletEventRe, outletMethodRe, value, _len5, _n, _ref5, _results;
+          var $el, $items, el, nodes, outlet, outlets, outletsArr, _len5, _n, _results;
           nodes = (_this.ractive.fragment.items || []).map(function(item) {
             return item.node;
           });
@@ -1934,33 +1934,44 @@
           for (_n = 0, _len5 = $items.length; _n < _len5; _n++) {
             el = $items[_n];
             $el = $(el);
-            outlet = camelize($el.attr('base-outlet') || $el.attr('outlet'));
-            if (__indexOf.call(boundOutlets, outlet) < 0) {
-              boundOutlets.push(outlet);
-              _this.$[outlet] = _this.$("[base-outlet='" + outlet + "'], [outlet='" + outlet + "']");
-              events = [];
-              outletMethodRe = new RegExp("on(.*)?" + outlet, 'i');
-              for (key in _this) {
-                value = _this[key];
-                if (outletMethodRe.test(key)) {
-                  events.push(RegExp.$1.toLowerCase());
-                }
+            outlets = camelize($el.attr('base-outlet') || $el.attr('outlet'));
+            outletsArr = outlets.split(/\s/);
+            _results.push((function() {
+              var _len6, _o, _results1,
+                _this = this;
+              _results1 = [];
+              for (_o = 0, _len6 = outlets.length; _o < _len6; _o++) {
+                outlet = outlets[_o];
+                _results1.push((function(outlet) {
+                  var eventName, events, key, outletEventRe, outletMethodRe, value, _ref5;
+                  if (__indexOf.call(boundOutlets, outlet) < 0) {
+                    boundOutlets.push(outlet);
+                    _this.$[outlet] = _this.$("[base-outlet~='" + outlet + "'], [outlet~='" + outlet + "']");
+                    events = [];
+                    outletMethodRe = new RegExp("on(.*)?" + outlet, 'i');
+                    for (key in _this) {
+                      value = _this[key];
+                      if (outletMethodRe.test(key)) {
+                        events.push(RegExp.$1.toLowerCase());
+                      }
+                    }
+                    outletEventRe = new RegExp("^([^:]*?):" + outlet, 'i');
+                    _ref5 = _this._events;
+                    for (key in _ref5) {
+                      value = _ref5[key];
+                      if (outletEventRe.test(key)) {
+                        events.push(RegExp.$1.toLowerCase());
+                      }
+                    }
+                    eventName = events.join(' ') + '.delegateEvents';
+                    return _this.$el.on(eventName, "[data-outlet=" + outlet + "]", function(e) {
+                      return _this.trigger([event.type, outlet].join(':'), e);
+                    });
+                  }
+                })(outlet));
               }
-              outletEventRe = new RegExp("^([^:]*?):" + outlet, 'i');
-              _ref5 = _this._events;
-              for (key in _ref5) {
-                value = _ref5[key];
-                if (outletEventRe.test(key)) {
-                  events.push(RegExp.$1.toLowerCase());
-                }
-              }
-              eventName = events.join(' ') + '.delegateEvents';
-              _results.push(_this.$el.on(eventName, "[data-outlet=" + outlet + "]", function(e) {
-                return _this.trigger([event.type, outlet].join(':'), e);
-              }));
-            } else {
-              _results.push(void 0);
-            }
+              return _results1;
+            }).call(_this));
           }
           return _results;
         });
