@@ -10,13 +10,16 @@
     }
 
     modelChangeEventHandler = function ( eventName ) {
-      var eventNameSplit, eventType, keypath, value;
+      var eventNameSplit, eventType, keypath, value, contains;
 
       eventNameSplit = eventName.split( ':' );
       eventType = eventNameSplit[0];
       keypath = eventNameSplit[1];
+      contains = function (arr, item) {
+        return arr.indexOf(item) !== -1;
+      };
 
-      if ( eventType === 'change' && keypath  ) {
+      if ( contains(['change', 'remove', 'add', 'reset'], eventType) !== -1 && keypath  ) {
         value = model.get( keypath );
 
         if ( value && value.toJSON ) {

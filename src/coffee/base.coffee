@@ -162,6 +162,12 @@ class Base.View extends Backbone.View
           $el.on "#{name}.delegateEvents-#{@cid}", \
             @_getCallback(callback).bind @
       else
+        recured = (obj) =>
+          for eventName, callback of obj
+            if typeof callback is 'function'
+              @on "#{key}:#{eventName}", @_getCallback(callback).bind @
+            else if typeof callback is 'object'
+              recurse callback
         for eventName, callback of value
           if callback
             @on "#{key}:#{eventName}", @_getCallback(callback).bind @
@@ -263,7 +269,7 @@ class Base.View extends Backbone.View
       @ractive = new Ractive
         el: @el
         template: template
-        data: _.extend @.toJSON(), $view: @, $filter: Base.filters, $base: Base
+        data: _.extend @toJSON(), $view: @, $filter: Base.filters, $base: Base
 
       for key, val of @
         if typeof val is 'function' and key[0] isnt '_'
@@ -555,7 +561,7 @@ class Base.App extends Base.View
     @template ?= _JST["src/templates/app.html"]
 
     $win = $ window
-    $win.on "resize.appResize-#{@cid}", =>
+    $win.on "resize.appResize-#{@cid}", _.debounce 50, =>
       @set
         windowWidth: $win.width(),
         windowHeight: $win.height(),
@@ -750,9 +756,9 @@ class Base.Model extends Backbone.AssociatedModel
       @on "change:#{trigger}", callback
       split = trigger.split '.'
 
-      for item, index in split
-        name = split.slice 0, split.length - index
-        @on "change:#{name.join '.'}", callback
+      # for item, index in split
+      #   name = (split.slice 0, split.length - index).join '.'
+      #   @on "change:#{name}", callback
 
     try
       callback()
@@ -780,7 +786,6 @@ class Base.State extends Base.Model
 
     if @parent
       @on 'all', -> (event, args...) =>
-        console.log 'steate event - - - - - - - - - - - - - - - -> ', event
         @parent.trigger 'state:' + event, args...
 
 
@@ -1062,7 +1067,7 @@ addState = (obj) ->
       # FIXME: this could get really slow with deeply nested views
       # and copying them over
       if @parent and @parent.state
-        state.set '$parent', @parent.state.toJSON()
+        state.set '$parent', @parent.state
         @listenTo @parent.state, 'all', (eventName, args) =>
           split = eventName.split ':'
           if split[0] is 'change' and split[1]
@@ -1104,18 +1109,24 @@ Base.components =
 
     collectionViews = []
 
-    @on "add:#{path}", insertView
+    bindCollection = (collection) =>
+      return if not collection
+      collection.each insertView
+      @listenTo collection, 'add', insertView
+      @listenTo collection, 'remove', (model) =>
+        @childView( (view) => view.model is model ).destroy()
 
-    @on "remove:#{path}", (model) =>
-      @childView( (view) => view.model is model ).destroy()
-
-    @on "reset:#{path}", (models, options) =>
-      view.destroy() for view in collectionViews
-      collectionViews = []
-      models.each insertView
+      @listenTo collection, 'reset', (models, options) =>
+        view.destroy() for view in collectionViews
+        collectionViews = []
+        models.each insertView
 
     collection = @get path
-    collection.each insertView if collection
+    if collection
+      bindCollection collection
+    else
+      @on "change:#{path}", => bindCollection @get path
+
 
   view: ($el, view, attrs) ->
     viewName = attrs.view or attrs.type
@@ -1193,7 +1204,8 @@ Base.plugins =
       for key, val of @map
         do (key, val) =>
           @set key, @lookup val
-          @on "parent:change:#{value}", (event, model, value) => @set key, value
+          # FIXME: if key is 'foo.bar' listen for changes on 'foo' too
+          @on "parent:change:#{val}", (event, model, value) => @set key, value
 
       null
 
