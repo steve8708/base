@@ -1,4 +1,4 @@
-/* base.js v0.0.27 */ 
+/* base.js v0.0.28 */ 
 
 (function (Ractive) {
 
@@ -12,13 +12,16 @@
     }
 
     modelChangeEventHandler = function ( eventName ) {
-      var eventNameSplit, eventType, keypath, value;
+      var eventNameSplit, eventType, keypath, value, contains;
 
       eventNameSplit = eventName.split( ':' );
       eventType = eventNameSplit[0];
       keypath = eventNameSplit[1];
+      contains = function (arr, item) {
+        return arr.indexOf(item) !== -1;
+      };
 
-      if ( eventType === 'change' && keypath  ) {
+      if ( contains(['change', 'remove', 'add', 'reset'], eventType) !== -1 && keypath  ) {
         value = model.get( keypath );
 
         if ( value && value.toJSON ) {
@@ -319,7 +322,8 @@
     };
 
     View.prototype._bindEvents = function() {
-      var $el, callback, eventName, item, key, name, prefix, selector, value, _base, _i, _len, _ref, _ref1, _ref2, _ref3, _results;
+      var $el, callback, eventName, item, key, name, prefix, recured, selector, value, _base, _i, _len, _ref, _ref1, _ref2, _ref3, _results,
+        _this = this;
       if (this.events) {
         _ref = this.events;
         for (key in _ref) {
@@ -369,6 +373,21 @@
             return _results1;
           }).call(this));
         } else {
+          recured = function(obj) {
+            var eventName, _results1;
+            _results1 = [];
+            for (eventName in obj) {
+              callback = obj[eventName];
+              if (typeof callback === 'function') {
+                _results1.push(_this.on("" + key + ":" + eventName, _this._getCallback(callback).bind(_this)));
+              } else if (typeof callback === 'object') {
+                _results1.push(recurse(callback));
+              } else {
+                _results1.push(void 0);
+              }
+            }
+            return _results1;
+          };
           _results.push((function() {
             var _results1;
             _results1 = [];
@@ -985,14 +1004,14 @@
         this.template = _JST["src/templates/app.html"];
       }
       $win = $(window);
-      $win.on("resize.appResize-" + this.cid, function() {
+      $win.on("resize.appResize-" + this.cid, _.debounce(50, function() {
         return _this.set({
           windowWidth: $win.width(),
           windowHeight: $win.height(),
           documentWidth: document.width,
           documentHeight: document.height
         });
-      });
+      }));
       App.__super__.constructor.apply(this, arguments);
     }
 
@@ -1246,7 +1265,7 @@
     };
 
     Model.prototype.computeProperty = function(name, args) {
-      var callback, index, item, obj, split, trigger, _j, _k, _len1, _len2, _ref1,
+      var callback, obj, split, trigger, _j, _len1, _ref1,
         _this = this;
       args = _.clone(args);
       switch (type(args)) {
@@ -1273,11 +1292,6 @@
         trigger = _ref1[_j];
         this.on("change:" + trigger, callback);
         split = trigger.split('.');
-        for (index = _k = 0, _len2 = split.length; _k < _len2; index = ++_k) {
-          item = split[index];
-          name = split.slice(0, split.length - index);
-          this.on("change:" + (name.join('.')), callback);
-        }
       }
       try {
         return callback();
@@ -1326,7 +1340,6 @@
           return function() {
             var args, event, _ref2;
             event = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
-            console.log('steate event - - - - - - - - - - - - - - - -> ', event);
             return (_ref2 = _this.parent).trigger.apply(_ref2, ['state:' + event].concat(__slice.call(args)));
           };
         });
@@ -1768,7 +1781,7 @@
           relatedModel: Base.State
         });
         if (this.parent && this.parent.state) {
-          state.set('$parent', this.parent.state.toJSON());
+          state.set('$parent', this.parent.state);
           this.listenTo(this.parent.state, 'all', function(eventName, args) {
             var split;
             split = eventName.split(':');
@@ -1802,7 +1815,7 @@
 
   Base.components = {
     collection: function($el, view, attrs) {
-      var View, collection, collectionViews, html, insertView, name, path,
+      var View, bindCollection, collection, collectionViews, html, insertView, name, path,
         _this = this;
       if (attrs == null) {
         attrs = {};
@@ -1833,24 +1846,34 @@
         return $el.append(newView.$el);
       };
       collectionViews = [];
-      this.on("add:" + path, insertView);
-      this.on("remove:" + path, function(model) {
-        return _this.childView(function(view) {
-          return view.model === model;
-        }).destroy();
-      });
-      this.on("reset:" + path, function(models, options) {
-        var _len5, _n;
-        for (_n = 0, _len5 = collectionViews.length; _n < _len5; _n++) {
-          view = collectionViews[_n];
-          view.destroy();
+      bindCollection = function(collection) {
+        if (!collection) {
+          return;
         }
-        collectionViews = [];
-        return models.each(insertView);
-      });
+        collection.each(insertView);
+        _this.listenTo(collection, 'add', insertView);
+        _this.listenTo(collection, 'remove', function(model) {
+          return _this.childView(function(view) {
+            return view.model === model;
+          }).destroy();
+        });
+        return _this.listenTo(collection, 'reset', function(models, options) {
+          var _len5, _n;
+          for (_n = 0, _len5 = collectionViews.length; _n < _len5; _n++) {
+            view = collectionViews[_n];
+            view.destroy();
+          }
+          collectionViews = [];
+          return models.each(insertView);
+        });
+      };
       collection = this.get(path);
       if (collection) {
-        return collection.each(insertView);
+        return bindCollection(collection);
+      } else {
+        return this.on("change:" + path, function() {
+          return bindCollection(_this.get(path));
+        });
       }
     },
     view: function($el, view, attrs) {
@@ -1937,7 +1960,7 @@
         _ref5 = this.map;
         _fn2 = function(key, val) {
           _this.set(key, _this.lookup(val));
-          return _this.on("parent:change:" + value, function(event, model, value) {
+          return _this.on("parent:change:" + val, function(event, model, value) {
             return _this.set(key, value);
           });
         };
