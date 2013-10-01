@@ -11,34 +11,34 @@ MVC frameworks](http://todomvc.com/) into one cohesive, highly performant, maxim
 Built with [Backbone](http://backbonejs.org/), [jQuery](http://jquery.com/), and [Ractive](http://www.ractivejs.org/)
 
 # Contents
-* [Simple Example](#markdown-header-simple-example)
-* [Core Concepts](#markdown-header-core-concepts)
-    * [Live Templates](#markdown-header-live-templates)
-    * [Plugins](#markdown-header-plugins)
-    * [Web Components](#markdown-header-web-components)
-    * [View Nesting and Subview Management](#markdown-header-view-nesting-and-subview-management)
-    * [Nested Models and Collections](#markdown-header-nested-models-and-collections)
-    * [State Management](#markdown-header-state-management)
-    * [Simplified Event Binding](#markdown-header-simplified-event-binding)
-    * [Dependency Injection](#markdown-header-dependency-injection)
-* [Core Classes](#markdown-header-core-classes)
-    * [Base.App](#markdown-header-baseapp)
-    * [Base.View](#markdown-header-baseview)
-    * [Base.Model](#markdown-header-basemodel)
-    * [Base.Singleton](#markdown-header-basesingleton)
-    * [Base.Collection](#markdown-header-basecollection)
-* [Helper Classes](#markdown-header-helper-classes)
-    * [Base.List](#markdown-header-baselist)
-    * [Base.Event](#markdown-header-baseevent)
-    * [Base.State](#markdown-header-basestate)
-    * [Base.Stated](#markdown-header-basestated)
-    * [Base.Object](#markdown-header-baseobject)
-* [Comparison to other frameworks](#markdown-header-comparison-to-other-frameworks)
-    * [Backbone](#markdown-header-backbone)
-    * [Ember](#markdown-header-ember)
-    * [Angular](#markdown-header-angular)
-    * [Others](#markdown-header-others)
-* [Future of Base](#markdown-header-future-of-base)
+* [Simple Example](#simple-example)
+* [Core Concepts](#core-concepts)
+    * [Live Templates](#live-templates)
+    * [Plugins](#plugins)
+    * [Web Components](#web-components)
+    * [View Nesting and Subview Management](#view-nesting-and-subview-management)
+    * [Nested Models and Collections](#nested-models-and-collections)
+    * [State Management](#state-management)
+    * [Simplified Event Binding](#simplified-event-binding)
+    * [Dependency Injection](#dependency-injection)
+* [Core Classes](#core-classes)
+    * [Base.App](#baseapp)
+    * [Base.View](#baseview)
+    * [Base.Model](#basemodel)
+    * [Base.Singleton](#basesingleton)
+    * [Base.Collection](#basecollection)
+* [Helper Classes](#helper-classes)
+    * [Base.List](#baselist)
+    * [Base.Event](#baseevent)
+    * [Base.State](#basestate)
+    * [Base.Stated](#basestated)
+    * [Base.Object](#baseobject)
+* [Comparison to other frameworks](#comparison-to-other-frameworks)
+    * [Backbone](#backbone)
+    * [Ember](#ember)
+    * [Angular](#angular)
+    * [Others](#others)
+* [Future of Base](#future-of-base)
 
 
 # Simple Example
@@ -105,7 +105,7 @@ CSS (in Stylus):
 
 All base templates update automatically as your views and models change, no more jquery is needed! No, seriously, stop using .append(), .clone(), .addClass(), .removeClass(), etc. Just like angular, meteor, derby, and the many other fantastic live template libraries, once you use it you will not look back. No more spaghetti code, no more exponentially rising DOM manipulation complexity, no more rerendering entire views just to update one list.
 
-Base live templates are built on top of [Ractive](http://www.ractivejs.org/), check out the [examples](http://www.ractivejs.org/examples/) for amazing examples of using live templates for all kinds of applications and purposes. And see [below](#markdown-header-objects-and-methods) for how Base extends Ractive for additional power and flexibility including app level binding, route binding, singleton binding, and more.
+Base live templates are built on top of [Ractive](http://www.ractivejs.org/), check out the [examples](http://www.ractivejs.org/examples/) for amazing examples of using live templates for all kinds of applications and purposes. And see [below](#objects-and-methods) for how Base extends Ractive for additional power and flexibility including app level binding, route binding, singleton binding, and more.
 
 ### Tags
 
