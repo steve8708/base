@@ -503,8 +503,7 @@ class Base.View extends Backbone.View
       if eventObj
         event = new Base.Event type: 'request', target: @
         callback = eventObj.callback or eventObj
-        response = callback.call (eventObj.ctx or parent), event, args...
-        break
+        return callback.call (eventObj.ctx or parent), event, args...
 
   # FIXME: have a broadcastAll and emitAll config
   emit: (eventName, args...) ->
