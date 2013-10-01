@@ -57,53 +57,53 @@ tl;dr - Base is still improving, but it is being used in production.
 HTML (DOM updates automatically on model changes)
 
 ```html
-    <body base-app="myApp">
-      <h1>{{user.name}}</h1>
-      <div class="controls">
-        <button on-click="set: 'mode', 'grid' " class="grid {{ mode == 'grid' ? 'active' : 'inactive' }}"></button>
-        <button on-click="set: 'mode', 'grid' " class="single {{ mode == 'single' ? 'active' : 'inactive' }}"></button>
-      </div>
-      <base-view type="grid">
-        {{#picts}}
-          <img outlet="pict" src="{{url}}" on-click="set: 'activePict', 'pict' ">
-        {{/picts}}
-      </base-view>
+<body base-app="myApp">
+  <h1>{{user.name}}</h1>
+  <div class="controls">
+    <button on-click="set: 'mode', 'grid' " class="grid {{ mode == 'grid' ? 'active' : 'inactive' }}"></button>
+    <button on-click="set: 'mode', 'grid' " class="single {{ mode == 'single' ? 'active' : 'inactive' }}"></button>
+  </div>
+  <base-view type="grid">
+    {{#picts}}
+      <img outlet="pict" src="{{url}}" on-click="set: 'activePict', 'pict' ">
+    {{/picts}}
+  </base-view>
 
-      <base-view type="lightbox" visible="{{!!activePict}}" on-click="hide: true ">
-        <img src="{{activePict.url}}" outlet="pict">
-      </base-view>
-    </body>
+  <base-view type="lightbox" visible="{{!!activePict}}" on-click="hide: true ">
+    <img src="{{activePict.url}}" outlet="pict">
+  </base-view>
+</body>
 ```
 
 JS (in Coffeescript):
 
 ```coffeescript
-    class App extends Base.App
-      plugins:
-        lazyLoadImages: true
-        animateImagesOnLoad:
-          type: 'fade'
+class App extends Base.App
+  plugins:
+    lazyLoadImages: true
+    animateImagesOnLoad:
+      type: 'fade'
 
-    class Grid extends Base.View
-      plugins:
-        masonry: true
+class Grid extends Base.View
+  plugins:
+    masonry: true
 
-      defaults:
-        mode: 'grid'
+  defaults:
+    mode: 'grid'
 
-    class Lightbox extends Base.View
-      defaults:
-        showLightbox: false
+class Lightbox extends Base.View
+  defaults:
+    showLightbox: false
 
-      onChangeShowLightbox: -> @doSomething()
+  onChangeShowLightbox: -> @doSomething()
 ```
 
 CSS (in Stylus):
 
 ```css
-    [ data-view = pict ]
-      [ data-mode = single ] &
-        position relative
+[ data-view = pict ]
+  [ data-mode = single ] &
+    position relative
 ```
 
 
@@ -121,86 +121,86 @@ Base live templates are built on top of [Ractive](http://www.ractivejs.org/), ch
 ### Tags
 
 ```html
-    {{someGlobalProperty}}
+{{someGlobalProperty}}
 
-    <!-- 'EACH' -->
-    {{#someArray}}
-      {{title}}
-      <!-- The dot indicates relative to the array-->
-      {{.someArrayProperty}}
-      <!-- This renders the array item itself, typically used if the value is a string in an array of strings -->
-      {{.}}
-    {{/someArray}}
+<!-- 'EACH' -->
+{{#someArray}}
+  {{title}}
+  <!-- The dot indicates relative to the array-->
+  {{.someArrayProperty}}
+  <!-- This renders the array item itself, typically used if the value is a string in an array of strings -->
+  {{.}}
+{{/someArray}}
 
-    <!-- 'IF' -->
-    {{#someNonArray}}
-      <h1> {{someNonArray}} is truthy! </h1>
-    {{/someNonArray}}
+<!-- 'IF' -->
+{{#someNonArray}}
+  <h1> {{someNonArray}} is truthy! </h1>
+{{/someNonArray}}
 
-    <!-- 'UNLESS' -->
-    {{^someNonArray}}
-      <h1> {{someNonArray}} is falsey! </h1>
-    {{/someNonArray}}
+<!-- 'UNLESS' -->
+{{^someNonArray}}
+  <h1> {{someNonArray}} is falsey! </h1>
+{{/someNonArray}}
 ```
 
 ### Expressions
 
 ```html
-    <!-- Expressions -->
-    {{ name ? name : 'You have no name!' }}
+<!-- Expressions -->
+{{ name ? name : 'You have no name!' }}
 
-    <div class="button {{ active ? 'active' : 'inactive' }}"></div>
-    <div name="{{name}}"></div>
+<div class="button {{ active ? 'active' : 'inactive' }}"></div>
+<div name="{{name}}"></div>
 
-    <!-- Block expressions -->
-    {{# foo == 'bar' && bar == 'foo' }}
-      Foo is bar and bar is foo!
-    {{/}}
+<!-- Block expressions -->
+{{# foo == 'bar' && bar == 'foo' }}
+  Foo is bar and bar is foo!
+{{/}}
 
-    {{^ typeof bar is 'string'}}
-      Bar is not a string!
-    {{/}}
+{{^ typeof bar is 'string'}}
+  Bar is not a string!
+{{/}}
 ```
 
 ### Objects and methods
 
 ```html
-    <!-- Current view methods -->
-    {{ $view.getProduct( product ) }}
+<!-- Current view methods -->
+{{ $view.getProduct( product ) }}
 
-    <!-- Filters -->
-    {{ $filter.capitalize( name ) }}
-    {{ $filter.orderBy( someArray, 'name' ) }}
+<!-- Filters -->
+{{ $filter.capitalize( name ) }}
+{{ $filter.orderBy( someArray, 'name' ) }}
 
-    <!-- Parent view -->
-    {{ $parent.foo.bar }}
-    {{ $parent.$parent.foo.bar }}
+<!-- Parent view -->
+{{ $parent.foo.bar }}
+{{ $parent.$parent.foo.bar }}
 
-    <!-- App -->
-    {{ $app.foo == 'bar' ? foo : bar }}
+<!-- App -->
+{{ $app.foo == 'bar' ? foo : bar }}
 
-    <!-- Singletons -->
-    {{# $user.type == 'brand' }}
-      You're a brand, here are some brand options!
-    {{/}}
+<!-- Singletons -->
+{{# $user.type == 'brand' }}
+  You're a brand, here are some brand options!
+{{/}}
 
-    {{# $user.type == 'publisher' }}
-      Hello publisher!
-    {{/}}
+{{# $user.type == 'publisher' }}
+  Hello publisher!
+{{/}}
 
-    <!-- Routes -->
-    {{# $router.path[0] == 'share' && $router.params.foo == 'bar' }}
-      We're on the shar epage and foo is bar!
-    {{/}}
+<!-- Routes -->
+{{# $router.path[0] == 'share' && $router.params.foo == 'bar' }}
+  We're on the shar epage and foo is bar!
+{{/}}
 
-    {{# $router.route == 'share/photo' }}
-      You're sharing a photo!
-    {{/}}
+{{# $router.route == 'share/photo' }}
+  You're sharing a photo!
+{{/}}
 
-    <!-- Mix and match -->
-    {{# shareType == 'photo' && $user.type == 'brand' }}
-      Something special just for brands shareing photos
-    {{/}}
+<!-- Mix and match -->
+{{# shareType == 'photo' && $user.type == 'brand' }}
+  Something special just for brands shareing photos
+{{/}}
 ```
 
 ### Event binding
@@ -211,43 +211,43 @@ with object getters
 #### HTML
 
 ```html
-    <button on-click="someButtonWasClicked"></button>
-    <button on-hover="set: 'foo', bar"></button>
-    <button on-touchend="activate: foo"></button>
+<button on-click="someButtonWasClicked"></button>
+<button on-hover="set: 'foo', bar"></button>
+<button on-touchend="activate: foo"></button>
 ```
 
 #### JS (in coffeescript)
 
 ```coffeescript
-    class View extends Base.View
-      someButtonWasClicked: (e) ->
-        $clickedButton = $ e.currentTarget
+class View extends Base.View
+  someButtonWasClicked: (e) ->
+    $clickedButton = $ e.currentTarget
 
-      activate: (name) ->
-        name # => 'foo'
+  activate: (name) ->
+    name # => 'foo'
 ```
 
 ### Outlets
 
 #### HTML
 ```html
-    <button outlet="foo"></button>
+<button outlet="foo"></button>
 ```
 
 #### JS (in coffeescript)
 ```coffeescript
-    class View extends Base.View
-      construcotr: ->
-        super
-        # First way to bind
-        @on 'click:foo', ->
+class View extends Base.View
+  construcotr: ->
+    super
+    # First way to bind
+    @on 'click:foo', ->
 
-      bind:
-        # Second way to bind
-        'click:foo', ->
+  bind:
+    # Second way to bind
+    'click:foo', ->
 
-      # Simplest way to bind
-      onClickFoo: (e) ->
+  # Simplest way to bind
+  onClickFoo: (e) ->
 ```
 
 
@@ -262,52 +262,52 @@ The ultimate goal here is to maximize code reusability across applications, prov
 ### Using Plugins
 
 ```coffeescript
-    Base.plugins.view.defaults.lazyLoad = true
-    App.plugins.defaults.state = true
+Base.plugins.view.defaults.lazyLoad = true
+App.plugins.defaults.state = true
 
-    class View extends Base.View
-      plugins:
-        ractive: true
-        lazyLoadImages: true
-        fadeInImages:
-          className: 'fade'
-          selector: '.lazy-loaded'
+class View extends Base.View
+  plugins:
+    ractive: true
+    lazyLoadImages: true
+    fadeInImages:
+      className: 'fade'
+      selector: '.lazy-loaded'
 ```
 
 ### Creating Plugins
 
 ```coffeescript
-    # Plugin code runs on initialize, is called in the context of the module
-    # it is being applied to, and can retutn methods to apply to the module
-    Base.view.plugin 'ractive', (view, config) ->
-      @ractive = new Ractive el: @el, template: @template, data: @toJSON()
-      @ractive.bind Ractive.adaptors.backboneAssociatedModel @state
-      @on 'render', => @ractive.render()
+# Plugin code runs on initialize, is called in the context of the module
+# it is being applied to, and can retutn methods to apply to the module
+Base.view.plugin 'ractive', (view, config) ->
+  @ractive = new Ractive el: @el, template: @template, data: @toJSON()
+  @ractive.bind Ractive.adaptors.backboneAssociatedModel @state
+  @on 'render', => @ractive.render()
 
-    # Applies to all classes
-    Base.plugin 'state', (module, config) ->
-      @state = new Base.State
-      @state.on 'all', (eventName, args…) =>
-        @trigger.apply @, ["state:#{eventName}"].concat args
+# Applies to all classes
+Base.plugin 'state', (module, config) ->
+  @state = new Base.State
+  @state.on 'all', (eventName, args…) =>
+    @trigger.apply @, ["state:#{eventName}"].concat args
 
-      # You can return methods to apply to the module
-      getState: (name) -> @state.get name
-      setState: (name, value) -> @state.set name, value
+  # You can return methods to apply to the module
+  getState: (name) -> @state.get name
+  setState: (name, value) -> @state.set name, value
 
-    App.view.plugin 'fadeInImages', (view, config) ->
-      @on 'render', ->
-        # You can use config.className or apply config as a function to set defaults
-        config = config className: 'hide', selector: 'img'
+App.view.plugin 'fadeInImages', (view, config) ->
+  @on 'render', ->
+    # You can use config.className or apply config as a function to set defaults
+    config = config className: 'hide', selector: 'img'
 
-        $images = @$ config.selector
-        $images.addClass config.className
-        $images.on 'load', (e) => $(e.target).removeClass config.className
+    $images = @$ config.selector
+    $images.addClass config.className
+    $images.on 'load', (e) => $(e.target).removeClass config.className
 
-    # Plugins can also apply to specific module types
-    App.plugin ['view', 'collection', 'model'], 'state', ->
+# Plugins can also apply to specific module types
+App.plugin ['view', 'collection', 'model'], 'state', ->
 
-    # Plugins can also have dependences
-    App.view.plugin 'ractive', ['view:state'], ->
+# Plugins can also have dependences
+App.view.plugin 'ractive', ['view:state'], ->
 ```
 
 
@@ -320,38 +320,38 @@ Web components are custom HTML tags with special behaviors for making applicatio
 ### Using Components
 
 ```html
-    <base-view type="foo" foo="bar"></base-view>
-    <base-collection subject="picts" view="pict"></base-collection>
-    <base-icon name="foo"></base-icon>
-    <base-switch name="bar"></base-switch>
+<base-view type="foo" foo="bar"></base-view>
+<base-collection subject="picts" view="pict"></base-collection>
+<base-icon name="foo"></base-icon>
+<base-switch name="bar"></base-switch>
 ```
 
 ### Creating Components
 
-```coffeescript
-    # add child views with simple markup
-    Base.component 'view', ($el, attributes) ->
-      view = new app.views[attributes.type] _.extend attributes, parent: @
-      @insertView view
+``` coffeescript
+# add child views with simple markup
+Base.component 'view', ($el, attributes) ->
+  view = new app.views[attributes.type] _.extend attributes, parent: @
+  @insertView view
 
-    # For a dynamic list of views that updates when a collection changes
-    Base.component 'collection', ($el, attributes) ->
-      View = app.views[attributes.view]
-      collection = @get attributes.subject
+# For a dynamic list of views that updates when a collection changes
+Base.component 'collection', ($el, attributes) ->
+  View = app.views[attributes.view]
+  collection = @get attributes.subject
 
-      @listenTo collection,
-        add: (model) => @insertView new View parent: @, model: model
-        remove: (model) => @destroyView model: model
-        reset: => @destroyViews()
+  @listenTo collection,
+    add: (model) => @insertView new View parent: @, model: model
+    remove: (model) => @destroyView model: model
+    reset: => @destroyViews()
 
-    # For simpler markup of sprited icons generated by grunt-glue
-    Base.component 'icon', ($el, attributes) ->
-      $el.append "<i class='icon sprite-#{attributes.name}'></i>"
+# For simpler markup of sprited icons generated by grunt-glue
+Base.component 'icon', ($el, attributes) ->
+  $el.append "<i class='icon sprite-#{attributes.name}'></i>"
 
-    # For IOS style switches
-    Base.component 'switch', ($el, attributes) ->
-      $input = $ "<input type='checkbox' type="switch" name='#{attributes.name}>'"
-      $input.on 'click', => $el.prop 'checked', $input.prop 'checked'
+# For IOS style switches
+Base.component 'switch', ($el, attributes) ->
+  $input = $ "<input type='checkbox' type='switch' name='#{attributes.name}>'"
+  $input.on 'click', => $el.prop 'checked', $input.prop 'checked'
 ```
 
 
@@ -365,206 +365,206 @@ Web components are custom HTML tags with special behaviors for making applicatio
 
 
 ```coffeescript
-    class View extends Base.View
-      constructor: ->
+class View extends Base.View
+  constructor: ->
 
-      render: ->
-        super
-        @insertView new SomeView
-        @insertView '.some-selector', new SomeView
+  render: ->
+    super
+    @insertView new SomeView
+    @insertView '.some-selector', new SomeView
 
-        @subView new SomeView
+    @subView new SomeView
 ```
 
 ### Defining Nesting in Markup
 
 ```html
-    <!--
-        This is equivalent to parnetView.subView new MyViewName foo: 'bar'
-    -->
-    <base-view type="MyViewName" foo="bar"></base-view>
+<!--
+    This is equivalent to parnetView.subView new MyViewName foo: 'bar'
+-->
+<base-view type="MyViewName" foo="bar"></base-view>
 ```
 
 ### Event Bubbling, Emitting, and Broadcasting
 
 ```coffeescript
-    class MyView extends Base.View
-      render: ->
-        super
-        # broadcasts an event to all children
-        @broadcast 'rendered'
+class MyView extends Base.View
+  render: ->
+    super
+    # broadcasts an event to all children
+    @broadcast 'rendered'
 
-        # emits an event to all children
-        @emit 'rendered'
+    # emits an event to all children
+    @emit 'rendered'
 
-        # broadcasts and emits an event to all parents and children
-        @trigger 'rendered'
+    # broadcasts and emits an event to all parents and children
+    @trigger 'rendered'
 
-      # Runs when any child emits 'rendered'
-      onChildRendered: ->
-      # Runs when any child named 'myOtherView' emits 'rendered'
-      onChildMyOtherViewRendered: ->
-      # Runs when any immediate child emits 'rendered'
-      onFirstChildRendered: ->
-      # Runs when any view (parent or child) nadmed 'myOtherView' rendered
-      onMyOtherViewRendered: ->
+  # Runs when any child emits 'rendered'
+  onChildRendered: ->
+  # Runs when any child named 'myOtherView' emits 'rendered'
+  onChildMyOtherViewRendered: ->
+  # Runs when any immediate child emits 'rendered'
+  onFirstChildRendered: ->
+  # Runs when any view (parent or child) nadmed 'myOtherView' rendered
+  onMyOtherViewRendered: ->
 
-      onChildChangeActive: ->
+  onChildChangeActive: ->
 
-    class MyOtherView extends Base.View
-      render: ->
-        super
-        @emit 'rendered'
+class MyOtherView extends Base.View
+  render: ->
+    super
+    @emit 'rendered'
 
-        # These are all valid ways of binding to the same events described above
-        @on 'child:rendered', ->
-        @on 'firstChild:rendered', ->
-        @on 'child:myThirdView:rendered', ->
-        @on 'myThirdView:rendered', ->
-        @on 'child:change:active', ->
+    # These are all valid ways of binding to the same events described above
+    @on 'child:rendered', ->
+    @on 'firstChild:rendered', ->
+    @on 'child:myThirdView:rendered', ->
+    @on 'myThirdView:rendered', ->
+    @on 'child:change:active', ->
 
 
-    class MyThirdView extends Base.View
-      rener: ->
-        @emit 'rendered'
+class MyThirdView extends Base.View
+  rener: ->
+    @emit 'rendered'
 
-      # Runs when any parent broadcasts 'rendered'
-      onParentRendered: ->
-      # Runs when a parent named 'MyView' broadcasts 'rendered'
-      onParentMyViewRendered: ->
-      # Runs only when this views first (closest) parent broadcasts 'rendered'
-      onFirstParentRende: ->red
+  # Runs when any parent broadcasts 'rendered'
+  onParentRendered: ->
+  # Runs when a parent named 'MyView' broadcasts 'rendered'
+  onParentMyViewRendered: ->
+  # Runs only when this views first (closest) parent broadcasts 'rendered'
+  onFirstParentRende: ->red
 ```
 
 ### Event Object
 
 ```coffeescript
-    # All emitted and broadcasted events inject a first
-    # argument, a Base.Event (similar to a DOM event object)
-    # that gives listeners some extra information and actions
+# All emitted and broadcasted events inject a first
+# argument, a Base.Event (similar to a DOM event object)
+# that gives listeners some extra information and actions
 
-    class View extends Base.View
-      onChildChangeActive: (e) ->
-        if e.target.is 'listItem'
-          # Stop this event from further propagating (to parents
-          # if the event was emitted, to children if the event was
-          # broadcasted)
-          e.stopPropagation()
+class View extends Base.View
+  onChildChangeActive: (e) ->
+    if e.target.is 'listItem'
+      # Stop this event from further propagating (to parents
+      # if the event was emitted, to children if the event was
+      # broadcasted)
+      e.stopPropagation()
 
-          # Sets e.defaultPrevented to true
-          e.preventDefault()
+      # Sets e.defaultPrevented to true
+      e.preventDefault()
 
-        # in this case the currentTarget is this view
-        if e.currentTarget is @
-          true
+    # in this case the currentTarget is this view
+    if e.currentTarget is @
+      true
 ```
 
 ### Accessing View Nesting and Management
 
 ```coffeescript
-    view.children           # => Base.List (evented array) of children
-    view.parent             # => view's immediate parent
+view.children           # => Base.List (evented array) of children
+view.parent             # => view's immediate parent
 
-    view.findView 'name'    # => first view named 'name'
-    view.findViews 'name'   # => array of subviews named 'name'
+view.findView 'name'    # => first view named 'name'
+view.findViews 'name'   # => array of subviews named 'name'
 
-    view.childView 'name'   # => first immediate child named 'name'
-    view.childViews 'name'  # => array of immediate children with name 'name'
+view.childView 'name'   # => first immediate child named 'name'
+view.childViews 'name'  # => array of immediate children with name 'name'
 
-    view.parentView 'name'  # => first parent with name 'name'
-    view.parentViews 'name' # => array of parents with name 'name'
+view.parentView 'name'  # => first parent with name 'name'
+view.parentViews 'name' # => array of parents with name 'name'
 
-    # All view accesors also take objects
-    view.findViews model: model
-    view.parentView foo: 'bar', bar: 'foo'
+# All view accesors also take objects
+view.findViews model: model
+view.parentView foo: 'bar', bar: 'foo'
 
-    # All view accessors can also take iterators (functions)
-    view.childView (view) -> view.isActive()
-    view.parentViews (view) -> view.
+# All view accessors can also take iterators (functions)
+view.childView (view) -> view.isActive()
+view.parentViews (view) -> view.
 ```
 
 ### Child List
 
 ```coffeescript
-    # Or you can always loop through children yourself
-    # view.children inherits from Base.List, so it supports
-    # all native array methods as well as all underscore
-    # array and collection methods
-    view.children.map (child) -> child.toJSON()
-    view.children.reduce (child, lastVal) -> lastValue += 1 if child.isActive()
-    view.children.isEmpty()
-    view.children.max (child) -> child.get 'height'
-    view.children.sortBy (child) -> child.isActive()
-    view.children.last()
+# Or you can always loop through children yourself
+# view.children inherits from Base.List, so it supports
+# all native array methods as well as all underscore
+# array and collection methods
+view.children.map (child) -> child.toJSON()
+view.children.reduce (child, lastVal) -> lastValue += 1 if child.isActive()
+view.children.isEmpty()
+view.children.max (child) -> child.get 'height'
+view.children.sortBy (child) -> child.isActive()
+view.children.last()
 ```
 
 ### Child List Events
 
 ```coffeescript
-    view.children.on 'add', (childView) ->    #  a new child view as added
-    view.children.on 'remove', (childView) -> #  a child view was removed
-    view.childre.non 'reset', ->              # children were reset
+view.children.on 'add', (childView) ->    #  a new child view as added
+view.children.on 'remove', (childView) -> #  a child view was removed
+view.childre.non 'reset', ->              # children were reset
 ```
 
 
 ## Nested Models and Collections
 
 ```coffeescript
-    class PhotoModel extensd Base.Model
-      constructor: ->
-        super
-        # Relations can be added dynamically
-        @addRelation 'activeProduct', ProductModel
+class PhotoModel extensd Base.Model
+  constructor: ->
+    super
+    # Relations can be added dynamically
+    @addRelation 'activeProduct', ProductModel
 
-      # Relations can be configured
-      relations:
-        productsTagged: ProductsCollection
-
-
-    class Model extends Base.Model
-      constructor: ->
-        super
-        @set 'photos', [ url: 'hi.png' ]
-        @get 'photos'              # => Photo list with one photo model in it
-        @get 'photos[0]'           # => a Photo model
-        @get 'photos[0].url'       # => 'hola.png'
-        @set 'photos[0].url, 'foo.com/bar.png
-
-        @get('photos').add url: 'hello.png'
-        @get('photos').reset()
-
-        @on 'add:photos', ->         # a photo model was added
-        @on 'reset:photos', ->       # the photos collection was reset
-        @on 'remove:photos', ->      # a photo was removed
-
-        @on 'change:photos[0]', ->   # this first photo model changed
-        @on 'change:photos[*]', ->   # any photo model changed
-        @on 'change:photos[0].url', ->
-        @on 'change:photos[*].url', ->
-
-        # Infinite nestings are supported
-        @get 'photos[0].productsTagged[0].id'
-        @set 'photos[0].productsTagged[0].id', newId
-        @on 'change:photos[0].productsTagged[0].id', ->
+  # Relations can be configured
+  relations:
+    productsTagged: ProductsCollection
 
 
-      # Syntax sugar for listening for above events
-      onChangePhotosUrl: ->
-      onAddPhotos: ->
-      onResetPhotos: ->
-      onRemovePhotos: ->
+class Model extends Base.Model
+  constructor: ->
+    super
+    @set 'photos', [ url: 'hi.png' ]
+    @get 'photos'              # => Photo list with one photo model in it
+    @get 'photos[0]'           # => a Photo model
+    @get 'photos[0].url'       # => 'hola.png'
+    @set 'photos[0].url, 'foo.com/bar.png
 
-      # Defining relations
-      relations:
-        photos: PhotoList
+    @get('photos').add url: 'hello.png'
+    @get('photos').reset()
 
-    # Views also support relations
-    class View extends Base.View
-      relations:
-        photo: PhotoModel
+    @on 'add:photos', ->         # a photo model was added
+    @on 'reset:photos', ->       # the photos collection was reset
+    @on 'remove:photos', ->      # a photo was removed
 
-      onChangePhotoUrl: ->
-      onChangePhoto: ->
+    @on 'change:photos[0]', ->   # this first photo model changed
+    @on 'change:photos[*]', ->   # any photo model changed
+    @on 'change:photos[0].url', ->
+    @on 'change:photos[*].url', ->
+
+    # Infinite nestings are supported
+    @get 'photos[0].productsTagged[0].id'
+    @set 'photos[0].productsTagged[0].id', newId
+    @on 'change:photos[0].productsTagged[0].id', ->
+
+
+  # Syntax sugar for listening for above events
+  onChangePhotosUrl: ->
+  onAddPhotos: ->
+  onResetPhotos: ->
+  onRemovePhotos: ->
+
+  # Defining relations
+  relations:
+    photos: PhotoList
+
+# Views also support relations
+class View extends Base.View
+  relations:
+    photo: PhotoModel
+
+  onChangePhotoUrl: ->
+  onChangePhoto: ->
 ```
 
 
@@ -578,32 +578,32 @@ without clashing with data you want synced with your backend (or other persisten
 ### State Object
 
 ```coffeescript
-    model.state # => Base.State instance that inherits from Base.Model
-    model.state.get 'active'
+model.state # => Base.State instance that inherits from Base.Model
+model.state.get 'active'
 
-    # view getters and setters forward to the view state model
-    view.get 'active'        # equivalent to view.state.get 'active'
-    view.set 'active', true  # equivalent to view.state.set 'active', true
-    view.toJSON()            # equivalent to view.state.toJSON()
-    view.toggle 'active'     # equivalent to view.state.toggle 'active'
+# view getters and setters forward to the view state model
+view.get 'active'        # equivalent to view.state.get 'active'
+view.set 'active', true  # equivalent to view.state.set 'active', true
+view.toJSON()            # equivalent to view.state.toJSON()
+view.toggle 'active'     # equivalent to view.state.toggle 'active'
 ```
 
 ### Configuration
 
 ```coffeescript
-    class Collection extends Base.Collection
-      # configure state defaults
-      # this is valid for all stated classes (e.g. router, model, collection, etc)
-      stateDefaults:
-          active: false
+class Collection extends Base.Collection
+  # configure state defaults
+  # this is valid for all stated classes (e.g. router, model, collection, etc)
+  stateDefaults:
+      active: false
 
-    class View extends Base.View
-      # delegates to state.defaults
-      defaults:
+class View extends Base.View
+  # delegates to state.defaults
+  defaults:
 
-      # delegates to state.relations
-      relations:
-          foo: Foo
+  # delegates to state.relations
+  relations:
+      foo: Foo
 ```
 
 
@@ -611,15 +611,15 @@ without clashing with data you want synced with your backend (or other persisten
 All foolowing methods work for all stated classes (routers, models, views, collections, etc)
 
 ```coffeescript
-    model.setState 'active', true # equivalent to model.state.set 'active', true
-    model.getState 'active'       # equivalent to model.state.get 'active'
-    model.toggleState 'active'    # equivalent to model.state.toggle 'active'
+model.setState 'active', true # equivalent to model.state.set 'active', true
+model.getState 'active'       # equivalent to model.state.get 'active'
+model.toggleState 'active'    # equivalent to model.state.toggle 'active'
 
-    # other model methods supported
-    model.changedState 'active'
-    model.cloneState()
-    model.unsetState 'active'
-    model.clearSate()
+# other model methods supported
+model.changedState 'active'
+model.cloneState()
+model.unsetState 'active'
+model.clearSate()
 
 
 ### State Events
