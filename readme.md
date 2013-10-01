@@ -42,7 +42,6 @@ Built with [Backbone](http://backbonejs.org/), [jQuery](http://jquery.com/), and
 
 
 # Simple Example
----
 
 HTML (DOM updates automatically on model changes)
 
@@ -99,10 +98,7 @@ CSS (in Stylus):
 
 
 
-
-
 # Core Concepts
----
 
 
 ## Live Templates
@@ -747,7 +743,6 @@ Module functions are executed as soon as all dependency requirements are met. At
 ```
 
 # Core Classes
----
 
 ## Base.App
 
@@ -1004,7 +999,6 @@ HTML
 
 
 # Helper Classes
----
 
 
 ## Base.List
@@ -1177,7 +1171,6 @@ Constructor for base events. Every bubbled and broadcasted view event injects a 
 
 
 # JS vs Coffeescript
----
 
 Despite the examples herein being in coffeescript, like any other coffeescript library base.js does not require that you write any code in coffeescript. Just use the .extend() method to subclass Base classes
 
@@ -1199,7 +1192,6 @@ Despite the examples herein being in coffeescript, like any other coffeescript l
 
 
 # Comparison to other frameworks
----
 Backbone, Ember, and Angaular are amazing. Truly amazing. And built and maintainged by incredibly brilliant people.
 
 So Why do we need another javascript MV* options? Because Base is a blank slate, among a world where so many great ideas have been tried, and we can learn what works and what doesn't. Base is an attempt to take all of the best features form all of these great frameworks while shedding all (or as many as possible!) drawbacks (bloat, complexities, inefficiencies, etc).
@@ -1324,7 +1316,6 @@ These are just a small sample of base features inspired by other js frameworks. 
 
 
 # Future of Base
----
 
 Ultimately, everything in this document will be pulled from the library except for the plugin core. The primary features herein will move to a 'contrib' library (similar to [Grunt Contrib](https://github.com/gruntjs/grunt-contrib)) for people who want a lot of power in one package.
 
