@@ -11,6 +11,7 @@ MVC frameworks](http://todomvc.com/) into one cohesive, highly performant, maxim
 Built with [Backbone](http://backbonejs.org/), [jQuery](http://jquery.com/), and [Ractive](http://www.ractivejs.org/)
 
 # Contents
+* [Status](#status)
 * [Simple Example](#simple-example)
 * [Core Concepts](#core-concepts)
     * [Live Templates](#live-templates)
@@ -40,6 +41,16 @@ Built with [Backbone](http://backbonejs.org/), [jQuery](http://jquery.com/), and
     * [Others](#others)
 * [Future of Base](#future-of-base)
 
+
+# Status
+
+Base is in alpha. Its API should not yet be considered frozen and it is still
+evolving. But, with that said, Base is currently being used in production
+by all of [PICT's](//pict.com) web applications, including their
+[interative photo embeds](//pict.com/steve-pub), [profile pages](//pict.com/steve-pub),
+and [core web application](//app.pict.com).
+
+tl;dr - Base is still improving, but it is being used in production.
 
 # Simple Example
 
