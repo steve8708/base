@@ -46,9 +46,9 @@ Built with [Backbone](http://backbonejs.org/), [jQuery](http://jquery.com/), and
 
 Base is in alpha. Its API should not yet be considered frozen and it is still
 evolving. But, with that said, Base is currently being used in production
-by all of [PICT's](//pict.com) web applications, including their
-[interative photo embeds](//pict.com/steve-pub), [profile pages](//pict.com/steve-pub),
-and [core web application](//app.pict.com).
+by all of [PICT's](http://pict.com) web applications, including their
+[interative photo embeds](http://pict.com/p/aQ), [profile pages](//pict.com/steve),
+and [core web application](http://app.pict.com).
 
 tl;dr - Base is still improving, but it is being used in production.
 
@@ -654,29 +654,29 @@ model.clearSate()
 Any event on any evented object (model, view, collection, etc) can be subscribed to directly by camelizing the event name.
 
 ```coffeescript
-    class View extends Base.View
-      onChange: (stateModel) ->
-      # triggers on 'change:active'
-      onChangeActive: (stateModel) ->
+class View extends Base.View
+  onChange: (stateModel) ->
+  # triggers on 'change:active'
+  onChangeActive: (stateModel) ->
 
-      # triggers on 'child:change:active'
-      onChildChangeActive: (e) ->
+  # triggers on 'child:change:active'
+  onChildChangeActive: (e) ->
 
-      # triggers on 'firstParent:render
-      onFirstParentRender: (e) ->
+  # triggers on 'firstParent:render
+  onFirstParentRender: (e) ->
 
-      # Triggers when @$el was clicked
-      onClick: (e) ->
+  # Triggers when @$el was clicked
+  onClick: (e) ->
 
-      # Triggers when a dom element where outlet="myButton" fired a 'mouseenter' event
-      onMouseenterMyButton: (e) ->
+  # Triggers when a dom element where outlet="myButton" fired a 'mouseenter' event
+  onMouseenterMyButton: (e) ->
 
-    class Collection extends Base.Collection
-      # triggers on 'add'
-      onAdd: (model) ->
+class Collection extends Base.Collection
+  # triggers on 'add'
+  onAdd: (model) ->
 
-      # triggers on 'remove'
-      onRemove: (model) ->
+  # triggers on 'remove'
+  onRemove: (model) ->
 ```
 
 
@@ -687,70 +687,69 @@ Any event on any evented object (model, view, collection, etc) can be subscribed
 Anything can be stored as a module at the app or base level (though the app level is most recommended).
 
 ```coffeescript
-    Base.app 'Pict', ->
-        class Pict extends Base.App
-            constructor: ->
-                super
+  Base.app 'Pict', ->
+      class Pict extends Base.App
+          constructor: ->
+              super
 
-    Base.apps.pict is Pict   # => true
-    Base.app('pict') is Pict # => true
+  Base.apps.pict is Pict   # => true
+  Base.app('pict') is Pict # => true
 
-    app.view 'Photo', ->
-        class Photo extends Base.View
-            constructor: ->
-                super
+  app.view 'Photo', ->
+      class Photo extends Base.View
+          constructor: ->
+              super
 
-    app.view('Photo') is Photo # => true
-    app.views.Photo is Photo   # => true
+  app.view('Photo') is Photo # => true
+  app.views.Photo is Photo   # => true
 
-    app.model 'MyData' ->
-        class MyData extends Base.Model
-            constructor: ->
-                super
+  app.model 'MyData' ->
+      class MyData extends Base.Model
+          constructor: ->
+              super
 
-    app.service 'http', ->
-        return {
-            get: (url, callback) ->
-                $.get url, callback
-        }
-
+  app.service 'http', ->
+      return {
+          get: (url, callback) ->
+              $.get url, callback
+      }
 ```
 
 ### Defining Dependencies
 Module functions are executed as soon as all dependency requirements are met. At this point the module is set to the value of the function called and any modules whose last remaining dependency is the result of the function just called while also get called.
 
 ```coffeescript
-    # Simplest method. A 'PhotoView' arg looks for app.views.Photo,
-    # 'httpService' arg looks for app.services.http, etc
-    app.view 'Foo' (PhotoView, httpService, MyDataModel) ->
-        class Foo extends Base.View
-            get: (url, callback) ->
-                httpService.get url, callback
+# Simplest method. A 'PhotoView' arg looks for app.views.Photo,
+# 'httpService' arg looks for app.services.http, etc
+app.view 'Foo' (PhotoView, httpService, MyDataModel) ->
+    class Foo extends Base.View
+        get: (url, callback) ->
+            httpService.get url, callback
 
 
-     # To avoid minification issues, you can instead separately define
-     # an array of dependencies
-     app.view 'Foo', ['PhotoView', 'httpService'], (Photo, http) ->
-         class Foo extends Base.View
-             constructor: ->
-                 super
+ # To avoid minification issues, you can instead separately define
+ # an array of dependencies
+ app.view 'Foo', ['PhotoView', 'httpService'], (Photo, http) ->
+     class Foo extends Base.View
+         constructor: ->
+             super
 ```
 
 ### Require Syntax
 
 ```coffeescript
-    Base.define 'foobar', (require) ->
-        # Base can figure out your dependencies. It will first
-        # look in the 'app' context for your module, followed by the
-        # global (Base) context
-        foo = require 'foo'
+Base.define 'foobar', (require) ->
+    # Base can figure out your dependencies. It will first
+    # look in the 'app' context for your module, followed by the
+    # global (Base) context
+    foo = require 'foo'
 
-        bar = app.require 'bar'
+    bar = app.require 'bar'
 
-        baz = Base.require 'baz'
+    baz = Base.require 'baz'
 
-    app.define 'FooView', ->
-        class Foo extends
+app.define 'FooView', ->
+    class Foo extends
 ```
 
 # Core Classes
@@ -760,17 +759,17 @@ Module functions are executed as soon as all dependency requirements are met. At
 ### Class
 
 ```coffeescript
-    # Inherits from and supports full Base.View API (below)
-    class App extends Base.App
-      constructor: ->
-        super
-        @get('picts').fetch()
+# Inherits from and supports full Base.View API (below)
+class App extends Base.App
+  constructor: ->
+    super
+    @get('picts').fetch()
 
-      defaults:
-        mode: 'grid'
+  defaults:
+    mode: 'grid'
 
-      relations:
-        picts: PictsCollection
+  relations:
+    picts: PictsCollection
 ```
 
 
@@ -781,101 +780,101 @@ Module functions are executed as soon as all dependency requirements are met. At
 ### Class
 
 ```coffeescript
-    class View extends Base.View
-      # View state defaults
-      defaults:
-        visible: false
+class View extends Base.View
+  # View state defaults
+  defaults:
+    visible: false
 
-       # Model relations
-      relations:
-        pict: PictModel
+   # Model relations
+  relations:
+    pict: PictModel
 
-      constructor: ->
-        super
+  constructor: ->
+    super
 
-      # DOM Events can be bound via method syntax sugar
-      onClick: ->
-      onKeypress: ->
-      onWindowResize: ->
-      onDocumentKeypress: ->
+  # DOM Events can be bound via method syntax sugar
+  onClick: ->
+  onKeypress: ->
+  onWindowResize: ->
+  onDocumentKeypress: ->
 
-      # Or using dom element outlet names
-      onClickMainImage: ->
+  # Or using dom element outlet names
+  onClickMainImage: ->
 
-      # When parent or child emits or broadcasts an event
-      onParentFoo: ->
-      onChildFoo: ->
+  # When parent or child emits or broadcasts an event
+  onParentFoo: ->
+  onChildFoo: ->
 
-      # When a parent or child with name 'grid' emit or change events
-      onParentGridChangeActive: ->
-      onChildGridChangeVisible: ->
+  # When a parent or child with name 'grid' emit or change events
+  onParentGridChangeActive: ->
+  onChildGridChangeVisible: ->
 
-      # Listen to change event in property visible
-      onChangeVisible: ->
+  # Listen to change event in property visible
+  onChangeVisible: ->
 
-      # Listen to a state property of related model pict
-      onChangePictStateActive: ->
+  # Listen to a state property of related model pict
+  onChangePictStateActive: ->
 
-      # Called after render
-      afterRender: ->
+  # Called after render
+  afterRender: ->
 
-      # Actions to run before a view is destroyed
-      cleanup: ->
+  # Actions to run before a view is destroyed
+  cleanup: ->
 
-      # Send a response to a child view requesting some information
-      onRequestSomeQuestion: ->
+  # Send a response to a child view requesting some information
+  onRequestSomeQuestion: ->
 ```
 
 ### Methods
 
 ```coffeescript
-    view.subView new View         # add a nested view
+view.subView new View         # add a nested view
 
-    view.insertView '.foo', view  # add a nested view at selector
-    view.insertView view          # add a nested view at @$el
+view.insertView '.foo', view  # add a nested view at selector
+view.insertView view          # add a nested view at @$el
 
-    view.findView 'photoGrid'     # find a nested view named 'photoGrid'
-    view.findView model: model    # find nested view that matches property keyvals
-    view.findView (view) ->       # find view via a function
+view.findView 'photoGrid'     # find a nested view named 'photoGrid'
+view.findView model: model    # find nested view that matches property keyvals
+view.findView (view) ->       # find view via a function
 
-    view.childView 'foo'          # only search immediate children
-    view.is 'foo'                 # view matches a string, object, or function
+view.childView 'foo'          # only search immediate children
+view.is 'foo'                 # view matches a string, object, or function
 
-    view.parent                   # the views parent view
-    view.children                 # list of subviews - inherits from Base.List
+view.parent                   # the views parent view
+view.children                 # list of subviews - inherits from Base.List
 
-    view.parentView 'foo'
+view.parentView 'foo'
 
-    view.childViews 'foo'
-    view.findViews 'foo'
-    view.parentViews 'foo'
+view.childViews 'foo'
+view.findViews 'foo'
+view.parentViews 'foo'
 
-    # emit an event to all parents, seen by parents as 'child:foo'
-    view.emit 'foo', arg1, arg2
+# emit an event to all parents, seen by parents as 'child:foo'
+view.emit 'foo', arg1, arg2
 
-    # broadcast an event to all children, seen as 'parent:foo'
-    view.broadcast 'foo', arg1, arg2
+# broadcast an event to all children, seen as 'parent:foo'
+view.broadcast 'foo', arg1, arg2
 
-    # callback when a parent broadcasts event 'foo'
-    view.on 'parent:foo', ->
+# callback when a parent broadcasts event 'foo'
+view.on 'parent:foo', ->
 
-    # callback when a parent named 'parentViewName' broadcasts event 'foo'
-    view.on 'parent:parentViewName:foo', (e, args…) ->
+# callback when a parent named 'parentViewName' broadcasts event 'foo'
+view.on 'parent:parentViewName:foo', (e, args…) ->
 
-    # callback when a child emits an event 'foo'
-    view.on 'child:foo', (e, args…) ->
+# callback when a child emits an event 'foo'
+view.on 'child:foo', (e, args…) ->
 
-    # callback when a child emits an event 'foo'
-    view.on 'child:childViewName:foo', (e, args…) ->
+# callback when a child emits an event 'foo'
+view.on 'child:childViewName:foo', (e, args…) ->
 
-    # Destroy a view, unbind all listeners, and cleanup
-    view.destroy()
+# Destroy a view, unbind all listeners, and cleanup
+view.destroy()
 
-    # Request a response from a parent, bubbles up to all parents
-    # until one parent has an on 'request:someQuestion' handler or
-    # an onRequestSomeQuestion method. The request is sent to the
-    # first parent with a handler and then the request stops propagating
-    view.request 'someQuestion', (response) ->
+# Request a response from a parent, bubbles up to all parents
+# until one parent has an on 'request:someQuestion' handler or
+# an onRequestSomeQuestion method. The request is sent to the
+# first parent with a handler and then the request stops propagating
+view.request 'someQuestion', (response) ->
 ```
 
 
@@ -886,58 +885,58 @@ Module functions are executed as soon as all dependency requirements are met. At
 ### Class
 
 ```coffeescript
-    # Models are inherited from backbone models
-    class Model extends Base.Model
-      stateDefaults:
-        active: false
+# Models are inherited from backbone models
+class Model extends Base.Model
+  stateDefaults:
+    active: false
 
-      defaults:
-        price: 0
+  defaults:
+    price: 0
 
-      # models support computed properties that auto update on change
-      # of other properties
-      compute:
-        # 'priceString' will update on every change of 'price' and/or 'currencyCode'
-        priceString: (price, currencyCode) ->
-          getCurrencyString(currencyCode) + price
+  # models support computed properties that auto update on change
+  # of other properties
+  compute:
+    # 'priceString' will update on every change of 'price' and/or 'currencyCode'
+    priceString: (price, currencyCode) ->
+      getCurrencyString(currencyCode) + price
 
-      # Confogire nested model associations
-      relations:
-        pict: PictModel
+  # Confogire nested model associations
+  relations:
+    pict: PictModel
 ```
 
 
 ### Methods
 
 ```coffeescript
-    # State Syntax Sugar
-    model.state                 # => sate model (inherited from Base.State)
-    model.setState 'foo', bar   # equivalent of model.state.set 'foo', bar
-    model.getState 'foo'        # => 'bar'
-    model.toggle 'foo'          # same as model.set 'foo', !model.get 'foo'
-    model.toggleState 'active'  # equivalent of model.state.toggle 'active'
+# State Syntax Sugar
+model.state                 # => sate model (inherited from Base.State)
+model.setState 'foo', bar   # equivalent of model.state.set 'foo', bar
+model.getState 'foo'        # => 'bar'
+model.toggle 'foo'          # same as model.set 'foo', !model.get 'foo'
+model.toggleState 'active'  # equivalent of model.state.toggle 'active'
 
-    model.addRelation 'pict', PictModel          # Add a nested model
-    model.set 'pict', foo: 'bar'                 # Creates a new pict model
-    model.get 'pict'                             # => pictModel object
-    model.get 'pict.foo'                         # => 'bar'
-    model.set 'pict.foo', 'baz'
+model.addRelation 'pict', PictModel          # Add a nested model
+model.set 'pict', foo: 'bar'                 # Creates a new pict model
+model.get 'pict'                             # => pictModel object
+model.get 'pict.foo'                         # => 'bar'
+model.set 'pict.foo', 'baz'
 
-    # Nested Events
-    model.on  'change:pict.foo', ->              # valid as expected
-    model.on  'change:pict.products[0].foo', ->  # also valid
+# Nested Events
+model.on  'change:pict.foo', ->              # valid as expected
+model.on  'change:pict.products[0].foo', ->  # also valid
 
-    # State Events
-    model.on 'state:change:foo.bar', ->   # same as model.state.on 'change:foo.bar'
+# State Events
+model.on 'state:change:foo.bar', ->   # same as model.state.on 'change:foo.bar'
 ```
 
 ### HTML
 
 ```html
-    <!-- Update DOM on model state changes -->
-    {{#model.$state.active }}
-      <h1>I am active!</h1>
-    {{/}}
+<!-- Update DOM on model state changes -->
+{{#model.$state.active }}
+  <h1>I am active!</h1>
+{{/}}
 ```
 
 
@@ -951,20 +950,19 @@ and anywhere via templates
 JS (in Coffeescript)
 
 ```coffeescript
-    app.singleton ->
-      class User extends Base.Singleton
-        defaults:
-          name: 'You have no name!'
+app.singleton ->
+  class User extends Base.Singleton
+    defaults:
+      name: 'You have no name!'
 
-    app.mySingleton is MySingleton # => true
-
+app.mySingleton is MySingleton # => true
 ```
 
 HTML
 
 ```html
-    <!-- All singletons are accessible in templates prefixed by $ -->
-    <h1>{{$user.name}}</h1>
+<!-- All singletons are accessible in templates prefixed by $ -->
+<h1>{{$user.name}}</h1>
 ```
 
 
@@ -975,31 +973,31 @@ HTML
 ### Class
 
 ```coffeescript
-      # Collections are inherited from backbone collections
-      class Collection extends Base.Collection
-        stateDefaults:
-          synced: false
+# Collections are inherited from backbone collections
+class Collection extends Base.Collection
+  stateDefaults:
+    synced: false
 ```
 
 ### Method
 
 ```coffeescript
-    # State Syntax Sugar
-    collection.state                   # => sate model (inherited from Base.State)
-    collection.setState 'synced', true # same as collection.state.set 'foo', bar
-    collection.getState 'synced'       # => true
-    collection.toggleState 'synced'    # same as collection.state.toggle 'active'
+# State Syntax Sugar
+collection.state                   # => sate model (inherited from Base.State)
+collection.setState 'synced', true # same as collection.state.set 'foo', bar
+collection.getState 'synced'       # => true
+collection.toggleState 'synced'    # same as collection.state.toggle 'active'
 
-    collection.on 'state:change:synced', -> # same as model.state.on 'change:foo'
+collection.on 'state:change:synced', -> # same as model.state.on 'change:foo'
 ```
 
 ### HTML
 
 ```html
-    <!-- Update DOM on collection state changes -->
-    {{#collection.$state.synced }}
-      <h1>I've been synced!</h1>
-    {{/}}
+<!-- Update DOM on collection state changes -->
+{{#collection.$state.synced }}
+  <h1>I've been synced!</h1>
+{{/}}
 ```
 
 
@@ -1019,63 +1017,63 @@ An evented array, similar to a backbone collection, but can store any type of da
 ### Class
 
 ```coffeescript
-    class List extends Base.List
-      # Any class (constructor) can be a model that new additions
-      # passed to the list are constructed by. That or set no model
-      # And
-      model: Base.View
+class List extends Base.List
+  # Any class (constructor) can be a model that new additions
+  # passed to the list are constructed by. That or set no model
+  # And
+  model: Base.View
 
-      stateDefaults:
-        active: false
+  stateDefaults:
+    active: false
 
-      # Like any class, a list can support custom methods
-      getActiveChild: (e) ->
-        @find (child) -> child.active
+  # Like any class, a list can support custom methods
+  getActiveChild: (e) ->
+    @find (child) -> child.active
 
-      # And you can override methods as expected
-      find: (e) ->
-        log 'someone is looking for something!'
-        super
+  # And you can override methods as expected
+  find: (e) ->
+    log 'someone is looking for something!'
+    super
 ```
 
 
 ### Methods
 
 ```coffeescript
-    list = new Base.List
-    list.on 'add', -> log 'added!'
-    list.push 'hello!' # triggers the 'add' event
+list = new Base.List
+list.on 'add', -> log 'added!'
+list.push 'hello!' # triggers the 'add' event
 
-    # Lists are just typical arrays, you have access to all native
-    # array methods ('forEach', 'map', 'indexOf', etc) and all
-    # underscore array and collection methods as well ('find', 'contains', etc)
-    list[0]                              # => 'hello'
-    list.find (item) -> _.isString item  # => 'hello'
-    list.contains 'hello'                # => true
-    list.isEmpty()                       # => false
+# Lists are just typical arrays, you have access to all native
+# array methods ('forEach', 'map', 'indexOf', etc) and all
+# underscore array and collection methods as well ('find', 'contains', etc)
+list[0]                              # => 'hello'
+list.find (item) -> _.isString item  # => 'hello'
+list.contains 'hello'                # => true
+list.isEmpty()                       # => false
 
 
-    # Event bubbling (similar to backbone collections)
-    view = new Base.View
-    list.add view
-    list.on 'anEvent', (e) -> log 'a child triggered an event!'
-    # triggers the above log
-    view.trigger 'anEvent'
+# Event bubbling (similar to backbone collections)
+view = new Base.View
+list.add view
+list.on 'anEvent', (e) -> log 'a child triggered an event!'
+# triggers the above log
+view.trigger 'anEvent'
 
-    # You can create models of any type, just pass any class (constructor)
-    # as a list's model property
-    list = new Base.List
-    list.model = ListItemView
-    list.push tagName: 'li'
-    list[0]                   # => a new ListItemView with tagName: 'li'
+# You can create models of any type, just pass any class (constructor)
+# as a list's model property
+list = new Base.List
+list.model = ListItemView
+list.push tagName: 'li'
+list[0]                   # => a new ListItemView with tagName: 'li'
 
-    # Lists also support all state methods
-    list.setState 'active', false
-    list.getState 'active'
-    list.toggleState 'active'
-    list.hasState 'active'
-    list.state.toJSON()
-    list.on 'state:change:active', ->
+# Lists also support all state methods
+list.setState 'active', false
+list.getState 'active'
+list.toggleState 'active'
+list.hasState 'active'
+list.state.toJSON()
+list.on 'state:change:active', ->
 ```
 
 
@@ -1086,25 +1084,25 @@ An evented array, similar to a backbone collection, but can store any type of da
 ### Class
 
 ```coffeescript
-    # Inherits from Backbone.Router
-    class Router extends Base.Router
-      stateDeafults:
-        firstRoute: true
+# Inherits from Backbone.Router
+class Router extends Base.Router
+  stateDeafults:
+    firstRoute: true
 
-      routes:
-        '*': (route) -> @setState 'firstRoute', false
+  routes:
+    '*': (route) -> @setState 'firstRoute', false
 
-      onChangeFirstRoute: (stateModel, value, options) ->
+  onChangeFirstRoute: (stateModel, value, options) ->
 ```
 
 
 ### Methods
 
 ```coffeescript
-    # Supports all stated methods
-    router.setState 'firstRoute', true
-    router.getState 'firstRoute'
-    router.toggleState 'firstRoute'
+# Supports all stated methods
+router.setState 'firstRoute', true
+router.getState 'firstRoute'
+router.toggleState 'firstRoute'
 ```
 
 
@@ -1118,13 +1116,13 @@ as 'state:#{eventName}', so, for example, on its parent you can listen to 'state
 State models must be inited with a parent (the owner of the state model in which the state model describes the state of). E.g.
 
 ```coffeescript
-    class MyStatedClass
-      constructor: ->
-        @state = new State parent: @
-        @state.set 'inited', true
-        @state.get 'inited'                      # => true
-        @listenTo @state, 'change:inited', ->    # valid
-        @on 'state:change:inited', ->            # also valid
+class MyStatedClass
+  constructor: ->
+    @state = new State parent: @
+    @state.set 'inited', true
+    @state.get 'inited'                      # => true
+    @listenTo @state, 'change:inited', ->    # valid
+    @on 'state:change:inited', ->            # also valid
 ```
 
 
@@ -1135,15 +1133,15 @@ State models must be inited with a parent (the owner of the state model in which
 Easier wasy of creating a new stated object. Inherits from Base.Object
 
 ```coffeescript
-    class Stated extends Base.Stated
-      constructor: ->
-        super
-        @toggleState 'inited'
-        @setState 'active', true
-        @getState 'active' # => true
+class Stated extends Base.Stated
+  constructor: ->
+    super
+    @toggleState 'inited'
+    @setState 'active', true
+    @getState 'active' # => true
 
-      stateDefaults:
-        inited: false
+  stateDefaults:
+    inited: false
 ```
 
 
@@ -1153,10 +1151,10 @@ Easier wasy of creating a new stated object. Inherits from Base.Object
 Simple evented object contrsuctor. Supports full Backbone events API 'on', 'off', 'listenTo', etc
 
 ```coffeescript
-    class MyObject extends Base.Object
-      constructor: ->
-        super
-        @on 'foobar', ->
+class MyObject extends Base.Object
+  constructor: ->
+    super
+    @on 'foobar', ->
 ```
 
 
@@ -1168,11 +1166,11 @@ Simple evented object contrsuctor. Supports full Backbone events API 'on', 'off'
 Constructor for base events. Every bubbled and broadcasted view event injects a first argument that is an instanceof Base.Event which supports
 
 ```coffeescript
-    view.on 'child:change:foo', (e) ->
-      e.preventDefault()   # sets e.defaultPrevented to true
-      e.stopPropagation()  # prevents this event from further propagating
-      e.target             # reference to view that first triggered the event
-      e.currentTarget      # reference to the current view handling the event
+view.on 'child:change:foo', (e) ->
+  e.preventDefault()   # sets e.defaultPrevented to true
+  e.stopPropagation()  # prevents this event from further propagating
+  e.target             # reference to view that first triggered the event
+  e.currentTarget      # reference to the current view handling the event
 ```
 
 
@@ -1186,19 +1184,19 @@ Constructor for base events. Every bubbled and broadcasted view event injects a 
 Despite the examples herein being in coffeescript, like any other coffeescript library base.js does not require that you write any code in coffeescript. Just use the .extend() method to subclass Base classes
 
 ```javascript
-    var View = Base.View.extend({
-      initialize: function () {
-        // Do stuff
-      },
+var View = Base.View.extend({
+  initialize: function () {
+    // Do stuff
+  },
 
-      someMethod: function () {
-        // The JS way of calling super (if you ever find you need it)
-        Base.View.prototype.someMethod.apply(this, arguments);
+  someMethod: function () {
+    // The JS way of calling super (if you ever find you need it)
+    Base.View.prototype.someMethod.apply(this, arguments);
 
-        // Alternatively, you can use Base._super to help out with this
-        return Base._super(this, 'someMethod', arguments);
-      }
-    });
+    // Alternatively, you can use Base._super to help out a bit
+    return Base._super(this, 'someMethod', arguments);
+  }
+});
 ```
 
 
