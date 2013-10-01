@@ -1329,11 +1329,11 @@ This is for several reasons.
 
 2. **Modernity**.
 
-  Don't get stuck with a do-everything-for-you framework and leave yourself at the whim of the framework's creators for what you can and cannot have. Want live templates for ember? Too bad. Angular without dirty model binding? Not an option. You can cross your fingers and pray that everyone will always support the latest, greatest, and sexiest new features, but that simply won't happen - for 2 reasons
+    Don't get stuck with a do-everything-for-you framework and leave yourself at the whim of the framework's creators for what you can and cannot have. Want live templates for ember? Too bad. Angular without dirty model binding? Not an option. You can cross your fingers and pray that everyone will always support the latest, greatest, and sexiest new features, but that simply won't happen - for 2 reasons
 
-  - Frameworks built and maintained by a 'core team', rather than a community of plugin creators, simply cannot keep up with the ever changing js landscape. It simply moves too fast for a small team to follow
+    1) Frameworks built and maintained by a 'core team', rather than a community of plugin creators, simply cannot keep up with the ever changing js landscape. It simply moves too fast for a small team to follow
 
-  - When you are trying to be the one framework to rule them all, feature decisions are daunting. This means that if you want to add awesome new feature 'x',  everyone is now going to have to use it. But not every feature is a fit for everyone. Dirty model checking is awesome for small applications, but they can kill large applications.  Model associations are integral for large applications, but they can be overly complex for small applications.
+    2) When you are trying to be the one framework to rule them all, feature decisions are daunting. This means that if you want to add awesome new feature 'x',  everyone is now going to have to use it. But not every feature is a fit for everyone. Dirty model checking is awesome for small applications, but they can kill large applications.  Model associations are integral for large applications, but they can be overly complex for small applications.
 
 3. **Scalability**
 
