@@ -100,7 +100,7 @@ class Lightbox extends Base.View
 
 CSS (in Stylus):
 
-```sass
+```css
 [ data-view = pict ]
   [ data-mode = single ] &
     position relative
