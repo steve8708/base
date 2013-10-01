@@ -620,7 +620,7 @@ model.changedState 'active'
 model.cloneState()
 model.unsetState 'active'
 model.clearSate()
-
+```
 
 ### State Events
 
@@ -637,14 +637,14 @@ model.clearSate()
 ### State In Templates
 
 ```html
-    <!-- properties in templates are view state properties -->
-    {{hello}}
+<!-- properties in templates are view state properties -->
+{{hello}}
 
-    <!-- bind to models that are nested in state (using relations) -->
-    {{model.property}}
+<!-- bind to models that are nested in state (using relations) -->
+{{model.property}}
 
-    <!-- bind to model state -->
-    {{model.$state.active}}
+<!-- bind to model state -->
+{{model.$state.active}}
 ```
 
 
@@ -688,31 +688,31 @@ Anything can be stored as a module at the app or base level (though the app leve
 
 ```coffeescript
   Base.app 'Pict', ->
-      class Pict extends Base.App
-          constructor: ->
-              super
+    class Pict extends Base.App
+      constructor: ->
+        super
 
   Base.apps.pict is Pict   # => true
   Base.app('pict') is Pict # => true
 
   app.view 'Photo', ->
-      class Photo extends Base.View
-          constructor: ->
-              super
+    class Photo extends Base.View
+      constructor: ->
+        super
 
   app.view('Photo') is Photo # => true
   app.views.Photo is Photo   # => true
 
   app.model 'MyData' ->
-      class MyData extends Base.Model
-          constructor: ->
-              super
+    class MyData extends Base.Model
+      constructor: ->
+        super
 
   app.service 'http', ->
-      return {
-          get: (url, callback) ->
-              $.get url, callback
-      }
+    (
+      get: (url, callback) ->
+        $.get url, callback
+    )
 ```
 
 ### Defining Dependencies
@@ -722,34 +722,35 @@ Module functions are executed as soon as all dependency requirements are met. At
 # Simplest method. A 'PhotoView' arg looks for app.views.Photo,
 # 'httpService' arg looks for app.services.http, etc
 app.view 'Foo' (PhotoView, httpService, MyDataModel) ->
-    class Foo extends Base.View
-        get: (url, callback) ->
-            httpService.get url, callback
+  class Foo extends Base.View
+    get: (url, callback) ->
+      httpService.get url, callback
 
 
  # To avoid minification issues, you can instead separately define
  # an array of dependencies
  app.view 'Foo', ['PhotoView', 'httpService'], (Photo, http) ->
-     class Foo extends Base.View
-         constructor: ->
-             super
+   class Foo extends Base.View
+     constructor: ->
+       super
 ```
 
 ### Require Syntax
 
 ```coffeescript
 Base.define 'foobar', (require) ->
-    # Base can figure out your dependencies. It will first
-    # look in the 'app' context for your module, followed by the
-    # global (Base) context
-    foo = require 'foo'
+  # Base can figure out your dependencies. It will first
+  # look in the 'app' context for your module, followed by the
+  # global (Base) context
+  foo = require 'foo'
 
-    bar = app.require 'bar'
+  bar = app.require 'bar'
 
-    baz = Base.require 'baz'
+  baz = Base.require 'baz'
 
 app.define 'FooView', ->
-    class Foo extends
+  class Foo extends
+
 ```
 
 # Core Classes
@@ -771,8 +772,6 @@ class App extends Base.App
   relations:
     picts: PictsCollection
 ```
-
-
 
 
 ## Base.View
@@ -875,10 +874,8 @@ view.destroy()
 # an onRequestSomeQuestion method. The request is sent to the
 # first parent with a handler and then the request stops propagating
 view.request 'someQuestion', (response) ->
+
 ```
-
-
-
 
 ## Base.Model
 
