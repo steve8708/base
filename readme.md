@@ -46,7 +46,7 @@ Built with [Backbone](http://backbonejs.org/), [jQuery](http://jquery.com/), and
 
 HTML (DOM updates automatically on model changes)
 
-    :::html
+```html
     <body base-app="myApp">
       <h1>{{user.name}}</h1>
       <div class="controls">
@@ -62,11 +62,12 @@ HTML (DOM updates automatically on model changes)
       <base-view type="lightbox" visible="{{!!activePict}}" on-click="hide: true ">
         <img src="{{activePict.url}}" outlet="pict">
       </base-view>
-    </bod>
+    </body>
+```
 
 JS (in Coffeescript):
 
-    :::coffeescript
+```coffeescript
     class App extends Base.App
       plugins:
         lazyLoadImages: true
@@ -85,15 +86,15 @@ JS (in Coffeescript):
         showLightbox: false
 
       onChangeShowLightbox: -> @doSomething()
-
+```
 
 CSS (in Stylus):
 
-    :::css
+```css
     [ data-view = pict ]
       [ data-mode = single ] &
         position relative
-
+```
 
 
 
@@ -113,7 +114,7 @@ Base live templates are built on top of [Ractive](http://www.ractivejs.org/), ch
 
 ### Tags
 
-    :::html
+```html
     {{someGlobalProperty}}
 
     <!-- 'EACH' -->
@@ -134,11 +135,11 @@ Base live templates are built on top of [Ractive](http://www.ractivejs.org/), ch
     {{^someNonArray}}
       <h1> {{someNonArray}} is falsey! </h1>
     {{/someNonArray}}
-
+```
 
 ### Expressions
 
-    :::html
+```html
     <!-- Expressions -->
     {{ name ? name : 'You have no name!' }}
 
@@ -153,10 +154,11 @@ Base live templates are built on top of [Ractive](http://www.ractivejs.org/), ch
     {{^ typeof bar is 'string'}}
       Bar is not a string!
     {{/}}
+```
 
 ### Objects and methods
 
-    :::html
+```html
     <!-- Current view methods -->
     {{ $view.getProduct( product ) }}
 
@@ -193,7 +195,7 @@ Base live templates are built on top of [Ractive](http://www.ractivejs.org/), ch
     {{# shareType == 'photo' && $user.type == 'brand' }}
       Something special just for brands shareing photos
     {{/}}
-
+```
 
 ### Event binding
 
@@ -202,30 +204,32 @@ with object getters
 
 #### HTML
 
-    :::html
+```html
     <button on-click="someButtonWasClicked"></button>
     <button on-hover="set: 'foo', bar"></button>
     <button on-touchend="activate: foo"></button>
+```
 
 #### JS (in coffeescript)
 
-    :::coffeescript
+```coffeescript
     class View extends Base.View
       someButtonWasClicked: (e) ->
         $clickedButton = $ e.currentTarget
 
       activate: (name) ->
         name # => 'foo'
-
+```
 
 ### Outlets
 
 #### HTML
-    :::html
+```html
     <button outlet="foo"></button>
+```
 
 #### JS (in coffeescript)
-    :::coffeescript
+```coffeescript
     class View extends Base.View
       construcotr: ->
         super
@@ -238,7 +242,7 @@ with object getters
 
       # Simplest way to bind
       onClickFoo: (e) ->
-
+```
 
 
 
@@ -252,7 +256,7 @@ The ultimate goal here is to maximize code reusability across applications, prov
 
 ### Using Plugins
 
-    :::coffeescript
+```coffeescript
     Base.plugins.view.defaults.lazyLoad = true
     App.plugins.defaults.state = true
 
@@ -263,11 +267,11 @@ The ultimate goal here is to maximize code reusability across applications, prov
         fadeInImages:
           className: 'fade'
           selector: '.lazy-loaded'
-
+```
 
 ### Creating Plugins
 
-    :::coffeescript
+```coffeescript
     # Plugin code runs on initialize, is called in the context of the module
     # it is being applied to, and can retutn methods to apply to the module
     Base.view.plugin 'ractive', (view, config) ->
@@ -299,7 +303,7 @@ The ultimate goal here is to maximize code reusability across applications, prov
 
     # Plugins can also have dependences
     App.view.plugin 'ractive', ['view:state'], ->
-
+```
 
 
 
@@ -311,15 +315,16 @@ Web components are custom HTML tags with special behaviors for making applicatio
 
 ### Using Components
 
-    :::html
+```html
     <base-view type="foo" foo="bar"></base-view>
     <base-collection subject="picts" view="pict"></base-collection>
     <base-icon name="foo"></base-icon>
     <base-switch name="bar"></base-switch>
+```
 
 ### Creating Components
 
-    :::coffeescript
+```coffeescript
     # add child views with simple markup
     Base.component 'view', ($el, attributes) ->
       view = new app.views[attributes.type] _.extend attributes, parent: @
@@ -343,7 +348,7 @@ Web components are custom HTML tags with special behaviors for making applicatio
     Base.component 'switch', ($el, attributes) ->
       $input = $ "<input type='checkbox' type="switch" name='#{attributes.name}>'"
       $input.on 'click', => $el.prop 'checked', $input.prop 'checked'
-
+```
 
 
 
@@ -356,7 +361,7 @@ Web components are custom HTML tags with special behaviors for making applicatio
 ### Defining Nestings in JS
 
 
-    :::coffeescript
+```coffeescript
     class View extends Base.View
       constructor: ->
 
@@ -366,19 +371,20 @@ Web components are custom HTML tags with special behaviors for making applicatio
         @insertView '.some-selector', new SomeView
 
         @subView new SomeView
-
+```
 
 ### Defining Nesting in Markup
 
-    :::html
+```html
     <!--
         This is equivalent to parnetView.subView new MyViewName foo: 'bar'
     -->
     <base-view type="MyViewName" foo="bar"></base-view>
+```
 
 ### Event Bubbling, Emitting, and Broadcasting
 
-    :::coffeescript
+```coffeescript
     class MyView extends Base.View
       render: ->
         super
@@ -425,11 +431,11 @@ Web components are custom HTML tags with special behaviors for making applicatio
       onParentMyViewRendered: ->
       # Runs only when this views first (closest) parent broadcasts 'rendered'
       onFirstParentRende: ->red
-
+```
 
 ### Event Object
 
-    :::coffeescript
+```coffeescript
     # All emitted and broadcasted events inject a first
     # argument, a Base.Event (similar to a DOM event object)
     # that gives listeners some extra information and actions
@@ -448,11 +454,11 @@ Web components are custom HTML tags with special behaviors for making applicatio
         # in this case the currentTarget is this view
         if e.currentTarget is @
           true
-
+```
 
 ### Accessing View Nesting and Management
 
-    :::coffeescript
+```coffeescript
     view.children           # => Base.List (evented array) of children
     view.parent             # => view's immediate parent
 
@@ -472,11 +478,11 @@ Web components are custom HTML tags with special behaviors for making applicatio
     # All view accessors can also take iterators (functions)
     view.childView (view) -> view.isActive()
     view.parentViews (view) -> view.
-
+```
 
 ### Child List
 
-    :::coffeescript
+```coffeescript
     # Or you can always loop through children yourself
     # view.children inherits from Base.List, so it supports
     # all native array methods as well as all underscore
@@ -487,22 +493,21 @@ Web components are custom HTML tags with special behaviors for making applicatio
     view.children.max (child) -> child.get 'height'
     view.children.sortBy (child) -> child.isActive()
     view.children.last()
+```
 
 ### Child List Events
 
-    :::coffeescript
+```coffeescript
     view.children.on 'add', (childView) ->    #  a new child view as added
     view.children.on 'remove', (childView) -> #  a child view was removed
     view.childre.non 'reset', ->              # children were reset
-
-
-
+```
 
 
 ## Nested Models and Collections
 \- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-    :::coffeescript
+```coffeescript
     class PhotoModel extensd Base.Model
       constructor: ->
         super
@@ -558,7 +563,7 @@ Web components are custom HTML tags with special behaviors for making applicatio
 
       onChangePhotoUrl: ->
       onChangePhoto: ->
-
+```
 
 
 
@@ -571,7 +576,7 @@ without clashing with data you want synced with your backend (or other persisten
 
 ### State Object
 
-    :::coffeescript
+```coffeescript
     model.state # => Base.State instance that inherits from Base.Model
     model.state.get 'active'
 
@@ -580,10 +585,11 @@ without clashing with data you want synced with your backend (or other persisten
     view.set 'active', true  # equivalent to view.state.set 'active', true
     view.toJSON()            # equivalent to view.state.toJSON()
     view.toggle 'active'     # equivalent to view.state.toggle 'active'
+```
 
 ### Configuration
 
-    :::coffeescript
+```coffeescript
     class Collection extends Base.Collection
       # configure state defaults
       # this is valid for all stated classes (e.g. router, model, collection, etc)
@@ -597,12 +603,13 @@ without clashing with data you want synced with your backend (or other persisten
       # delegates to state.relations
       relations:
           foo: Foo
+```
 
 
 ### State Methods
 All foolowing methods work for all stated classes (routers, models, views, collections, etc)
 
-    :::coffeescript
+```coffeescript
     model.setState 'active', true # equivalent to model.state.set 'active', true
     model.getState 'active'       # equivalent to model.state.get 'active'
     model.toggleState 'active'    # equivalent to model.state.toggle 'active'
@@ -616,7 +623,7 @@ All foolowing methods work for all stated classes (routers, models, views, colle
 
 ### State Events
 
-    :::coffeescript
+```coffeescript
     class Model extends Base.Model
       constructor: ->
         super
@@ -624,11 +631,11 @@ All foolowing methods work for all stated classes (routers, models, views, colle
         @on 'state:change:active', ->
 
        onStateChangeActive: ->
-
+```
 
 ### State In Templates
 
-    :::html
+```html
     <!-- properties in templates are view state properties -->
     {{hello}}
 
@@ -637,8 +644,7 @@ All foolowing methods work for all stated classes (routers, models, views, colle
 
     <!-- bind to model state -->
     {{model.$state.active}}
-
-
+```
 
 
 
@@ -647,7 +653,7 @@ All foolowing methods work for all stated classes (routers, models, views, colle
 
 Any event on any evented object (model, view, collection, etc) can be subscribed to directly by camelizing the event name.
 
-    :::coffeescript
+```coffeescript
     class View extends Base.View
       onChange: (stateModel) ->
       # triggers on 'change:active'
@@ -671,9 +677,7 @@ Any event on any evented object (model, view, collection, etc) can be subscribed
 
       # triggers on 'remove'
       onRemove: (model) ->
-
-
-
+```
 
 
 
@@ -683,7 +687,7 @@ Any event on any evented object (model, view, collection, etc) can be subscribed
 ### Defining a module
 Anything can be stored as a module at the app or base level (though the app level is most recommended).
 
-    :::coffeescript
+```coffeescript
     Base.app 'Pict', ->
         class Pict extends Base.App
             constructor: ->
@@ -711,10 +715,12 @@ Anything can be stored as a module at the app or base level (though the app leve
                 $.get url, callback
         }
 
+```
+
 ### Defining Dependencies
 Module functions are executed as soon as all dependency requirements are met. At this point the module is set to the value of the function called and any modules whose last remaining dependency is the result of the function just called while also get called.
 
-    :::coffeescript
+```coffeescript
     # Simplest method. A 'PhotoView' arg looks for app.views.Photo,
     # 'httpService' arg looks for app.services.http, etc
     app.view 'Foo' (PhotoView, httpService, MyDataModel) ->
@@ -729,11 +735,11 @@ Module functions are executed as soon as all dependency requirements are met. At
          class Foo extends Base.View
              constructor: ->
                  super
-
+```
 
 ### Require Syntax
 
-    :::coffeescript
+```coffeescript
     Base.define 'foobar', (require) ->
         # Base can figure out your dependencies. It will first
         # look in the 'app' context for your module, followed by the
@@ -746,7 +752,7 @@ Module functions are executed as soon as all dependency requirements are met. At
 
     app.define 'FooView', ->
         class Foo extends
-
+```
 
 # Core Classes
 ---
@@ -756,7 +762,7 @@ Module functions are executed as soon as all dependency requirements are met. At
 
 ### Class
 
-    :::coffeescript
+```coffeescript
     # Inherits from and supports full Base.View API (below)
     class App extends Base.App
       constructor: ->
@@ -768,8 +774,7 @@ Module functions are executed as soon as all dependency requirements are met. At
 
       relations:
         picts: PictsCollection
-
-
+```
 
 
 
@@ -779,7 +784,7 @@ Module functions are executed as soon as all dependency requirements are met. At
 
 ### Class
 
-    :::coffeescript
+```coffeescript
     class View extends Base.View
       # View state defaults
       defaults:
@@ -823,11 +828,11 @@ Module functions are executed as soon as all dependency requirements are met. At
 
       # Send a response to a child view requesting some information
       onRequestSomeQuestion: ->
-
+```
 
 ### Methods
 
-    :::coffeescript
+```coffeescript
     view.subView new View         # add a nested view
 
     view.insertView '.foo', view  # add a nested view at selector
@@ -875,7 +880,7 @@ Module functions are executed as soon as all dependency requirements are met. At
     # an onRequestSomeQuestion method. The request is sent to the
     # first parent with a handler and then the request stops propagating
     view.request 'someQuestion', (response) ->
-
+```
 
 
 
@@ -885,7 +890,7 @@ Module functions are executed as soon as all dependency requirements are met. At
 
 ### Class
 
-    :::coffeescript
+```coffeescript
     # Models are inherited from backbone models
     class Model extends Base.Model
       stateDefaults:
@@ -904,11 +909,12 @@ Module functions are executed as soon as all dependency requirements are met. At
       # Confogire nested model associations
       relations:
         pict: PictModel
+```
 
 
 ### Methods
 
-    :::coffeescript
+```coffeescript
     # State Syntax Sugar
     model.state                 # => sate model (inherited from Base.State)
     model.setState 'foo', bar   # equivalent of model.state.set 'foo', bar
@@ -928,15 +934,16 @@ Module functions are executed as soon as all dependency requirements are met. At
 
     # State Events
     model.on 'state:change:foo.bar', ->   # same as model.state.on 'change:foo.bar'
+```
 
 ### HTML
 
-    :::html
+```html
     <!-- Update DOM on model state changes -->
     {{#model.$state.active }}
       <h1>I am active!</h1>
     {{/}}
-
+```
 
 
 
@@ -949,7 +956,7 @@ and anywhere via templates
 
 JS (in Coffeescript)
 
-    :::coffeescript
+```coffeescript
     app.singleton ->
       class User extends Base.Singleton
         defaults:
@@ -957,12 +964,14 @@ JS (in Coffeescript)
 
     app.mySingleton is MySingleton # => true
 
+```
+
 HTML
 
-    :::html
+```html
     <!-- All singletons are accessible in templates prefixed by $ -->
     <h1>{{$user.name}}</h1>
-
+```
 
 
 
@@ -972,15 +981,16 @@ HTML
 
 ### Class
 
-    :::coffeescript
+```coffeescript
       # Collections are inherited from backbone collections
       class Collection extends Base.Collection
         stateDefaults:
           synced: false
+```
 
 ### Method
 
-    :::coffeescript
+```coffeescript
     # State Syntax Sugar
     collection.state                   # => sate model (inherited from Base.State)
     collection.setState 'synced', true # same as collection.state.set 'foo', bar
@@ -988,15 +998,16 @@ HTML
     collection.toggleState 'synced'    # same as collection.state.toggle 'active'
 
     collection.on 'state:change:synced', -> # same as model.state.on 'change:foo'
+```
 
 ### HTML
 
-    :::html
+```html
     <!-- Update DOM on collection state changes -->
     {{#collection.$state.synced }}
       <h1>I've been synced!</h1>
     {{/}}
-
+```
 
 
 
@@ -1016,7 +1027,7 @@ An evented array, similar to a backbone collection, but can store any type of da
 
 ### Class
 
-    :::coffeescript
+```coffeescript
     class List extends Base.List
       # Any class (constructor) can be a model that new additions
       # passed to the list are constructed by. That or set no model
@@ -1034,12 +1045,12 @@ An evented array, similar to a backbone collection, but can store any type of da
       find: (e) ->
         log 'someone is looking for something!'
         super
-
+```
 
 
 ### Methods
 
-    :::coffeescript
+```coffeescript
     list = new Base.List
     list.on 'add', -> log 'added!'
     list.push 'hello!' # triggers the 'add' event
@@ -1074,7 +1085,7 @@ An evented array, similar to a backbone collection, but can store any type of da
     list.hasState 'active'
     list.state.toJSON()
     list.on 'state:change:active', ->
-
+```
 
 
 
@@ -1084,7 +1095,7 @@ An evented array, similar to a backbone collection, but can store any type of da
 
 ### Class
 
-    :::coffeescript
+```coffeescript
     # Inherits from Backbone.Router
     class Router extends Base.Router
       stateDeafults:
@@ -1094,15 +1105,17 @@ An evented array, similar to a backbone collection, but can store any type of da
         '*': (route) -> @setState 'firstRoute', false
 
       onChangeFirstRoute: (stateModel, value, options) ->
+```
+
 
 ### Methods
 
-    :::coffeescript
+```coffeescript
     # Supports all stated methods
     router.setState 'firstRoute', true
     router.getState 'firstRoute'
     router.toggleState 'firstRoute'
-
+```
 
 
 
@@ -1115,7 +1128,7 @@ as 'state:#{eventName}', so, for example, on its parent you can listen to 'state
 
 State models must be inited with a parent (the owner of the state model in which the state model describes the state of). E.g.
 
-    :::coffeescript
+```coffeescript
     class MyStatedClass
       constructor: ->
         @state = new State parent: @
@@ -1123,7 +1136,7 @@ State models must be inited with a parent (the owner of the state model in which
         @state.get 'inited'                      # => true
         @listenTo @state, 'change:inited', ->    # valid
         @on 'state:change:inited', ->            # also valid
-
+```
 
 
 
@@ -1133,7 +1146,7 @@ State models must be inited with a parent (the owner of the state model in which
 
 Easier wasy of creating a new stated object. Inherits from Base.Object
 
-    :::coffeescript
+```coffeescript
     class Stated extends Base.Stated
       constructor: ->
         super
@@ -1143,8 +1156,7 @@ Easier wasy of creating a new stated object. Inherits from Base.Object
 
       stateDefaults:
         inited: false
-
-
+```
 
 
 
@@ -1153,12 +1165,12 @@ Easier wasy of creating a new stated object. Inherits from Base.Object
 
 Simple evented object contrsuctor. Supports full Backbone events API 'on', 'off', 'listenTo', etc
 
-    :::coffeescript
+```coffeescript
     class MyObject extends Base.Object
       constructor: ->
         super
         @on 'foobar', ->
-
+```
 
 
 
@@ -1169,13 +1181,13 @@ Simple evented object contrsuctor. Supports full Backbone events API 'on', 'off'
 
 Constructor for base events. Every bubbled and broadcasted view event injects a first argument that is an instanceof Base.Event which supports
 
-    :::coffeescript
+```coffeescript
     view.on 'child:change:foo', (e) ->
       e.preventDefault()   # sets e.defaultPrevented to true
       e.stopPropagation()  # prevents this event from further propagating
       e.target             # reference to view that first triggered the event
       e.currentTarget      # reference to the current view handling the event
-
+```
 
 
 
@@ -1188,7 +1200,7 @@ Constructor for base events. Every bubbled and broadcasted view event injects a 
 
 Despite the examples herein being in coffeescript, like any other coffeescript library base.js does not require that you write any code in coffeescript. Just use the .extend() method to subclass Base classes
 
-    :::javascript
+```javascript
     var View = Base.View.extend({
       initialize: function () {
         // Do stuff
@@ -1202,6 +1214,7 @@ Despite the examples herein being in coffeescript, like any other coffeescript l
         return Base._super(this, 'someMethod', arguments);
       }
     });
+```
 
 
 # Comparison to other frameworks

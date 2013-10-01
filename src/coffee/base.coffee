@@ -1,7 +1,7 @@
-###
-  TODO: AMD support ( require, define )
-  TODO: UNIT TESTS
-###
+# TODO:
+#   AMD support ( require, define )
+#   Unit tests
+#   Break into to multiple files
 
 
 # Setup - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -23,7 +23,6 @@ DOMEventList = 'blur, focus, focusin, focusout, load, resize, scroll,
 
 
 # IE function.name shim
-
 if not Function::name? and Object.defineProperty?
   Object.defineProperty Function::, 'name',
     get: ->
