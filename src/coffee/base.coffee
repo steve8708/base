@@ -1123,7 +1123,7 @@ Base.components =
     if collection
       bindCollection collection
     else
-      @on "change:#{path}", => bindCollection @get path
+      @once "change:#{path}", => bindCollection @get path
 
 
   view: ($el, view, attrs) ->

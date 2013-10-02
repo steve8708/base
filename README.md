@@ -682,6 +682,7 @@ class Collection extends Base.Collection
 
 
 ## Dependency Injection
+NOTE: this feature is a work in progress, it is not yet ready for usage in development or production
 
 ### Defining a module
 Anything can be stored as a module at the app or base level (though the app level is most recommended).

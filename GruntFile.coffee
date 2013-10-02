@@ -82,10 +82,6 @@ module.exports = (grunt) ->
           ]
 
     coffeelint:
-      options:
-        # We need backticks in pre-config.coffee
-        no_backticks:
-          level: 'ignore'
       src: [ 'src/coffee/**/*.coffee', 'GruntFile.coffee', 'tasks/*.coffee' ]
 
     jade:
