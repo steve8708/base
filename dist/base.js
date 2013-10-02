@@ -1,4 +1,4 @@
-/* base.js v0.0.28 */ 
+/* base.js v0.0.29 */ 
 
 (function (Ractive) {
 
@@ -105,12 +105,6 @@
     };
   };
 })(window.Ractive || require && require('ractive'));
-/*
-  TODO: AMD support ( require, define )
-  TODO: UNIT TESTS
-*/
-
-
 (function() {
   var Base, BasicView, DOMEventList, Ractive, addState, appSurrogate, arr, callbackStringSplitter, camelize, capitalize, className, currentApp, dasherize, deserialize, getModuleArgs, invokeModule, invokeWithArgs, method, module, moduleQueue, moduleType, moduleTypes, originalBase, parseRequirements, prepareModule, subject, type, uncapitalize, _base, _fn, _fn1, _fn2, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _len5, _len6, _len7, _m, _n, _o, _p, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7,
     __hasProp = {}.hasOwnProperty,
@@ -882,10 +876,9 @@
     };
 
     View.prototype.request = function() {
-      var args, callback, event, eventName, eventObj, parent, response, _results;
+      var args, callback, event, eventName, eventObj, parent;
       eventName = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
       parent = this;
-      _results = [];
       while (parent = parent.parent) {
         eventObj = parent["onRequest" + (capitalize(eventName))] || _.last(parent._events["request:" + eventName]);
         if (eventObj) {
@@ -894,13 +887,9 @@
             target: this
           });
           callback = eventObj.callback || eventObj;
-          response = callback.call.apply(callback, [eventObj.ctx || parent, event].concat(__slice.call(args)));
-          break;
-        } else {
-          _results.push(void 0);
+          return callback.call.apply(callback, [eventObj.ctx || parent, event].concat(__slice.call(args)));
         }
       }
-      return _results;
     };
 
     View.prototype.emit = function() {
@@ -1871,7 +1860,7 @@
       if (collection) {
         return bindCollection(collection);
       } else {
-        return this.on("change:" + path, function() {
+        return this.once("change:" + path, function() {
           return bindCollection(_this.get(path));
         });
       }
