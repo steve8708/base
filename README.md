@@ -11,7 +11,7 @@ MVC frameworks](http://todomvc.com/) into one cohesive, highly performant, maxim
 Built with [Backbone](http://backbonejs.org/), [jQuery](http://jquery.com/), and [Ractive](http://www.ractivejs.org/)
 
 # Contents
-* [Status](#status)
+* [Project Status](#project-status)
 * [Simple Example](#simple-example)
 * [Core Concepts](#core-concepts)
     * [Live Templates](#live-templates)
@@ -42,7 +42,7 @@ Built with [Backbone](http://backbonejs.org/), [jQuery](http://jquery.com/), and
 * [Future of Base](#future-of-base)
 
 
-# Status
+# Project Status
 
 Base is in alpha. Its API should not yet be considered frozen and it is still
 evolving. But, with that said, Base is currently being used in production
