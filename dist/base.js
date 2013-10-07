@@ -1,5 +1,3 @@
-/* base.js v0.0.29 */ 
-
 (function (Ractive) {
 
   Ractive.adaptors.backboneAssociatedModel = function ( model, path ) {
@@ -993,13 +991,13 @@
         this.template = _JST["src/templates/app.html"];
       }
       $win = $(window);
-      $win.on("resize.appResize-" + this.cid, _.debounce(50, function() {
+      $win.on("resize.appResize-" + this.cid, _.debounce(function() {
         return _this.set({
           windowWidth: $win.width(),
           windowHeight: $win.height(),
           documentWidth: document.width,
           documentHeight: document.height
-        });
+        }, 50);
       }));
       App.__super__.constructor.apply(this, arguments);
     }
