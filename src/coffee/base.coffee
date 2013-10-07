@@ -559,12 +559,13 @@ class Base.App extends Base.View
     @template ?= _JST["src/templates/app.html"]
 
     $win = $ window
-    $win.on "resize.appResize-#{@cid}", _.debounce 50, =>
+    $win.on "resize.appResize-#{@cid}", _.debounce =>
       @set
         windowWidth: $win.width(),
         windowHeight: $win.height(),
         documentWidth: document.width,
         documentHeight: document.height
+      , 50
 
     super
 
