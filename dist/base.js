@@ -1,113 +1,5 @@
-<<<<<<< HEAD
-/* base.js v0.0.30 */ 
+/* base.js v0.0.31 */ 
 
-=======
-(function (Ractive) {
-
-  Ractive.adaptors.backboneAssociatedModel = function ( model, path ) {
-    var settingModel, settingView, setModel, setView, pathMatcher, pathLength, prefix, modelChangeEventHandler;
-
-    if ( path ) {
-      path += '.';
-      pathMatcher = new RegExp( '^' + path.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&') );
-      pathLength = path.length;
-    }
-
-    modelChangeEventHandler = function ( eventName ) {
-      var eventNameSplit, eventType, keypath, value, contains;
-
-      eventNameSplit = eventName.split( ':' );
-      eventType = eventNameSplit[0];
-      keypath = eventNameSplit[1];
-      contains = function (arr, item) {
-        return arr.indexOf(item) !== -1;
-      };
-
-      if ( contains(['change', 'remove', 'add', 'reset'], eventType) !== -1 && keypath  ) {
-        value = model.get( keypath );
-
-        if ( value && value.toJSON ) {
-          value = value.toJSON(true);
-        }
-
-        setView( keypath, value );
-      }
-    };
-
-
-    return {
-      init: function ( view ) {
-
-        // if no path specified...
-        if ( !path ) {
-          setView = function ( keypath, value ) {
-            if ( !settingModel ) {
-              settingView = true;
-              view.set( keypath, value );
-              settingView = false;
-            }
-          };
-
-          setModel = function ( keypath, value ) {
-            if ( !settingView ) {
-              settingModel = true;
-              model.set( keypath, value );
-              settingModel = false;
-            }
-          };
-        }
-
-        else {
-          prefix = function ( attrs ) {
-            var attr, result;
-
-            result = {};
-
-            for ( attr in attrs ) {
-              if ( {}.hasOwnProperty.call( attrs, attr ) ) {
-                result[ path + attr ] = attrs[ attr ];
-              }
-            }
-
-            return result;
-          };
-
-          setView = function ( keypath, value ) {
-            if ( !settingModel ) {
-              settingView = true;
-              var changed = {};
-              changed[keypath] = value;
-              view.set( prefix( model.changed ) );
-              settingView = false;
-            }
-          };
-
-          setModel = function ( keypath, value ) {
-            if ( !settingView ) {
-              if ( pathMatcher.test( keypath ) ) {
-                settingModel = true;
-                model.set( keypath.substring( pathLength ), value );
-                settingModel = false;
-              }
-            }
-          };
-        }
-
-        model.on( 'all', modelChangeEventHandler );
-        view.on( 'set', setModel );
-
-        // initialise
-        view.set( path ? prefix( model.toJSON(true) ) : model.toJSON(true) );
-      },
-
-      teardown: function ( view ) {
-        model.off( 'all', modelChangeEventHandler );
-        view.off( 'set', setModel );
-      }
-    };
-  };
-})(window.Ractive || require && require('ractive'));
->>>>>>> feeea6895f770d814febe341166dfd350f3a0a0a
 (function() {
   var Base, BasicView, DOMEventList, Ractive, addState, appSurrogate, arr, callbackStringSplitter, camelize, capitalize, className, currentApp, dasherize, deserialize, getModuleArgs, invokeModule, invokeWithArgs, method, module, moduleQueue, moduleType, moduleTypes, originalBase, parseRequirements, prepareModule, subject, type, uncapitalize, _base, _fn, _fn1, _fn2, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _len5, _len6, _len7, _m, _n, _o, _p, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7,
     __hasProp = {}.hasOwnProperty,
@@ -993,23 +885,14 @@
         this.template = _JST["src/templates/app.html"];
       }
       $win = $(window);
-<<<<<<< HEAD
       $win.on("resize.appResize-" + this.cid, _.debounce((function() {
-=======
-      $win.on("resize.appResize-" + this.cid, _.debounce(function() {
->>>>>>> feeea6895f770d814febe341166dfd350f3a0a0a
         return _this.set({
           windowWidth: $win.width(),
           windowHeight: $win.height(),
           documentWidth: document.width,
           documentHeight: document.height
-<<<<<<< HEAD
         });
       }), 50));
-=======
-        }, 50);
-      }));
->>>>>>> feeea6895f770d814febe341166dfd350f3a0a0a
       App.__super__.constructor.apply(this, arguments);
     }
 
