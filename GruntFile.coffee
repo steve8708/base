@@ -54,14 +54,14 @@ module.exports = (grunt) ->
       build:
         dest: 'build/base.js'
         src: [
-          'src/js/ractive-backbone-associated-model-adaptor.js'
+          # 'src/js/ractive-backbone-associated-model-adaptor.js'
           'build/base.coffee.js'
         ]
 
       dist:
         dest: 'dist/base.js'
         src: [
-          'src/js/ractive-backbone-associated-model-adaptor.js'
+          # 'src/js/ractive-backbone-associated-model-adaptor.js'
           'build/base.coffee.js'
         ]
 

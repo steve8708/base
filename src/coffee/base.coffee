@@ -16,10 +16,10 @@ Ractive = window.Ractive or \
 arr = []
 callbackStringSplitter = /\s*[,:()]+\s*/
 
-DOMEventList = 'blur, focus, focusin, focusout, load, resize, scroll,
-  unload, click, dblclick, mousedown, mouseup, mousemove, mouseover,
-  mouseout, mouseenter, mouseleave, change, select, submit, keydown,
-  keypress, keyup, error, touchstart, touchend, touchmove'.split /\s*,\s*/
+DOMEventList = 'blur focus focusin focusout load resize scroll
+  unload click dblclick mousedown mouseup mousemove mouseover
+  mouseout mouseenter mouseleave change select submit keydown
+  keypress keyup error touchstart touchend touchmove'.split /\s+/
 
 
 # IE function.name shim
@@ -177,7 +177,7 @@ class Base.View extends Backbone.View
     @_hasRendered = true
     @trigger 'before:render'
     @beforeRender() if @beforeRender
-    @_initRactive() if @ractive
+    # @_initRactive() if @ractive
     @trigger 'render'
     @_bindComponents()
     @afterRender() if @afterRender
@@ -559,12 +559,13 @@ class Base.App extends Base.View
     @template ?= _JST["src/templates/app.html"]
 
     $win = $ window
-    $win.on "resize.appResize-#{@cid}", _.debounce 50, =>
+    $win.on "resize.appResize-#{@cid}", _.debounce ( =>
       @set
         windowWidth: $win.width(),
         windowHeight: $win.height(),
         documentWidth: document.width,
         documentHeight: document.height
+    ), 50
 
     super
 
@@ -1043,39 +1044,25 @@ capitalize = (str) ->
   if str then ( str[0].toUpperCase() + str.substring 1 ) else ''
 
 addState = (obj) ->
-  if obj not instanceof Base.State
-    stateAttributes = obj.state or {}
-    obj.blacklist ?= []
-    obj.blacklist.push '$state'
+  return if obj instanceof Base.State
 
-    if obj instanceof Base.Model
-      obj.set '$state', _.defaults stateAttributes, obj.stateDefaults
-      state = obj.state = obj.get '$state'
-    else
-      stateAttributes = _.defaults stateAttributes, obj.stateDefaults \
-        or obj.defaults
+  if obj instanceof Base.View or obj instanceof Base.Router
+    obj.state = new Base.State obj.defaults,
+      relations: obj.relations
+      compute: obj.compute
+      defaults: obj.defaults
 
-      state = obj.state = new Base.State stateAttributes, obj.stateOptions, obj
-      state.associations ?= []
-      state.associations.push
-        type: 'one'
-        key: '$parent'
-        relatedModel: Base.State
+    obj.state.on 'all', -> obj.trigger arguments...
+  else
+    obj.state = new Base.State obj.stateDefaults, _.defaults obj.stateAttributes,
+      relations: obj.stateRelations
+      compute: obj.stateCompute
+      defaults: obj.stateDefaults
 
-      # FIXME: this could get really slow with deeply nested views
-      # and copying them over
-      if @parent and @parent.state
-        state.set '$parent', @parent.state
-        @listenTo @parent.state, 'all', (eventName, args) =>
-          split = eventName.split ':'
-          if split[0] is 'change' and split[1]
-            @set "$parent.#{split[1]}", @parent.state.get split[1]
+    obj.state.on "all", (eventName, args...) ->
+      obj.trigger "state:#{eventName}", args...
 
-    state.set '$state', state if obj instanceof Base.View
-    state.on 'all', (eventName, args...) =>
-      split = eventName.split ':'
-      if split[0] is 'change' and split[1]
-        obj.trigger "change:$state.#{split[1]}", args...
+  obj.state.parent = obj
 
 uncapitalize = (str) ->
   if str then ( str[0].toLowerCase() + str.substring 1 ) else ''
@@ -1224,7 +1211,7 @@ Base.plugins =
       # FIXME: this may have performance issues
       @on 'render', =>
         # FIXME: maybe don't use ractive nodes
-        nodes = ( @ractive.fragment.items or []).map (item) -> item.node
+        nodes = @liveTemplate and @liveTemplate.hiddenDOM or []
         $items = $ '[outlet], [base-outlet]', nodes
 
         for el in $items
@@ -1330,6 +1317,7 @@ Base.defaults =
       filters: true
       ractive: true
       components: true
+      liveTemplates: true
       manage: true
       inherit: true
       map: true
