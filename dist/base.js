@@ -1,3 +1,5 @@
+/* base.js v0.0.30 */ 
+
 (function() {
   var Base, BasicView, DOMEventList, Ractive, addState, appSurrogate, arr, callbackStringSplitter, camelize, capitalize, className, currentApp, dasherize, deserialize, getModuleArgs, invokeModule, invokeWithArgs, method, module, moduleQueue, moduleType, moduleTypes, originalBase, parseRequirements, prepareModule, subject, type, uncapitalize, _base, _fn, _fn1, _fn2, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _len5, _len6, _len7, _m, _n, _o, _p, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7,
     __hasProp = {}.hasOwnProperty,
@@ -1637,51 +1639,33 @@
   };
 
   addState = function(obj) {
-    var state, stateAttributes,
-      _this = this;
-    if (!(obj instanceof Base.State)) {
-      stateAttributes = obj.state || {};
-      if (obj.blacklist == null) {
-        obj.blacklist = [];
-      }
-      obj.blacklist.push('$state');
-      if (obj instanceof Base.Model) {
-        obj.set('$state', _.defaults(stateAttributes, obj.stateDefaults));
-        state = obj.state = obj.get('$state');
-      } else {
-        stateAttributes = _.defaults(stateAttributes, obj.stateDefaults || obj.defaults);
-        state = obj.state = new Base.State(stateAttributes, obj.stateOptions, obj);
-        if (state.associations == null) {
-          state.associations = [];
-        }
-        state.associations.push({
-          type: 'one',
-          key: '$parent',
-          relatedModel: Base.State
-        });
-        if (this.parent && this.parent.state) {
-          state.set('$parent', this.parent.state);
-          this.listenTo(this.parent.state, 'all', function(eventName, args) {
-            var split;
-            split = eventName.split(':');
-            if (split[0] === 'change' && split[1]) {
-              return _this.set("$parent." + split[1], _this.parent.state.get(split[1]));
-            }
-          });
-        }
-      }
-      if (obj instanceof Base.View) {
-        state.set('$state', state);
-      }
-      return state.on('all', function() {
-        var args, eventName, split;
+    var stateAttrs;
+    if (obj instanceof Base.State) {
+      return;
+    }
+    stateAttrs = obj.stateAttributes;
+    if (obj instanceof Base.View || obj instanceof Base.Router) {
+      obj.state = new Base.State(obj.defaults, _.defaults(stateAttrs({
+        relations: obj.relations,
+        compute: obj.compute,
+        defaults: obj.defaults
+      })));
+      obj.state.on('all', function() {
+        return obj.trigger.apply(obj, arguments);
+      });
+    } else {
+      obj.state = new Base.State(obj.stateDefaults, _.defaults(stateAttrs, {
+        relations: obj.stateRelations,
+        compute: obj.stateCompute,
+        defaults: obj.stateDefaults
+      }));
+      obj.state.on("all", function() {
+        var args, eventName;
         eventName = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
-        split = eventName.split(':');
-        if (split[0] === 'change' && split[1]) {
-          return obj.trigger.apply(obj, ["change:$state." + split[1]].concat(__slice.call(args)));
-        }
+        return obj.trigger.apply(obj, ["state:" + eventName].concat(__slice.call(args)));
       });
     }
+    return obj.state.parent = obj;
   };
 
   uncapitalize = function(str) {
@@ -1989,6 +1973,7 @@
         filters: true,
         ractive: true,
         components: true,
+        liveTemplates: true,
         manage: true,
         inherit: true,
         map: true,
