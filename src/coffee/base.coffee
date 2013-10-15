@@ -1046,15 +1046,16 @@ capitalize = (str) ->
 addState = (obj) ->
   return if obj instanceof Base.State
 
+  stateAttrs = obj.stateAttributes
   if obj instanceof Base.View or obj instanceof Base.Router
-    obj.state = new Base.State obj.defaults,
+    obj.state = new Base.State obj.defaults, _.defaults stateAttrs
       relations: obj.relations
       compute: obj.compute
       defaults: obj.defaults
 
     obj.state.on 'all', -> obj.trigger arguments...
   else
-    obj.state = new Base.State obj.stateDefaults, _.defaults obj.stateAttributes,
+    obj.state = new Base.State obj.stateDefaults, _.defaults stateAttrs,
       relations: obj.stateRelations
       compute: obj.stateCompute
       defaults: obj.stateDefaults
