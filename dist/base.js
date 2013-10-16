@@ -1,13 +1,15 @@
-/* base.js v0.0.31 */ 
+/* base.js v0.0.32 */ 
 
 (function() {
-  var Base, BasicView, DOMEventList, Ractive, addState, appSurrogate, arr, callbackStringSplitter, camelize, capitalize, className, currentApp, dasherize, deserialize, getModuleArgs, invokeModule, invokeWithArgs, method, module, moduleQueue, moduleType, moduleTypes, originalBase, parseRequirements, prepareModule, subject, type, uncapitalize, _base, _fn, _fn1, _fn2, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _len5, _len6, _len7, _m, _n, _o, _p, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7,
+  var $, Backbone, Base, BasicView, DOMEventList, Ractive, addState, appSurrogate, arr, callbackStringSplitter, camelize, capitalize, className, currentApp, dasherize, deserialize, exports, getDependency, getModuleArgs, invokeModule, invokeWithArgs, method, module, moduleQueue, moduleType, moduleTypes, originalBase, parseRequirements, prepareModule, requireCompatible, root, subject, type, uncapitalize, _, _base, _fn, _fn1, _fn2, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _len5, _len6, _len7, _m, _n, _o, _p, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7,
+    __slice = [].slice,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    __slice = [].slice,
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
-  originalBase = window.Base;
+  root = this;
+
+  originalBase = root.Base;
 
   currentApp = null;
 
@@ -15,11 +17,32 @@
     singletons: {}
   };
 
-  if (window._JST == null) {
-    window._JST = {};
+  if (root._JST == null) {
+    root._JST = {};
   }
 
-  Ractive = window.Ractive || (typeof window.require === 'function' ? require('Ractive') : void 0);
+  requireCompatible = typeof require === 'function';
+
+  getDependency = function() {
+    var arg, args, global, required, _i, _len;
+    args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+    for (_i = 0, _len = args.length; _i < _len; _i++) {
+      arg = args[_i];
+      if (!arg) {
+        continue;
+      }
+      global = root[arg];
+      if (global) {
+        return global;
+      }
+      if (requireCompatible) {
+        required = require(arg.toLowerCase());
+        if (required) {
+          return required;
+        }
+      }
+    }
+  };
 
   arr = [];
 
@@ -56,13 +79,41 @@
   })();
 
   Base.noConflict = function() {
-    window.Base = originalBase;
+    root.Base = originalBase;
     return Base;
   };
 
-  if (Base.$ == null) {
-    Base.$ = window.$ || window.jQuery || window.Zepto;
-  }
+  Ractive = Base.Ractive = getDependency('Ractive');
+
+  $ = Base.$ = getDependency('$', 'jQuery', 'Zepto');
+
+  Backbone = Base.Backbone = getDependency('Backbone');
+
+  _ = Base._ = getDependency('_', 'underscore', 'lodash');
+
+  Object.defineProperty(Base, 'Backbone', {
+    set: function(value) {
+      return Backbone = value;
+    }
+  });
+
+  Object.defineProperty(Base, '$', {
+    set: function(value) {
+      return $ = value;
+    }
+  });
+
+  Object.defineProperty(Base, '_', {
+    set: function(value) {
+      return _ = value;
+    }
+  });
+
+  Object.defineProperty(Base, 'Ractive', {
+    set: function(value) {
+      return Ractive = value;
+    }
+  });
 
   Base.config = {
     debug: {
@@ -250,7 +301,7 @@
             _results.push(void 0);
           }
         } else if (key === 'document' || key === 'window') {
-          selector = key === 'document' ? document : window;
+          selector = key === 'document' ? document : root;
           $el = $(selector);
           _results.push((function() {
             var _results1;
@@ -747,7 +798,7 @@
         this.ractive.teardown();
         this.ractive.unbind();
       }
-      Base.$([document, window]).off(".delegateEvents-" + this.cid);
+      $([document, root]).off(".delegateEvents-" + this.cid);
       this.state.off();
       this.state.stopListening();
       if (this.state.cleanup()) {
@@ -884,7 +935,7 @@
       if (this.template == null) {
         this.template = _JST["src/templates/app.html"];
       }
-      $win = $(window);
+      $win = $(root);
       $win.on("resize.appResize-" + this.cid, _.debounce((function() {
         return _this.set({
           windowWidth: $win.width(),
@@ -899,7 +950,7 @@
     App.prototype.require = function() {};
 
     App.prototype.destroy = function() {
-      Base.$(window).off("resize.appResize-" + this.cid);
+      $(root).off("resize.appResize-" + this.cid);
       return App.__super__.destroy.apply(this, arguments);
     };
 
@@ -2010,8 +2061,6 @@
 
   Base.Controller = Base.View;
 
-  window.Base = Base;
-
   Base.utils = {
     store: {
       getItem: function(name) {
@@ -2092,8 +2141,8 @@
     Base.apps = {};
   }
 
-  Base.$(function() {
-    return Base.$('[base-app]').each(function(index, el) {
+  $(function() {
+    return $('[base-app]').each(function(index, el) {
       var App, app, name;
       name = el.getAttribute('base-app');
       App = Base.apps[capitalize(name)];
@@ -2105,5 +2154,17 @@
       }
     });
   });
+
+  if (typeof exports !== 'undefined') {
+    exports = Base;
+  } else {
+    root.Base = Base;
+  }
+
+  if (typeof define === 'function') {
+    define('Base', ['jquery', 'underscore', 'backbone'], function() {
+      return Base;
+    });
+  }
 
 }).call(this);

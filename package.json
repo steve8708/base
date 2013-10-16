@@ -1,6 +1,6 @@
 {
   "name": "pict-base",
-  "version": "0.0.31",
+  "version": "0.0.32",
   "author": "PICT",
   "description": "Pict Application Base",
   "dependencies": {
