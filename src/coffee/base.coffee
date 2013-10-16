@@ -6,15 +6,26 @@
 
 # Setup - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-originalBase = window.Base
+root = this
+
+originalBase = root.Base
 currentApp = null
 appSurrogate = singletons: {}
-window._JST ?= {}
-Ractive = window.Ractive or \
-  if typeof window.require is 'function' then require 'Ractive'
+# FIXME: remove this
+root._JST ?= {}
 
-# FIXME:
-Backbone = window.Backbone || typeof require is 'function' and require 'backbone'
+
+requireCompatible = typeof require is 'function'
+getDependency = (args...) ->
+  for arg in args
+    continue if not arg
+
+    global = root[arg]
+    return global if global
+
+    if requireCompatible
+      required = require arg.toLowerCase()
+      return required if required
 
 arr = []
 callbackStringSplitter = /\s*[,:()]+\s*/
@@ -46,12 +57,19 @@ class Base
     super
 
 Base.noConflict = ->
-  window.Base = originalBase
+  root.Base = originalBase
   Base
 
-$ = Base.$ = window.$ || window.jQuery || window.Zepto
-Backbone = Base.Backbone = window.Backbone
-_ = Base._ = window._
+
+# Load in dependencies - - - - - - - - - - - - - - - - - - -
+
+Ractive = Base.Ractive = getDependency 'Ractive'
+$ = Base.$ = getDependency '$', 'jQuery', 'Zepto'
+Backbone = Base.Backbone = getDependency 'Backbone'
+_ = Base._ = getDependency '_', 'underscore', 'lodash'
+
+
+# Enable depenndency overriding - - - - - - - - - - - - - -
 
 Object.defineProperty Base, 'Backbone',
   set: (value) ->
@@ -64,6 +82,11 @@ Object.defineProperty Base, '$',
 Object.defineProperty Base, '_',
   set: (value) ->
     _ = value
+
+Object.defineProperty Base, 'Ractive',
+  set: (value) ->
+    Ractive = value
+
 
 # Config - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -173,7 +196,7 @@ class Base.View extends Backbone.View
       if typeof value in ['function', 'string']
         @on key, @_getCallback(value).bind @ if value
       else if key in ['document', 'window']
-        selector = if key is 'document' then document else window
+        selector = if key is 'document' then document else root
         $el = $ selector
         for name, callback of value
           $el.on "#{name}.delegateEvents-#{@cid}", \
@@ -495,7 +518,7 @@ class Base.View extends Backbone.View
       @ractive.teardown()
       @ractive.unbind()
 
-    $([document, window]).off ".delegateEvents-#{@cid}"
+    $([document, root]).off ".delegateEvents-#{@cid}"
     @state.off()
     @state.stopListening()
     @state.cleanup() if @state.cleanup()
@@ -577,7 +600,7 @@ class Base.App extends Base.View
     # FIXME: remove this and make it configurable instead
     @template ?= _JST["src/templates/app.html"]
 
-    $win = $ window
+    $win = $ root
     $win.on "resize.appResize-#{@cid}", _.debounce ( =>
       @set
         windowWidth: $win.width(),
@@ -592,7 +615,7 @@ class Base.App extends Base.View
   require: ->
 
   destroy: ->
-    $(window).off "resize.appResize-#{@cid}"
+    $(root).off "resize.appResize-#{@cid}"
     super
 
   # FIXME: implement based off Base.define
@@ -1297,7 +1320,7 @@ Base.plugins =
 
       @set getStore()
       # FIXME: this may have performance issues on some browsers, mauy need to
-      # use window unload or an interval instead
+      # use root unload or an interval instead
       @on 'change', setStore
 
 
@@ -1367,7 +1390,6 @@ for className in ['Model', 'Router', 'Collection', 'View', 'Stated', 'App',
 
 
 Base.Controller = Base.View
-window.Base = Base
 
 Base.utils =
   # FIXME: move to plugin (service?)
@@ -1429,7 +1451,6 @@ Base.services.require = (string) ->
       return module if module
 
 
-
 # Initialize - - - - - - - - - - - - - - - - - - - - - - - -
 Base.apps ?= {}
 
@@ -1443,4 +1464,16 @@ $ ->
     # FIXME: doesn't work for multiple base apps on one page
     if not app or app.el isnt el
       new App el: el
+
+
+# Export - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if typeof exports isnt 'undefined'
+  exports = Base
+else
+  root.Base = Base
+
+if typeof define is 'function'
+  # FIXME: this doesn't work if you want to use zepto or lodash
+  define 'Base', ['jquery', 'underscore', 'backbone'], -> Base
 
