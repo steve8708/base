@@ -13,6 +13,9 @@ window._JST ?= {}
 Ractive = window.Ractive or \
   if typeof window.require is 'function' then require 'Ractive'
 
+# FIXME:
+Backbone = window.Backbone || typeof require is 'function' and require 'backbone'
+
 arr = []
 callbackStringSplitter = /\s*[,:()]+\s*/
 
@@ -23,6 +26,7 @@ DOMEventList = 'blur focus focusin focusout load resize scroll
 
 
 # IE function.name shim
+# FIXME: don't rely on this and instead set name properties directly
 if not Function::name? and Object.defineProperty?
   Object.defineProperty Function::, 'name',
     get: ->
@@ -45,7 +49,21 @@ Base.noConflict = ->
   window.Base = originalBase
   Base
 
-Base.$ ?= window.$ || window.jQuery || window.Zepto
+$ = Base.$ = window.$ || window.jQuery || window.Zepto
+Backbone = Base.Backbone = window.Backbone
+_ = Base._ = window._
+
+Object.defineProperty Base, 'Backbone',
+  set: (value) ->
+    Backbone = value
+
+Object.defineProperty Base, '$',
+  set: (value) ->
+    $ = value
+
+Object.defineProperty Base, '_',
+  set: (value) ->
+    _ = value
 
 # Config - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -477,7 +495,7 @@ class Base.View extends Backbone.View
       @ractive.teardown()
       @ractive.unbind()
 
-    Base.$([document, window]).off ".delegateEvents-#{@cid}"
+    $([document, window]).off ".delegateEvents-#{@cid}"
     @state.off()
     @state.stopListening()
     @state.cleanup() if @state.cleanup()
@@ -556,6 +574,7 @@ class Base.App extends Base.View
       currentApp[key] ?= value
     appSurrogate = null
 
+    # FIXME: remove this and make it configurable instead
     @template ?= _JST["src/templates/app.html"]
 
     $win = $ window
@@ -573,7 +592,7 @@ class Base.App extends Base.View
   require: ->
 
   destroy: ->
-    Base.$(window).off "resize.appResize-#{@cid}"
+    $(window).off "resize.appResize-#{@cid}"
     super
 
   # FIXME: implement based off Base.define
@@ -1415,9 +1434,9 @@ Base.services.require = (string) ->
 Base.apps ?= {}
 
 # FIXME: support app prototypes vs active apps
-Base.$ ->
+$ ->
 
-  Base.$('[base-app]').each (index, el) ->
+  $('[base-app]').each (index, el) ->
     name = el.getAttribute 'base-app'
     App = Base.apps[capitalize name]
     app = Base.apps[uncapitalize name]
