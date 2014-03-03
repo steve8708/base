@@ -1,7 +1,7 @@
 ![base.js](http://i.imgur.com/wdK1lsu.png)
 
 Maximize code reuse, minimize DOM management, optimize happiness.
-All the features you need to buld stunning HTML5 web and mobile applications with efficiency and ease.
+All the features you need to build stunning HTML5 web and mobile applications with efficiency and ease.
 Lightweight, high performance, incredibly flexible, insanely powerful.
 
 Base.js is a project
