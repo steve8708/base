@@ -39,7 +39,7 @@ Built with [Backbone](http://backbonejs.org/), [jQuery](http://jquery.com/), and
 # Project Status: Deprecated
 
 Sorry to those eager to use this project. I have since been unable to maintain this
-project and instead would personally recommend using [angular](http://angularjs.org) instead
+project and instead would personally recommend using [React](https://reactjs.org/) instead
 
 # Simple Example
 
